@@ -1,0 +1,41 @@
+Instance_name: toy_inst
+Number_of_machines: 2
+Number_of_different_items: 3
+Number_of_days: 5
+Number_of_requests: 2
+Number_of_blocks_per_day: 24
+Index_of_block_e: 2
+Index_of_block_l: 9
+Index_of_block_s: 15
+Index_of_block_o: 18
+Min_consecutive_days_with_night_shifts: 2
+Past_consecutive_days_with_night_shifts: 1
+Cost_of_overtime_p_o: 22.5
+Cost_of_nightShift_p_n: 300
+Cost_of_parallel_task_p_p: 120
+Penalty_per_item_under_minimum_level_p_s: 0.00005
+#Machines data [machineID last_itemID_produced(initial_setup) days_passed_without_maintenance max_days_without_maintenance maintenance_duration_in_blocks]
+0 2 2 3 1
+1 0 1 2 2
+#Items data [itemID cost_per_item quantity_in_stock min_allowed_in_stock max_allowd_in_stock]
+0 0.08533 0 0 1620000
+1 0.09124 660000 660000 1380000
+2 0.0815 0 0 400000
+#Machine efficiency per item [itemID production_in_machine_0_per_block production_in_machine_1_per_block]
+0 30000 30000
+1 30000 30000
+2 30000 30000
+#Large setup description matrix [#items X #items]. [i,j] is 1 if changing production from item i to j is considered a large setup, 0 if considered small. If i == j there is no cost involved.
+0 1 1
+1 0 1
+1 1 0
+#Machine setup duration in blocks [#items X #items]. [i,j] represents the number of blocks it takes to change production from item i to item j
+0 3 2
+3 0 3
+2 3 0
+#Shipping day matrix [#request X #shipping_day]. [i,j] is 1 if request i can be shipped on day j, 0 otherwise
+1 1 1 1 1
+1 0 1 0 1
+#Requested items matrix [#request X #items]. position [i,j] represents: number of items j requested by request i
+60000 0 120000
+600000 300000 0
