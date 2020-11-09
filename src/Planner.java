@@ -45,16 +45,7 @@ public class Planner {
 	}
 	private static int localSearch() {
 		//some localsearch thing.
-		return 1;/*dns × pn + to × po +
-		X
-		r∈V
-		X
-		i∈I
-		(q
-		i
-		r × ci) + X
-		d∈D
-		(ud × ps) + dp × pp*/
+		return 1;//
 	}
 
 }
