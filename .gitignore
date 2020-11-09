@@ -2,6 +2,7 @@
 /bin/
 /.classpath
 /.settings
+/.project
 
 #INTELIJ PART
 /.idea/
