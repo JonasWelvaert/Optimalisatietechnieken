@@ -1,4 +1,4 @@
-package machinestates;
+package model.machinestate;
 
 import model.Item;
 
