@@ -1,4 +1,9 @@
+#ECLIPSE PART
 /bin/
 /.classpath
 /.settings
 /.project
+
+#INTELIJ PART
+/.idea/
+/Optimalisatietechnieken.iml
