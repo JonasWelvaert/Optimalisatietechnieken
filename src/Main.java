@@ -6,7 +6,6 @@ public class Main {
 		System.out.println("#Verwijder jouw lijn als je kan bewerken op GIT.");
 		System.out.println("\t Romeo Permentier");
 		System.out.println("\tNick Braeckman");
-		System.out.println("\tJonas Welvaert");
 		System.out.println("\tElke Govaert");
 	}
 
