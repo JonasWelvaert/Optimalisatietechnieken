@@ -1,14 +1,12 @@
 package model;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import machinetoestand.MachineToestand;
+import machinestates.MachineState;
 
 public class Block {
 	private int id;
-	private Map<Machine, MachineToestand> machineToestanden;
+	private Map<Machine, MachineState> machineToestanden;
 
 	public Block() {
 		machineToestanden = new HashMap<>();
