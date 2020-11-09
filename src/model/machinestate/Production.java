@@ -4,5 +4,9 @@ import model.Item;
 
 public class Production implements MachineState {
 	private Item item;
-	private int efficiency;
+
+	@Override
+	public String toString() {
+		return "I_" + item.getId();
+	}
 }

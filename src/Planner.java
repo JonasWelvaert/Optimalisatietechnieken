@@ -1,7 +1,10 @@
+
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
@@ -11,6 +14,9 @@ import model.Item;
 import model.Machine;
 import model.Planning;
 import model.Request;
+import model.Requests;
+import model.Stock;
+import model.machinestate.Idle;
 
 public class Planner {
 	private static final String inputFileName = "toy_inst.txt";
@@ -21,7 +27,8 @@ public class Planner {
 	private static int COST_OF_PARALLEL_TASK;
 	private static double PENALTY_PER_ITEM_UNDER_MINIMUM_LEVEL;
 	private static Planning planning;
-	private static List<Request> requests;
+	private static Requests requests;
+	private static Stock stock;
 
 	public static void main(String[] args) {
 		// GIT test: de laatste verwijdert de hele git blok!
@@ -30,16 +37,34 @@ public class Planner {
 		System.out.println("\tElke Govaert");
 
 		// 1. inputfile
-
 		System.out.println("Starting reading of input file " + inputFileName);
 		ReadFileIn();
 		System.out.println("Finished reading of input file " + inputFileName);
 
 		// 2. initial solution
 		System.out.println("Starting making first feasible solution");
+
+		// putting all machines all the time in idle.
+		for (Machine m : planning.getMachines()) {
+			for (Day d : planning.getDays()) {
+				for (Block b : d.getBlocks()) {
+					b.setMachineState(m, new Idle());
+				}
+			}
+		}
+
+		// then stock will always be the initial stock.
+		for (Item i : stock.getItems()) {
+			for (Day d : planning.getDays()) {
+				i.setStockAmount(d, i.getInitialQuantityInStock());
+			}
+		}
+
+		// now we need to make sure all needed maintenances are planned && all nightshifts are fullfilled.
 		// TODO
-		optimize(planning);
-		if (!checkFeasible(planning)) {
+
+		// after that, we have a feasible solution??
+		if (!checkFeasible(planning, stock, requests)) {
 			System.err.println("2. Initial solution is not feasible!");
 			System.exit(2);
 		}
@@ -48,8 +73,8 @@ public class Planner {
 		// 3. optimalisation
 		System.out.println("Starting optimalisation");
 		// TODO
-		// metaheuristik();
-		boolean feasible = checkFeasible(planning);
+		optimize();
+		boolean feasible = checkFeasible(planning, stock, requests);
 		if (feasible) {
 			evaluate(new ArrayList<Day>());
 		}
@@ -57,22 +82,81 @@ public class Planner {
 
 		// 4. output
 		System.out.println("Starting writing outputfile");
-		// TODO
-
+		printOutputToConsole();
+		printOutputToFile("output_" + inputFileName);	//TODO somehow this gives strange number representations...
 		System.out.println("Finished writing outputfile");
 	}
 
-	private static void optimize(Planning planning) {
-
+	private static void printOutputToFile(String filename) {
+		try {
+			BufferedWriter bw = new BufferedWriter(new FileWriter(new File(filename)));
+			bw.write("Instance_name: " + planning.getInstanceName() + System.lineSeparator());
+			bw.write("Cost: " + Integer.MAX_VALUE + System.lineSeparator());
+			for (Day d : planning.getDays()) {
+				bw.write("#Day " + d.getId() + System.lineSeparator());
+				for (Block b : d) {
+					bw.write(b.getId());
+					for (Machine m : planning.getMachines()) {
+						bw.write(";" + b.getMachineState(m).toString());
+					}
+					bw.write(System.lineSeparator());
+				}
+				bw.write("#Shipped request ids" + System.lineSeparator());
+				int teller = 0;
+				for (Request r : requests) {
+					if (r.getShippingDay() != null && r.getShippingDay().equals(d)) {
+						if (teller != 0) {
+							bw.write(";");
+						}
+						bw.write(r.getId());
+						teller++;
+					}
+				}
+				if (teller == 0) {
+					bw.write("-1");
+				}
+				bw.write(System.lineSeparator());
+				bw.write("#Night shift" + System.lineSeparator());
+				bw.write((d.hasNightShift() ? 1 : 0) + System.lineSeparator());
+			}
+			bw.flush();
+			bw.close();
+		} catch (IOException e) {
+			System.err.println("4. IOException");
+			System.exit(4);
+		}
 	}
 
-	private static boolean checkFeasible(Planning planning) {
-
-		return true;
-	}
-
-	private static void evaluate(List<Day> solution) {
-
+	private static void printOutputToConsole() {
+		System.out.println("Instance_name: " + planning.getInstanceName());
+		System.out.println("Cost: " + Integer.MAX_VALUE);
+		for (Day d : planning.getDays()) {
+			System.out.println("#Day " + d.getId());
+			for (Block b : d) {
+				System.out.print(b.getId());
+				for (Machine m : planning.getMachines()) {
+					System.out.print(";" + b.getMachineState(m));
+				}
+				System.out.println();
+			}
+			System.out.println("#Shipped request ids");
+			int teller = 0;
+			for (Request r : requests) {
+				if (r.getShippingDay() != null && r.getShippingDay().equals(d)) {
+					if (teller != 0) {
+						System.out.print(";");
+					}
+					System.out.print(r.getId());
+					teller++;
+				}
+			}
+			if (teller == 0) {
+				System.out.print("-1");
+			}
+			System.out.println();
+			System.out.println("#Night shift");
+			System.out.println(d.hasNightShift() ? 1 : 0);
+		}
 	}
 
 	private static void ReadFileIn() {
@@ -83,12 +167,13 @@ public class Planner {
 			System.err.println("1. Inputfile " + inputFileName + " not found.");
 			System.exit(1);
 		}
+
 		int input_block = 0;
+		int i = 0;
+
 		String instanceName = "";
 		int nrOfMachines = 0;
-		int[][] largeSetupMatrix = null;
-		int[][] machineSetupDuration = null;
-		int i = 0;
+
 		while (scanner.hasNextLine()) {
 			String inputLine = scanner.nextLine();
 			String[] inputDelen = inputLine.split(" ");
@@ -96,29 +181,31 @@ public class Planner {
 				instanceName = inputDelen[1];
 			} else if (inputDelen[0].equals("Number_of_machines:")) {
 				nrOfMachines = Integer.parseInt(inputDelen[1]);
-				planning = new Planning(instanceName, nrOfMachines);
 			} else if (inputDelen[0].equals("Number_of_different_items:")) {
-				Item.NUMBER_OF_DIFFERENT_ITEMS = Integer.parseInt(inputDelen[1]);
-				largeSetupMatrix = new int[Item.NUMBER_OF_DIFFERENT_ITEMS][Item.NUMBER_OF_DIFFERENT_ITEMS];
-				machineSetupDuration = new int[Item.NUMBER_OF_DIFFERENT_ITEMS][Item.NUMBER_OF_DIFFERENT_ITEMS];
+				int nrOfDifferentItems = Integer.parseInt(inputDelen[1]);
+				stock = new Stock(nrOfDifferentItems);
 			} else if (inputDelen[0].equals("Number_of_days:")) {
-				Planning.NR_OF_DAYS = Integer.parseInt(inputDelen[1]);
+				Planning.setNumberOfDays(Integer.parseInt(inputDelen[1]));
 			} else if (inputDelen[0].equals("Number_of_requests:")) {
-				requests = new ArrayList<>(Integer.parseInt(inputDelen[1]));
+				requests = new Requests();
+				for (int j = 0; j < Integer.parseInt(inputDelen[1]); j++) {
+					requests.add(new Request(j));
+				}
 			} else if (inputDelen[0].equals("Number_of_blocks_per_day:")) {
-				Day.NUMBER_OF_BLOCKS_PER_DAY = Integer.parseInt(inputDelen[1]);
+				Day.setNumberOfBlocksPerDay(Integer.parseInt(inputDelen[1]));
+				planning = new Planning(instanceName, nrOfMachines);
 			} else if (inputDelen[0].equals("Index_of_block_e:")) {
-				Day.INDEX_OF_BLOCK_E = Integer.parseInt(inputDelen[1]);
+				Day.indexOfBlockE = Integer.parseInt(inputDelen[1]);
 			} else if (inputDelen[0].equals("Index_of_block_l:")) {
-				Day.INDEX_OF_BLOCK_L = Integer.parseInt(inputDelen[1]);
+				Day.indexOfBlockL = Integer.parseInt(inputDelen[1]);
 			} else if (inputDelen[0].equals("Index_of_block_s:")) {
-				Day.INDEX_OF_BLOCK_S = Integer.parseInt(inputDelen[1]);
+				Day.indexOfBlockS = Integer.parseInt(inputDelen[1]);
 			} else if (inputDelen[0].equals("Index_of_block_o:")) {
-				Day.INDEX_OF_BLOCK_O = Integer.parseInt(inputDelen[1]);
+				Day.indexOfBlockO = Integer.parseInt(inputDelen[1]);
 			} else if (inputDelen[0].equals("Min_consecutive_days_with_night_shifts:")) {
-				MIN_CONSECUTIVE_DAYS_WITH_NIGHT_SHIFTS = Integer.parseInt(inputDelen[1]);
+				Planning.setMinConsecutiveDaysWithNightShift(Integer.parseInt(inputDelen[1]));
 			} else if (inputDelen[0].equals("Past_consecutive_days_with_night_shifts:")) {
-				PAST_CONSECUTIVE_DAYS_WITH_NIGHT_SHIFTS = Integer.parseInt(inputDelen[1]);
+				Planning.setPastConsecutiveDaysWithNightShift(Integer.parseInt(inputDelen[1]));
 			} else if (inputDelen[0].equals("Cost_of_overtime_p_o:")) {
 				COST_OF_OVERTIME = Double.parseDouble(inputDelen[1]);
 			} else if (inputDelen[0].equals("Cost_of_nightShift_p_n:")) {
@@ -129,10 +216,13 @@ public class Planner {
 				PENALTY_PER_ITEM_UNDER_MINIMUM_LEVEL = Double.parseDouble(inputDelen[1]);
 			} else if (inputLine.startsWith("#Machines data")) {
 				input_block = 1;
+				i = 0;
 			} else if (inputLine.startsWith("#Items data")) {
 				input_block = 2;
+				i = 0;
 			} else if (inputLine.startsWith("#Machine efficiency per item")) {
 				input_block = 3;
+				i = 0;
 			} else if (inputLine.startsWith("#Large setup description matrix")) {
 				input_block = 4;
 				i = 0;
@@ -151,41 +241,58 @@ public class Planner {
 				int daysPastWithoutMaintenance = Integer.parseInt(inputDelen[2]);
 				int maxDaysWithoutMaintenance = Integer.parseInt(inputDelen[3]);
 				int maintenanceDurationInBlocks = Integer.parseInt(inputDelen[4]);
-				// TODO Machine machine = new Machine(id);
+				planning.addMachine(new Machine(id, stock.getItem(lastItemIdProduced), daysPastWithoutMaintenance,
+						maxDaysWithoutMaintenance, maintenanceDurationInBlocks));
+				i++;
 			} else if (input_block == 2) {
 				int id = Integer.parseInt(inputDelen[0]);
 				double costPerItem = Double.parseDouble(inputDelen[1]);
 				int quantityInStock = Integer.parseInt(inputDelen[2]);
 				int minAllowedInStock = Integer.parseInt(inputDelen[3]);
 				int maxAllowedInStock = Integer.parseInt(inputDelen[4]);
-				// TODO
+				Item item = stock.getItem(id);
+				item.setCostPerItem(costPerItem);
+				item.setInitialQuantityInStock(quantityInStock);
+				item.setMaxAllowedInStock(maxAllowedInStock);
+				item.setMinAllowedInStock(minAllowedInStock);
+				i++;
 			} else if (input_block == 3) {
 				int id = Integer.parseInt(inputDelen[0]);
-				int[] productionInMachinePerBlock = Arrays.stream(Arrays.copyOfRange(inputDelen, 1, nrOfMachines + 1))
-						.mapToInt(Integer::parseInt).toArray();
-				int productionInMachine0PerBlock = Integer.parseInt(inputDelen[1]);
-				int productionInMachine1PerBlock = Integer.parseInt(inputDelen[2]);
-				// TODO
+				for (int j = 1; j < nrOfMachines; j++) {
+					planning.getMachines().get(j).addEfficiency(stock.getItem(id), Integer.parseInt(inputDelen[j]));
+				}
 			} else if (input_block == 4) {
-				largeSetupMatrix[i] = Arrays.stream(inputDelen).mapToInt(Integer::parseInt).toArray();
-				i++;
-				if (i == Item.NUMBER_OF_DIFFERENT_ITEMS) {
-					// TODO
+				Item item = stock.getItem(i);
+				for (int j = 0; j < stock.getNrOfDifferentItems(); j++) {
+					if (i != j) {
+						item.setLargeSetup(stock.getItem(j), inputDelen[j].equals("1"));
+					}
 				}
+				i++;
 			} else if (input_block == 5) {
-				machineSetupDuration[i] = Arrays.stream(inputDelen).mapToInt(Integer::parseInt).toArray();
-				i++;
-				if (i == Item.NUMBER_OF_DIFFERENT_ITEMS) {
-					// TODO
+				Item item = stock.getItem(i);
+				for (int j = 0; j < stock.getNrOfDifferentItems(); j++) {
+					if (i != j) {
+						item.setSetupTime(stock.getItem(j), Integer.parseInt(inputDelen[j]));
+					}
 				}
+				i++;
 			} else if (input_block == 6) {
-				int[] shippingDays = Arrays.stream(inputDelen).mapToInt(Integer::parseInt).toArray();
+				Request request = requests.get(i);
+				for (int j = 0; j < Planning.getNumberOfDays(); j++) {
+					if (inputDelen[j].equals("1")) {
+						request.addPossibleShippingDay(planning.getDay(j));
+					}
+				}
 				i++;
-				// TODO
 			} else if (input_block == 7) {
-				int[] requestedItems = Arrays.stream(inputDelen).mapToInt(Integer::parseInt).toArray();
+				Request request = requests.get(i);
+				for (int j = 0; j < stock.getNrOfDifferentItems(); j++) {
+					if (!inputDelen[j].equals("0")) {
+						request.addItem(stock.getItem(j), Integer.parseInt(inputDelen[j]));
+					}
+				}
 				i++;
-				// TODO
 			} else {
 				System.err.println("3. Een lijn is niet verwerkt bij het inlezen van de inputfile: ");
 				System.err.println(inputLine);
@@ -195,7 +302,16 @@ public class Planner {
 		scanner.close();
 	}
 
-	private static void metaHeuristic() {
+	private static boolean checkFeasible(Planning planning, Stock stock, Requests requests) {
+
+		return true;
+	}
+
+	private static void evaluate(List<Day> solution) {
+
+	}
+
+	private static void optimize() {
 		int solution = 0;
 		int teller = 0;
 		while (teller < 1000) {
@@ -212,7 +328,8 @@ public class Planner {
 	private static int localSearch() {
 		// some localsearch thing.
 		return 1;/*
-					 * dns × pn + to × po + X r∈V X i∈I (q i r × ci) + X d∈D (ud × ps) + dp × pp
+					 * dns × pn + to × po + SOM r∈V SOM i∈I (q i r × ci) + SOM d∈D (ud × ps) + dp ×
+					 * pp
 					 */
 	}
 
