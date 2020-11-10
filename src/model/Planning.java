@@ -10,6 +10,8 @@ public class Planning {
 	private String instanceName;
 	private List<Machine> machines;
 	private List<Day> days;
+	private Requests requests;
+	private Stock stock;
 
 	public Planning(String instanceName, int nrOfMachines) {
 		this.instanceName = instanceName;
@@ -62,5 +64,21 @@ public class Planning {
 	
 	public List<Day> getDays() {
 		return days;
+	}
+
+	public Requests getRequests() {
+		return requests;
+	}
+
+	public void setRequests(Requests requests) {
+		this.requests = requests;
+	}
+
+	public Stock getStock() {
+		return stock;
+	}
+
+	public void setStock(Stock stock) {
+		this.stock = stock;
 	}
 }
