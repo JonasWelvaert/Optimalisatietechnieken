@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class Request {
 
@@ -34,9 +35,21 @@ public class Request {
 	public Day getShippingDay() {
 		return shippingDay;
 	}
-	
+
 	public int getId() {
 		return id;
+	}
+
+	public List<Day> getPossibleShippingDays() {
+		return possibleShippingDays;
+	}
+
+	public Set<Item> getItems() {
+		return amountOfItem.keySet();
+	}
+
+	public int getAmountOfItem(Item i) {
+		return amountOfItem.get(i);
 	}
 
 }

@@ -12,6 +12,7 @@ public class Day implements Iterable<Block> {
 	public static int indexOfBlockO;
 	private int id;
 	private List<Block> blocks;
+	private boolean hasNightShift;
 
 	public Day(int id) {
 		this.id = id;
@@ -19,6 +20,20 @@ public class Day implements Iterable<Block> {
 		for (int i = 0; i < numberOfBlocksPerDay; i++) {
 			blocks.add(new Block(i));
 		}
+		this.hasNightShift = false;
+	}
+
+	public Day(Day d) {
+		this.id = d.id;
+		this.hasNightShift = d.hasNightShift;
+		this.blocks = new ArrayList<>(d.blocks.size());
+		for (Block b : d.blocks) {
+			this.blocks.add(new Block(b));
+		}
+	}
+
+	public Block getBlock(int id) {
+		return blocks.get(id);
 	}
 
 	public static void setNumberOfBlocksPerDay(int numberOfBlocksPerDay) {
@@ -38,7 +53,11 @@ public class Day implements Iterable<Block> {
 	}
 
 	public boolean hasNightShift() {
-		return false;// TODO
+		return hasNightShift;
+	}
+
+	public void setNightShift(boolean hasNightShift) {
+		this.hasNightShift = hasNightShift;
 	}
 
 	@Override

@@ -75,4 +75,15 @@ public class Item {
 	public int getLengthSetup(Item to) {
 		return setupTime.get(to);
 	}
+	
+	public int  getStockAmount(Day d) {
+		return stockAmount.get(d);
+	}
+	
+	public Day findDayWithId(int id) {
+		for(Day d:stockAmount.keySet()) {
+			if(d.getId() == id) return d;
+		}
+		return null;
+	}
 }

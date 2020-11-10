@@ -5,4 +5,5 @@ public class Idle implements MachineState {
 	public String toString() {
 		return "IDLE";
 	}
+
 }
