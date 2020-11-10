@@ -4,6 +4,7 @@ public class Solver {
 
 
     public static Planning localSearch(Planning optimizedPlanning) {
+        // TODO: Elke
         // some localsearch thing.
 
         // TODO: hier al de cost wijzigen per wijziging
@@ -15,11 +16,12 @@ public class Solver {
     }
 
     public static boolean checkFeasible(Planning planning) {
-        //TODO
+        //TODO: Nick
         return true;
     }
 
     private static int evaluate(Planning planning) {
+        // TODO: Romeo
         return 0;
     }
 

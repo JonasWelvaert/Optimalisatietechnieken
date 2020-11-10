@@ -26,7 +26,7 @@ public class Planning {
 
 
 	public Planning(Planning p) {
-		// TODO: deep copy
+		// TODO: Jonas deep copy
 		this.instanceName = p.instanceName;
 		this.machines = p.machines;
 		this.days = p.days;
