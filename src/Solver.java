@@ -3,9 +3,12 @@ import model.Planning;
 public class Solver {
 
 
-    public static int localSearch() {
+    public static Planning localSearch(Planning optimizedPlanning) {
         // some localsearch thing.
-        return 1;/*
+
+        // TODO: hier al de cost wijzigen per wijziging
+
+        return null;/*
          * dns × pn + to × po + SOM r∈V SOM i∈I (q i r × ci) + SOM d∈D (ud × ps) + dp ×
          * pp
          */
@@ -22,14 +25,16 @@ public class Solver {
 
     public static Planning optimize(long seed, long timeLimit, Planning initialPlanning) {
 
-        Planning optimizedPlanning = null;
+        Planning optimizedPlanning = new Planning(initialPlanning);
+        //int previousCost = initialPlanning.getCost();
+
         int cost;
         int solution = 0;
         int teller = 0;
         while (teller < 1000) {
-            int value = localSearch();
-            if (solution < value) {
-                solution = value;
+            Planning newPlanning = localSearch(optimizedPlanning);
+            if (optimizedPlanning.getCost() > newPlanning.getCost()) {
+                optimizedPlanning = newPlanning;
                 teller = 0;
             } else {
                 teller++;

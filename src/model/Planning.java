@@ -12,6 +12,7 @@ public class Planning {
 	private List<Day> days;
 	private Requests requests;
 	private Stock stock;
+	private int cost;
 
 	public Planning(String instanceName, int nrOfMachines) {
 		this.instanceName = instanceName;
@@ -20,6 +21,18 @@ public class Planning {
 		for (int i = 0; i < numberOfDays; i++) {
 			days.add(new Day(i));
 		}
+	}
+
+
+
+	public Planning(Planning p) {
+		// TODO: deep copy
+		this.instanceName = p.instanceName;
+		this.machines = p.machines;
+		this.days = p.days;
+		this.requests = p.requests;
+		this.stock = p.stock;
+		this.cost = p.cost;
 	}
 
 	public void addMachine(Machine m) {
@@ -81,4 +94,6 @@ public class Planning {
 	public void setStock(Stock stock) {
 		this.stock = stock;
 	}
+
+	public int getCost() { return cost; }
 }
