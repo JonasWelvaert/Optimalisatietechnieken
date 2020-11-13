@@ -60,8 +60,25 @@ public class Day implements Iterable<Block> {
 		this.hasNightShift = hasNightShift;
 	}
 
+	public static int getIndexOfBlockE() {
+		return indexOfBlockE;
+	}
+
+	public static int getIndexOfBlockL() {
+		return indexOfBlockL;
+	}
+
+	public static int getIndexOfBlockS() {
+		return indexOfBlockS;
+	}
+
+	public static int getIndexOfBlockO() {
+		return indexOfBlockO;
+	}
+
 	@Override
 	public Iterator<Block> iterator() {
 		return blocks.iterator();
 	}
+
 }
