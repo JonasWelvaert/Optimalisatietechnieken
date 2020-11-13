@@ -85,7 +85,7 @@ public class Solver {
 
 		// TODO: hier al de cost wijzigen per wijziging
 
-		return null;/*
+		return optimizedPlanning;/*
 					 * dns × pn + to × po + SOM r∈V SOM i∈I (q i r × ci) + SOM d∈D (ud ×
 					 * ps) + dp × pp
 					 */
