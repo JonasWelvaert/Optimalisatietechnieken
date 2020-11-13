@@ -37,9 +37,12 @@ public class Solver {
         int solution = 0;
         int teller = 0;
         while (teller < 1000) {
-            Planning newPlanning = localSearch(optimizedPlanning);
-            if (optimizedPlanning.getCost() > newPlanning.getCost()) {
-                optimizedPlanning = newPlanning;
+        	Planning nextPlanning;
+        	do {
+        		nextPlanning = localSearch(optimizedPlanning);
+        	}while(!checkFeasible(nextPlanning));
+            if (optimizedPlanning.getCost() > nextPlanning.getCost()) {
+                optimizedPlanning = nextPlanning;
                 teller = 0;
             } else {
                 teller++;
@@ -54,6 +57,19 @@ public class Solver {
     }
 
     private static boolean checkProductionConstraints(Planning planning) {
+    	//TODO make echte code
+    	/*for(Day d: planning.getDays()) {
+    		if(d.hasNightShift()) {
+    			teller++
+    		}
+    		else {
+    			if(teller>0 en teller<minAMountofNightShifts) {
+    				return false;
+    			}else{
+    			teller=0
+    			}
+    		}
+    	}*/
 
         // check if the minimum amount of consecutive night shifts is fulfilled when their are past consecutive days
         if (planning.getPastConsecutiveDaysWithNightShift() > 0) {
@@ -85,12 +101,12 @@ public class Solver {
     }
 
     private static boolean checkOvertimeConstraints(int i, int k, Planning planning) {
+    	
 
-
-        if (planning.getDay(k).hasNightShift()) {
+        if (planning.getDay(k).hasNightShift()) {	//TODO nick verwijderen
             // check that the night shift blocks are consecutive
             if ((i > Day.indexOfBlockS) && i < (Day.getNumberOfBlocksPerDay() - 1)) {
-                if (!isConsecutive(i, k, planning)) return false;
+                if (!isConsecutiveInOvertime(i, k, planning)) return false;
             }
 
             // check that the minimum amount of consecutive days with night shift is fulfilled
@@ -104,7 +120,7 @@ public class Solver {
         } else {
             // check that the overtime blocks are consecutive
             if (i > Day.indexOfBlockS && i < Day.indexOfBlockO) {
-                if (!isConsecutive(i, k, planning)) return false;
+                if (!isConsecutiveInOvertime(i, k, planning)) return false;
             }
 
             // check that their is no overtime after block b_o for all machines
@@ -119,7 +135,7 @@ public class Solver {
         return true;
     }
 
-    private static boolean isConsecutive(int i, int k, Planning planning) {
+    private static boolean isConsecutiveInOvertime(int i, int k, Planning planning) {
 
         for (Machine m : planning.getMachines())
             if (planning.getDay(k).getBlock(i + 1).getMachineState(m) instanceof Production || planning.getDay(k).getBlock(i + 1).getMachineState(m) instanceof SmallSetup) {

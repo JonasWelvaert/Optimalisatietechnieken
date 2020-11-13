@@ -32,6 +32,9 @@ public class Planning {
 		cost = Integer.MAX_VALUE;
 	}
 
+	/**Diepe copy
+	 * @param p
+	 */
 	public Planning(Planning p) {
 		this.instanceName = p.instanceName;
 		this.days = new ArrayList<>(p.days.size());
@@ -147,5 +150,17 @@ public class Planning {
 
 	public int getCost() {
 		return cost;
+	}
+	
+	public int getAmountOfNightShiftsInNextPeriod() {//TODO: ELKe
+		int teller = 0;
+		for( int d=numberOfDays-1; d==0; d++) {
+			if(days.get(d).hasNightShift()) {
+				teller++;
+			}
+		}
+		if(teller == 0) return 0;
+		
+		return teller;
 	}
 }
