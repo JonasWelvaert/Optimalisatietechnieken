@@ -64,34 +64,27 @@ public class Solver {
 		return best;
 	}
 
-	public static Planning localSearch(Planning optimizedPlanning) { // TODO Elke
-		Random random = new Random();
-		int randomInt = random.nextInt(4);
-		switch (randomInt) {
-		case 0:
-			moveMaintenance(optimizedPlanning);
-			break;
-		case 1:
-			moveProduction(optimizedPlanning);
-			break;
-		case 2:
-			removeProduction(optimizedPlanning);
-			break;
-		case 3:
-			addProduction(optimizedPlanning);
-			break;
+    public static Planning localSearch(Planning optimizedPlanning) { // TODO Elke
+        Random random = new Random();
+        int randomInt = random.nextInt(12);
+        if (randomInt == 1)  // willen niet constant maintenance zitten verplaatsen
+            moveMaintenance(optimizedPlanning);
+        else if (randomInt < 5)
+            addProduction(optimizedPlanning);
+        else if (randomInt < 9)
+            removeProduction(optimizedPlanning);
+        else
+            changeProduction(optimizedPlanning);
 
-		}
+        // TODO: hier al de cost wijzigen per wijziging
 
-		// TODO: hier al de cost wijzigen per wijziging
+        return null;/*
+         * dns × pn + to × po + SOM r∈V SOM i∈I (q i r × ci) + SOM d∈D (ud × ps) + dp ×
+         * pp
+         */
+    }
 
-		return optimizedPlanning;/*
-					 * dns × pn + to × po + SOM r∈V SOM i∈I (q i r × ci) + SOM d∈D (ud ×
-					 * ps) + dp × pp
-					 */
-	}
-
-	public static boolean checkFeasible(Planning planning) {
+    public static boolean checkFeasible(Planning planning) {
 		// TODO Nick
 		return checkProductionConstraints(planning);
 	}
@@ -229,56 +222,96 @@ public class Solver {
 		return true;
 	}
 
-	private static void moveMaintenance(Planning planning) {
-		// random
-		Planning newPlanning = new Planning(planning);
-		Random random = new Random();
-		int randomDay = random.nextInt(newPlanning.getNumberOfDays());
-		int randomBlock = random
-				.nextInt(newPlanning.getDay(0).getIndexOfBlockL() - newPlanning.getDay(0).getIndexOfBlockE())
-				+ newPlanning.getDay(0).getIndexOfBlockE(); // enkel overdag
-		int randMachineInt = random.nextInt(newPlanning.getMachines().size());
-		Machine randMachine = newPlanning.getMachines().get(randMachineInt);
+    private static void moveMaintenance(Planning p) {
+        Random random = new Random();
 
-		for (int day = 0; day < newPlanning.getDays().size(); day++) {
-			// moet tussen block E, en nog voor block L, maar maintenance begint sws vragen
-			// want moet afgeraken binnen block E en block L
-			// dus we zoeken van block E tot Block L - hoelang t duurt voor maintenance
-			for (int block = newPlanning.getDay(day).getIndexOfBlockE(); block < newPlanning.getDay(day)
-					.getIndexOfBlockL() - newPlanning.getMachines().get(0).getMaintenanceDurationInBlocks(); block++) {
-				for (int machine = 0; machine < newPlanning.getMachines().size(); machine++) {
-					Machine m = newPlanning.getMachines().get(machine);
-					String msString = newPlanning.getDay(day).getBlock(block).getMachineState(m).toString();
-					if (msString.equals("M")) {
-						// verplaats volledige maintenance sequence
-						for (int i = 0; i < newPlanning.getMachines().get(machine)
-								.getMaintenanceDurationInBlocks(); i++) {
-							// get de machinestates
-							Maintenance maintenance = (Maintenance) newPlanning.getDay(day).getBlock(block + i)
-									.getMachineState(m);
-							MachineState ms = newPlanning.getDay(randomDay).getBlock(randomBlock + i)
-									.getMachineState(randMachine);
+        while (true) {
+            //van
+            int randomDay1 = random.nextInt(p.getNumberOfDays());
+            int randomBlock1 = random.nextInt(p.getDay(0).getIndexOfBlockL()-p.getDay(0).getIndexOfBlockE()) + p.getDay(0).getIndexOfBlockE(); // enkel overdag
+            int randMachineInt1 = random.nextInt(p.getMachines().size());
+            Machine randMachine1 = p.getMachines().get(randMachineInt1);
+            MachineState ms1 = p.getDay(randomDay1).getBlock(randomBlock1).getMachineState(randMachine1);
+            String msString1 = ms1.toString();
 
-							// wissel de machinestates
-							newPlanning.getDay(randomDay).getBlock(randomBlock + i).setMachineState(randMachine,
-									maintenance);
-							newPlanning.getDay(day).getBlock(block + i).setMachineState(m, ms);
-						}
-						// klaar dus keer terug (voor romeo aaah skaaan xD)
-						return;
-					}
-				}
-			}
-		}
-	}
+            // naar
+            int randomDay2 = random.nextInt(p.getNumberOfDays());
+            int randomBlock2 = random.nextInt(p.getDay(0).getIndexOfBlockL()-p.getDay(0).getIndexOfBlockE()) + p.getDay(0).getIndexOfBlockE(); // enkel overdag
+            int randMachineInt2 = random.nextInt(p.getMachines().size());
+            Machine randMachine2 = p.getMachines().get(randMachineInt2);
 
-	private static void addProduction(Planning optimizedPlanning) {
-	}
+            // als 1 = maintenance => verplaats naar 2
+            if (msString1.equals("M") ) {
+                // verplaats volledige maintenance sequence
+                for (int i = 0; i < p.getMachines().get(randMachineInt1).getMaintenanceDurationInBlocks(); i++) {
+                    // zet op idle
+                    p.getDay(randomDay1).getBlock(randomBlock1+i).setMachineState(randMachine1, new Idle());
 
-	private static void removeProduction(Planning optimizedPlanning) {
-	}
+                    // zet op maintenance
+                    p.getDay(randomDay2).getBlock(randomBlock2+i).setMachineState(randMachine2, ms1);
+                }
+                // klaar dus keer terug (voor romeo aaah skaaan xD)
+                return;
+            }
+        }
+    }
 
-	private static void moveProduction(Planning optimizedPlanning) {
-	}
+    private static void addProduction(Planning p) { // van hetzelfde product meer maken, geen setup nodig
+        // random
+        Random random = new Random();
+        int randomDay = random.nextInt(p.getNumberOfDays());
+        int randomBlock = random.nextInt(p.getDay(randomDay).getBlocks().size());
+        int randMachineInt = random.nextInt(p.getMachines().size());
+        Machine randMachine = p.getMachines().get(randMachineInt);
 
+        // zoek idle blok
+        while (true) {
+            String ms = p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine).toString();
+            if (ms.equals("IDLE")) {
+                Item previousItem = randMachine.getInitialSetup();
+                p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(previousItem));
+            }
+        }
+
+        // TODO: controle nieuwe nightshift
+    }
+
+    private static void changeProduction(Planning p) { // nieuwe productie op machine starten
+        // random
+        Random random = new Random();
+        int randomDay = random.nextInt(p.getNumberOfDays());
+        int randomBlock = random.nextInt(p.getDay(randomDay).getNumberOfBlocksPerDay());
+        int randMachineInt = random.nextInt(p.getMachines().size());
+        Machine randMachine = p.getMachines().get(randMachineInt);
+
+        // zoek idle blok
+        while (true) {
+            String ms = p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine).toString();
+            if (ms.equals("IDLE")) {
+                Item previousItem = randMachine.getInitialSetup();
+                // TODO: eerst nog setup, dan nieuw item
+                p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(previousItem));
+            }
+        }
+
+        // TODO: controle nieuwe nightshift
+    }
+
+    private static void removeProduction(Planning p) {
+        // random
+        Random random = new Random();
+        while (true) {
+            int randomDay = random.nextInt(p.getNumberOfDays());
+            int randomBlock = random.nextInt(p.getDay(randomDay).getNumberOfBlocksPerDay());
+            int randMachineInt = random.nextInt(p.getMachines().size());
+            Machine randMachine = p.getMachines().get(randMachineInt);
+
+            String s = p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine).toString();
+            if (s.contains("I_")) {
+                p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Idle());
+                return;
+            }
+            // TODO: controle voor eventuele overbodige setup te verwijderen?
+        }
+    }
 }
