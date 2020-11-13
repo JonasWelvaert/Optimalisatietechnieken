@@ -6,48 +6,44 @@ import model.machinestate.*;
 
 public class Solver {
 	public static final int SIMULATED_ANEALING = 100;
-	public static double SIMULATED_ANEALING_TEMPERATURE = 1000;
-	public static double SIMULATED_ANEALING_COOLINGFACTOR = 0.995;
+	private double SATemperature = 1000;
+	private double SACoolingFactor = 0.995;
+	private int mode;
 
-	public static Planning localSearch(Planning optimizedPlanning) {
-		// TODO Elke
-		// some localsearch thing.
-
-		// TODO: hier al de cost wijzigen per wijziging
-
-		return null;/*
-					 * dns × pn + to × po + SOM r∈V SOM i∈I (q i r × ci) + SOM d∈D (ud ×
-					 * ps) + dp × pp
-					 */
-	}
-
-	public static boolean checkFeasible(Planning planning) {
-		// TODO Nick
-		return checkProductionConstraints(planning);
-	}
-
-	private static int evaluate(Planning planning) {
-		return 0;
-	}
-
-	public static Planning optimize(int mode, long seed, long timeLimit, Planning initialPlanning) {
-		if (mode == SIMULATED_ANEALING) {
-			return optimizeUsingSimulatedAnealing(initialPlanning, SIMULATED_ANEALING_TEMPERATURE,
-					SIMULATED_ANEALING_COOLINGFACTOR);
+	public Solver(int mode) {
+		if (mode >= 100 && mode <= 100) {
+			this.mode = mode;
+		}else {
+			throw new RuntimeException("Optimize mode not found in Solver constructor");
 		}
-		//hier kunnen andere optimalisaties toegevoegd worden als deze niet goed blijkt.
+	}
+	
+	public void setSimulatedAnealingFactors(double SATemperature, double SACoolingFactor) {
+		this.SACoolingFactor = SACoolingFactor;
+		this.SATemperature = SATemperature;
+	}
+
+	public Planning optimize(Planning initialPlanning) {
+		if (mode == SIMULATED_ANEALING) {
+			return optimizeUsingSimulatedAnealing(initialPlanning, SATemperature,
+					SACoolingFactor);
+		}
+		// hier kunnen andere optimalisaties toegevoegd worden als deze niet goed
+		// blijkt.
 		throw new RuntimeException("Optimize mode not found in Solver.optimize()");
 	}
 
-	private static Planning optimizeUsingSimulatedAnealing(Planning initialPlanning, double temperature,
+	private Planning optimizeUsingSimulatedAnealing(Planning initialPlanning, double temperature,
 			double coolingFactor) {
 		Planning current = new Planning(initialPlanning);
 		Planning best = initialPlanning;
 
 		for (double t = temperature; t > 1; t *= coolingFactor) {
-			Planning neighbor = new Planning(current);
-			
-			localSearch(current);
+			Planning neighbor;
+			do {
+				neighbor = new Planning(current);
+				neighbor = localSearch(neighbor);
+			} while (!checkFeasible(neighbor));
 
 			int currentCost = current.getCost();
 			int neighborCost = neighbor.getCost();
@@ -55,8 +51,8 @@ public class Solver {
 			double probability;
 			if (neighborCost < currentCost) {
 				probability = 1;
-			}else {
-				probability=  Math.exp((currentCost - neighborCost) / t);
+			} else {
+				probability = Math.exp((currentCost - neighborCost) / t);
 			}
 			if (Math.random() < probability) {
 				current = new Planning(neighbor);
@@ -66,6 +62,23 @@ public class Solver {
 			}
 		}
 		return best;
+	}
+
+	public static Planning localSearch(Planning optimizedPlanning) {
+		// TODO Elke
+		// some localsearch thing.
+
+		// TODO: hier al de cost wijzigen per wijziging
+
+		return optimizedPlanning;/*
+					 * dns × pn + to × po + SOM r∈V SOM i∈I (q i r × ci) + SOM d∈D (ud ×
+					 * ps) + dp × pp
+					 */
+	}
+
+	public static boolean checkFeasible(Planning planning) {
+		// TODO Nick
+		return checkProductionConstraints(planning);
 	}
 
 	private static boolean checkProductionConstraints(Planning planning) {

@@ -33,9 +33,9 @@ public class Main {
 
         // 3. optimalisation
         System.out.println("| Starting optimalisation");
-        Solver.SIMULATED_ANEALING_COOLINGFACTOR = 0.995;
-        Solver.SIMULATED_ANEALING_TEMPERATURE = 1000;
-        Planning optimalizedPlanning = Solver.optimize(Solver.SIMULATED_ANEALING, SEED, TIME_LIMIT, initialPlanning);
+        Solver solver = new Solver(Solver.SIMULATED_ANEALING);
+        solver.setSimulatedAnealingFactors(1000, 0.995);
+        Planning optimalizedPlanning = solver.optimize(initialPlanning);
         if (!Solver.checkFeasible(optimalizedPlanning)) {
             System.err.println("5. optimalized planning is not feasible!");
             System.exit(5);
