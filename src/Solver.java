@@ -1,10 +1,7 @@
-import model.Day;
-import model.Item;
-import model.Machine;
-import model.Planning;
+import model.*;
 import model.machinestate.*;
 
-import java.util.Random;
+import java.util.*;
 
 public class Solver {
     public static final int SIMULATED_ANEALING = 100;
@@ -88,9 +85,81 @@ public class Solver {
 
     public static boolean checkFeasible(Planning planning) {
 
-        int teller = 0;
+        int teller1 = 0;
 
-        // check if the minimum amount of consecutive night shifts is fulfilled when their are past consecutive days
+        if (!isConsecutiveInNightShiftsPast(planning)) {
+            return false;
+        }
+
+        for (int d = 0; d < Planning.getNumberOfDays(); d++) {
+
+            List<Integer> setupTypes = new ArrayList<>();
+            Map<Integer, Integer> setupMap = new HashMap<>();
+
+            for (int b = 0; b < Day.getNumberOfBlocksPerDay(); b++) {
+
+                if (!checkNighShiftBlocksConstraints(b, d, planning)) {
+                    return false;
+                }
+
+                if (!checkOvertimeConstraints(teller1, b, d, planning)) {
+                    return false;
+                }
+
+                int parallelTeller = 0;
+
+                for (Machine m : planning.getMachines()) {
+
+                    MachineState state = planning.getDay(d).getBlock(b).getMachineState(m);
+
+                    // adding setup types to a list -> duplicates are allowed!
+                    // the list will be used for counting the occurrences of a setup type
+                    if (state instanceof Setup) {
+                        Item i1 = ((Setup) state).getFrom();
+                        Item i2 = ((Setup) state).getTo();
+                        setupTypes.add(i1.getId() + i2.getId());
+                        setupMap.put(i1.getId() + i2.getId(), i1.getLengthSetup(i2));
+                    }
+
+                    if (!checkParallelConstraints(m, parallelTeller, b, d, planning)) {
+                        return false;
+                    }
+
+                    if (d < Planning.getNumberOfDays() && b < Day.getNumberOfBlocksPerDay() - 1) {
+                        if (!checkProductionConstraints(m, b, d, planning)) {
+                            return false;
+                        }
+                    }
+                }
+
+            }
+            if (!checkStockConstraints(planning.getDay(d), planning)) {
+                return false;
+            }
+
+            if (!checkSetupTypeConstraint(setupTypes,setupMap)) {
+                return false;
+            }
+
+        }
+
+        for (Machine m : planning.getMachines()) {
+            for (int d = 0; d < Planning.getNumberOfDays(); d++) {
+                if (!checkChangeOverAndMaintenanceBoundaryConstraints(d, m, planning)) {
+                    return false;
+                }
+
+                if (!checkMaintenanceConstraints(d, m, planning)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    // check if the minimum amount of consecutive night shifts is fulfilled when their are past consecutive days
+    private static boolean isConsecutiveInNightShiftsPast(Planning planning) {
         if (planning.getPastConsecutiveDaysWithNightShift() > 0) {
             for (int i = 0; i < (Planning.getMinConsecutiveDaysWithNightShift() - planning.getPastConsecutiveDaysWithNightShift()); i++) {
                 if (!planning.getDay(i).hasNightShift()) {
@@ -98,53 +167,31 @@ public class Solver {
                 }
             }
         }
-
-        for (int k = 0; k < Planning.getNumberOfDays(); k++) {
-            for (int i = 0; i < Day.getNumberOfBlocksPerDay(); i++) {
-
-                // check that their is no maintenance/large setup between 0-b_e and b_l-b_n
-                if (i < Day.indexOfBlockE || i > Day.indexOfBlockL) {
-                    for (Machine m : planning.getMachines()) {
-                        if (planning.getDay(k).getBlock(i).getMachineState(m) instanceof LargeSetup || planning.getDay(k).getBlock(i).getMachineState(m) instanceof Maintenance) {
-                            return false;
-                        }
-                    }
-                }
-
-                if (!checkOvertimeConstraints(teller, i, k, planning)) {
-                    return false;
-                }
-                if (!checkParallelConstraints(i, k, planning)) {
-                    return false;
-                }
-            }
-            if (!checkStockConstraints(planning.getDay(k), planning)) {
-                return false;
-            }
-        }
-
-        for (Machine m : planning.getMachines()) {
-            if (!checkChangeOverConstraints(m,planning)) {
-                return false;
-            }
-        }
-
-        //TODO Nick check that the production of an item is only possible after the right configuration
-        // only possible if previous block is changeover to item or previous block is production of same item
-
         return true;
     }
 
-    private static boolean checkOvertimeConstraints(int teller, int i, int k, Planning planning) {
+    // check that their is no maintenance/large setup between 0-b_e and b_l-b_n
+    private static boolean checkNighShiftBlocksConstraints(int b, int d, Planning planning) {
+        if (b < Day.indexOfBlockE || b > Day.indexOfBlockL) {
+            for (Machine m : planning.getMachines()) {
+                if (planning.getDay(d).getBlock(b).getMachineState(m) instanceof LargeSetup || planning.getDay(d).getBlock(b).getMachineState(m) instanceof Maintenance) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 
-        if (planning.getDay(k).hasNightShift()) {
+    private static boolean checkOvertimeConstraints(int teller, int b, int d, Planning planning) {
+
+        if (planning.getDay(d).hasNightShift()) {
 
             teller++;
             // check that the minimum amount of consecutive days with night shift is
             // fulfilled
-            if (k > (Planning.getMinConsecutiveDaysWithNightShift()
+            if (d > (Planning.getMinConsecutiveDaysWithNightShift()
                     - planning.getPastConsecutiveDaysWithNightShift())) {
-                for (int l = k; l < (k + Planning.getMinConsecutiveDaysWithNightShift()); l++) {
+                for (int l = d; l < (d + Planning.getMinConsecutiveDaysWithNightShift()); l++) {
                     if (!planning.getDay(l).hasNightShift()) {
                         return false;
                     }
@@ -160,33 +207,88 @@ public class Solver {
             }
 
             // check that the overtime blocks are consecutive
-            if (i > Day.indexOfBlockS && i < Day.indexOfBlockO) {
-                if (!isConsecutiveInOvertime(i, k, planning))
-                    return false;
+            if (b > Day.indexOfBlockS && b < Day.indexOfBlockO && !isConsecutiveInOvertime(b, d, planning)) {
+                return false;
             }
 
             // check that their is no overtime after block b_o for all machines
-            if (i > Day.indexOfBlockO) {
+            if (b > Day.indexOfBlockO) {
                 for (Machine m : planning.getMachines())
-                    if (!(planning.getDay(k).getBlock(i).getMachineState(m) instanceof Idle)) {
+                    if (!(planning.getDay(d).getBlock(b).getMachineState(m) instanceof Idle)) {
                         return false;
                     }
+            }
+        }
+        return true;
+    }
+
+    private static boolean isConsecutiveInOvertime(int b, int d, Planning planning) {
+
+        for (Machine m : planning.getMachines())
+            if (planning.getDay(d).getBlock(b + 1).getMachineState(m) instanceof Production
+                    || planning.getDay(d).getBlock(b + 1).getMachineState(m) instanceof SmallSetup) {
+                if (!(planning.getDay(d).getBlock(b).getMachineState(m) instanceof Production
+                        || planning.getDay(d).getBlock(b).getMachineState(m) instanceof SmallSetup)) {
+                    return false;
+                }
+            }
+        return true;
+    }
+
+    // check that only 1 maintenance/large setup is scheduled at any block of a day -> no parallel maintenance/large setup
+    private static boolean checkParallelConstraints(Machine m, int parallelTeller, int b, int d, Planning planning) {
+        MachineState state = planning.getDay(d).getBlock(b).getMachineState(m);
+
+        if (state instanceof LargeSetup || state instanceof Maintenance) {
+            parallelTeller++;
+            if (parallelTeller > 1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // check that for each day only 1 setup of a certain type is scheduled
+    private static boolean checkSetupTypeConstraint(List<Integer> setupTypes, Map<Integer, Integer> setupMap) {
+
+        Map<Integer, Integer> hm = new HashMap<>();
+
+        // setup type is the key -> only 1 value possible
+        // key = setup type
+        // value = number of occurrences of set up types
+        for (int setUpTime : setupTypes) {
+            Integer j = hm.get(setUpTime);
+            hm.put(setUpTime, (j == null) ? 1 : j + 1);
+        }
+
+        // if number of set up types > set up time -> return false
+        for (Map.Entry<Integer, Integer> setupType : hm.entrySet()) {
+            int setupTime = setupMap.get(setupType.getKey());
+            int setupOccurrences = setupType.getValue();
+            if (setupOccurrences > setupTime) {
+                return false;
             }
         }
 
         return true;
     }
 
-    private static boolean isConsecutiveInOvertime(int i, int k, Planning planning) {
+    // check that the production of an item is only possible after the right configuration
+    // only possible if previous block is changeover to item or previous block is production of same item
+    private static boolean checkProductionConstraints(Machine m, int b, int d, Planning planning) {
 
-        for (Machine m : planning.getMachines())
-            if (planning.getDay(k).getBlock(i + 1).getMachineState(m) instanceof Production
-                    || planning.getDay(k).getBlock(i + 1).getMachineState(m) instanceof SmallSetup) {
-                if (!(planning.getDay(k).getBlock(i).getMachineState(m) instanceof Production
-                        || planning.getDay(k).getBlock(i).getMachineState(m) instanceof SmallSetup)) {
-                    return false;
-                }
+        MachineState state1 = planning.getDay(d).getBlock(b).getMachineState(m);
+        MachineState state2 = planning.getDay(d).getBlock(b + 1).getMachineState(m);
+        if (state1 instanceof Production && state2 instanceof Production) {
+            if (((Production) state1).getItem().getId() != ((Production) state2).getItem().getId()) {
+                return false;
             }
+        }
+        if (state1 instanceof Setup && state2 instanceof Production) {
+            if (((Setup) state1).getTo().getId() != ((Production) state2).getItem().getId()) {
+                return false;
+            }
+        }
         return true;
     }
 
@@ -200,10 +302,8 @@ public class Solver {
             }
 
             // check that the stock level on day d is 0 when the stock level is below the minimum amount
-            if (i.getStockAmount(day) < i.getMinAllowedInStock()) {
-                if (i.getStockAmount(day) != 0) {
-                    return false;
-                }
+            if (i.getStockAmount(day) < i.getMinAllowedInStock() && i.getStockAmount(day) != 0) {
+                return false;
             }
 
         }
@@ -211,103 +311,104 @@ public class Solver {
         return true;
     }
 
-    private static boolean checkParallelConstraints(int i, int k, Planning planning) {
-        int teller = 0;
-        // check that only 1 maintenance/large setup is scheduled at any block of a day -> no parallel maintenance/large setup
-        for (Machine m : planning.getMachines()) {
-            MachineState state = planning.getDay(k).getBlock(i).getMachineState(m);
-            if (state instanceof LargeSetup || state instanceof Maintenance) {
-                teller++;
-                if (teller > 1) {
-                    return false;
+
+    // check that the minimum amount of maintenances are scheduled in the time horizon
+    private static boolean checkMaintenanceConstraints(int d, Machine m, Planning planning) {
+
+        int init = m.getInitialDaysPastWithoutMaintenance();
+        int max = m.getMaxDaysWithoutMaintenance();
+        int now = max - init;
+
+        int maintenanceTeller = 0;
+        if (d - now == 0 || (d - now) % (max + 1) == 0) {
+            for (Block b : planning.getDay(d)) {
+                if (b.getMachineState(m) instanceof Maintenance) {
+                    maintenanceTeller++;
                 }
             }
+            if (maintenanceTeller == 0) {
+                return false;
+            }
         }
+
         return true;
+
     }
 
-    private static boolean checkMaintenanceConstraints(int k, Planning planning) {
-        // TODO Nick required maintenances are satisified
-        for (Machine m : planning.getMachines()) {
-            int init = m.getInitialDaysPastWithoutMaintenance();
-            int max = m.getMaxDaysWithoutMaintenance();
-            int now = max - init;
-            int teller = 0;
-            if (k < now) {
-                for (int i = 0; i < Day.getNumberOfBlocksPerDay(); i++) {
-                    if (planning.getDay(k).getBlock(i).isInMaintenance()) {
-                        if (!isConsecutiveMaintenance(planning.getDay(k), planning))
+    // check that no production is done in between blocks of changeover and blocks of maintenance
+    public static boolean checkChangeOverAndMaintenanceBoundaryConstraints(int d, Machine m, Planning planning) {
+
+        int setupTeller = 0;
+        int maintenanceTeller = 0;
+        int setupTime = 0;
+        int maintenanceTime = 0;
+        Item i1 = null;
+        Item i2 = null;
+        for (int j = 0; j < Day.getNumberOfBlocksPerDay(); j++) {
+            MachineState state = planning.getDay(d).getBlock(j).getMachineState(m);
+
+            // maintenance/idle is allowed in between setup blocks and setup/idle is allowed in between maintenance blocks
+            if (state instanceof Setup || state instanceof Idle || state instanceof Maintenance) {
+
+                // machine state is in setup configuration
+                if (state instanceof Setup) {
+                    Setup setup = (Setup) planning.getDay(d).getBlock(j).getMachineState(m);
+
+                    // check if the setup is still the same (S1_2 -> S2_3)
+                    if (i1 == null || !(i1.equals(setup.getFrom()) || !i2.equals(setup.getFrom()))) {
+
+                        if (setupTeller > 0 && setupTeller <= setupTime) {
                             return false;
+                        }
+
+                        // get initial setup
+                        i1 = setup.getFrom();
+                        i2 = setup.getTo();
+                        setupTime = i1.getLengthSetup(i2);
+                        setupTeller++;
+
                     } else {
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
+                        // setup is still the same -> teller increasing
+                        setupTeller++;
 
-    }
-
-    private static boolean isConsecutiveMaintenance(Day day, Planning planning) {
-        // TODO Nick
-        return true;
-    }
-
-    public static boolean checkChangeOverConstraints(Machine m, Planning planning) {
-
-        Setup setup;
-
-        // check that no production is done in between blocks of changeover
-        for (int i = 0; i < Planning.getNumberOfDays(); i++) {
-            int teller = 0;
-            int setupTime = 0;
-            Item i1 = null;
-            Item i2 = null;
-            for (int j = 0; j < Day.getNumberOfBlocksPerDay(); j++) {
-                MachineState state = planning.getDay(i).getBlock(j).getMachineState(m);
-
-                // maintenance/idle is allowed in between setup blocks
-                if (state instanceof Setup || state instanceof Idle || state instanceof Maintenance) {
-
-                    if (state instanceof Setup) {
-                        setup = (Setup) planning.getDay(i).getBlock(j).getMachineState(m);
-
-                        // check if the setup is still the same (S1_2 -> S2_3)
-                        if (i2 == null || i1 == null || !(i1.equals(setup.getFrom()) || !(i2.equals(setup.getFrom())))) {
-
-                            if (teller > 0 && teller <= setupTime) {
-                                return false;
-                            }
-
-                            // get initial setup
-                            i1 = setup.getFrom();
-                            i2 = setup.getTo();
-                            setupTime = i1.getLengthSetup(i2);
-                            teller++;
-
-                        } else {
-                            // setup is still the same -> teller increasing
-                            teller++;
-
-                            // setuptime is exceeded -> restart
-                            if (teller == setupTime) {
-                                teller = 0;
-                                setupTime = 0;
-                                i1 = null;
-                                i2 = null;
-                            }
+                        // setup time is exceeded -> restart
+                        if (setupTeller == setupTime) {
+                            setupTeller = 0;
+                            setupTime = 0;
+                            i1 = null;
+                            i2 = null;
                         }
                     }
+                    // machine state is in maintenance configuration
+                } else if (state instanceof Maintenance) {
 
-                    // block is in production -> check if the block is not between setup's
-                } else if (teller > 0 && teller <= setupTime) {
-                    return false;
+                    Maintenance maintenance = (Maintenance) planning.getDay(d).getBlock(j).getMachineState(m);
 
-                    // restart
-                } else {
-                    teller = 0;
-                    setupTime = 0;
+                    // first occurrence of maintenance
+                    if (maintenanceTeller == 0) {
+                        maintenanceTime = m.getMaintenanceDurationInBlocks();
+                    }
+
+                    maintenanceTeller++;
+
+                    // stop counting if maintenance time is exceeded
+                    if (maintenanceTeller == maintenanceTime) {
+                        maintenanceTeller = 0;
+                        maintenanceTime = 0;
+                    }
                 }
+
+                // block is in production -> check if the block is not between setup's or maintenance's
+            } else if ((setupTeller > 0 && setupTeller <= setupTime) || (maintenanceTeller > 0 && maintenanceTeller <= maintenanceTime)) {
+                return false;
+
+                // restart
+            } else {
+                setupTeller = 0;
+                setupTime = 0;
+                maintenanceTeller = 0;
+                maintenanceTime = 0;
+
             }
         }
 

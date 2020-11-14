@@ -1,43 +1,43 @@
 package model;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import model.machinestate.MachineState;
 import model.machinestate.Maintenance;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Block {
-	private int id;
-	private Map<Machine, MachineState> machineState;
+    private int id;
+    private Map<Machine, MachineState> machineState;
 
-	public Block(int id) {
-		this.id = id;
-		machineState = new HashMap<>();
-	}
-	
-	public Block(Block b) {
-		this.id = b.id;
-		this.machineState = new HashMap<>(b.machineState.size());
-	}
+    public Block(int id) {
+        this.id = id;
+        machineState = new HashMap<>();
+    }
 
-	public void setMachineState(Machine m, MachineState ms) {
-		machineState.put(m, ms);
-	}
+    public Block(Block b) {
+        this.id = b.id;
+        this.machineState = new HashMap<>(b.machineState.size());
+    }
 
-	public int getId() {
-		return id;
-	}
+    public void setMachineState(Machine m, MachineState ms) {
+        machineState.put(m, ms);
+    }
 
-	public MachineState getMachineState(Machine m) {
-		return machineState.get(m);
-	}
+    public int getId() {
+        return id;
+    }
 
-	public boolean isInMaintenance() {
-		for (MachineState ms : machineState.values()) {
-			if (ms.getClass() == Maintenance.class) {
-				return true;
-			}
-		}
-		return false;
-	}
+    public MachineState getMachineState(Machine m) {
+        return machineState.get(m);
+    }
+
+    public boolean isInMaintenance() {
+        for (MachineState ms : machineState.values()) {
+            if (ms.getClass() == Maintenance.class) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
