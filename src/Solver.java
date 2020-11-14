@@ -137,7 +137,7 @@ public class Solver {
                 return false;
             }
 
-            if (!checkSetupTypeConstraint(setupTypes,setupMap)) {
+            if (!checkSetupTypeConstraint(setupTypes, setupMap)) {
                 return false;
             }
 
@@ -355,7 +355,7 @@ public class Solver {
                     Setup setup = (Setup) planning.getDay(d).getBlock(j).getMachineState(m);
 
                     // check if the setup is still the same (S1_2 -> S2_3)
-                    if (i1 == null || !(i1.equals(setup.getFrom()) || !i2.equals(setup.getFrom()))) {
+                    if (i1 == null || !(i1.getId() == (setup.getFrom().getId()) || !(i2.getId() == setup.getFrom().getId()))) {
 
                         if (setupTeller > 0 && setupTeller <= setupTime) {
                             return false;
