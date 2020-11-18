@@ -152,7 +152,7 @@ public class Planning {
 		return cost;
 	}
 	
-	public int getAmountOfNightShiftsInNextPeriod() {//TODO: ELKe
+	public int getAmountOfNightShiftsInNextPeriod() {
 		int teller = 0;
 		for( int d=numberOfDays-1; d==0; d++) {
 			if(days.get(d).hasNightShift()) {

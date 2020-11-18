@@ -1,5 +1,8 @@
 package model;
 
+import model.machinestate.MachineState;
+import model.machinestate.Production;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,5 +50,32 @@ public class Machine {
 	
 	public int getEfficiency(Item i) {
 		return efficiency.get(i);
+	}
+
+	// voor een vorig item te vinden tov een bepaalde block
+	public Item getPreviousSetup(Planning p, int randomDay, int randomBlock) {
+		boolean foundPreviousItem = false;
+		int currentDay = randomDay;
+		int currentBlock = randomBlock;
+		while (!foundPreviousItem) { // afgaan tot als we block met production vinden
+			if (currentBlock == 0 && currentDay == 0) { // als we helemaal in het begin zitten
+				foundPreviousItem = true;
+			} else {
+				MachineState ms = p.getDay(currentDay).getBlock(currentBlock).getMachineState(this);
+				String msString = ms.toString();
+				if (msString.startsWith("I_")) {
+					Production prod = (Production) p.getDay(currentDay).getBlock(currentBlock).getMachineState(this);
+					return prod.getItem();
+				} else {
+					if (currentBlock == 0) {
+						currentDay--;
+						currentBlock = p.getDays().size()-1;
+					} else {
+						currentBlock--;
+					}
+				}
+			}
+		}
+		return initialSetup;
 	}
 }

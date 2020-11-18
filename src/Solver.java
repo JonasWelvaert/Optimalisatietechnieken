@@ -8,6 +8,8 @@ public class Solver {
     private double SATemperature = 1000;
     private double SACoolingFactor = 0.995;
     private int mode;
+    private static Random random = new Random();
+    private static int maxAantalDagenTussenVerlengingNightshift = 3; //dit is een variabele die kan gewijzigd worden adhv het algoritme
 
     public Solver(int mode) {
         if (mode >= 100 && mode <= 100) {
@@ -62,8 +64,7 @@ public class Solver {
         return best;
     }
 
-    public static Planning localSearch(Planning optimizedPlanning) { // TODO Elke
-        Random random = new Random();
+    public static Planning localSearch(Planning optimizedPlanning) {
         int randomInt = random.nextInt(12);
         if (randomInt == 1)  // willen niet constant maintenance zitten verplaatsen
             moveMaintenance(optimizedPlanning);
@@ -76,7 +77,7 @@ public class Solver {
 
         // TODO: hier al de cost wijzigen per wijziging
 
-        return null;/*
+        return optimizedPlanning;/*
          * dns × pn + to × po + SOM r∈V SOM i∈I (q i r × ci) + SOM d∈D (ud × ps) + dp ×
          * pp
          */
@@ -417,11 +418,9 @@ public class Solver {
     }
 
     private static void moveMaintenance(Planning p) {
-        Random random = new Random();
-
         while (true) {
             //van
-            int randomDay1 = random.nextInt(p.getNumberOfDays());
+            int randomDay1 = random.nextInt(Planning.getNumberOfDays());
             int randomBlock1 = random.nextInt(p.getDay(0).getIndexOfBlockL() - p.getDay(0).getIndexOfBlockE()) + p.getDay(0).getIndexOfBlockE(); // enkel overdag
             int randMachineInt1 = random.nextInt(p.getMachines().size());
             Machine randMachine1 = p.getMachines().get(randMachineInt1);
@@ -429,7 +428,7 @@ public class Solver {
             String msString1 = ms1.toString();
 
             // naar
-            int randomDay2 = random.nextInt(p.getNumberOfDays());
+            int randomDay2 = random.nextInt(Planning.getNumberOfDays());
             int randomBlock2 = random.nextInt(p.getDay(0).getIndexOfBlockL() - p.getDay(0).getIndexOfBlockE()) + p.getDay(0).getIndexOfBlockE(); // enkel overdag
             int randMachineInt2 = random.nextInt(p.getMachines().size());
             Machine randMachine2 = p.getMachines().get(randMachineInt2);
@@ -452,28 +451,7 @@ public class Solver {
 
     private static void addProduction(Planning p) { // van hetzelfde product meer maken, geen setup nodig
         // random
-        Random random = new Random();
-        int randomDay = random.nextInt(p.getNumberOfDays());
-        int randomBlock = random.nextInt(p.getDay(randomDay).getBlocks().size());
-        int randMachineInt = random.nextInt(p.getMachines().size());
-        Machine randMachine = p.getMachines().get(randMachineInt);
-
-        // zoek idle blok
-        while (true) {
-            String ms = p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine).toString();
-            if (ms.equals("IDLE")) {
-                Item previousItem = randMachine.getInitialSetup();
-                p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(previousItem));
-            }
-        }
-
-        // TODO: controle nieuwe nightshift
-    }
-
-    private static void changeProduction(Planning p) { // nieuwe productie op machine starten
-        // random
-        Random random = new Random();
-        int randomDay = random.nextInt(p.getNumberOfDays());
+        int randomDay = random.nextInt(Planning.getNumberOfDays());
         int randomBlock = random.nextInt(p.getDay(randomDay).getNumberOfBlocksPerDay());
         int randMachineInt = random.nextInt(p.getMachines().size());
         Machine randMachine = p.getMachines().get(randMachineInt);
@@ -482,20 +460,39 @@ public class Solver {
         while (true) {
             String ms = p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine).toString();
             if (ms.equals("IDLE")) {
-                Item previousItem = randMachine.getInitialSetup();
+                Item previousItem = randMachine.getPreviousSetup(p, randomDay, randomBlock);
+                p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(previousItem));
+                break;
+            }
+        }
+        controlNewNightShift(p, randomDay, randomBlock);
+    }
+
+    private static void changeProduction(Planning p) { // nieuwe productie op machine starten
+        // random
+        int randomDay = random.nextInt(Planning.getNumberOfDays());
+        int randomBlock = random.nextInt(p.getDay(randomDay).getNumberOfBlocksPerDay());
+        int randMachineInt = random.nextInt(p.getMachines().size());
+        Machine randMachine = p.getMachines().get(randMachineInt);
+
+        // zoek idle blok
+        while (true) {
+            String ms = p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine).toString();
+            if (ms.equals("IDLE")) {
+                Item previousItem = randMachine.getPreviousSetup(p, randomDay, randomBlock);
                 // TODO: eerst nog setup, dan nieuw item
                 p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(previousItem));
+                break;
             }
         }
 
-        // TODO: controle nieuwe nightshift
+        controlNewNightShift(p, randomDay, randomBlock);
+
     }
 
     private static void removeProduction(Planning p) {
-        // random
-        Random random = new Random();
         while (true) {
-            int randomDay = random.nextInt(p.getNumberOfDays());
+            int randomDay = random.nextInt(Planning.getNumberOfDays());
             int randomBlock = random.nextInt(p.getDay(randomDay).getNumberOfBlocksPerDay());
             int randMachineInt = random.nextInt(p.getMachines().size());
             Machine randMachine = p.getMachines().get(randMachineInt);
@@ -506,6 +503,78 @@ public class Solver {
                 return;
             }
             // TODO: controle voor eventuele overbodige setup te verwijderen?
+        }
+    }
+
+    private static int closestNightshift(Planning p, String when, int day) {
+        if (when.equals("before")) {
+            int lastNightShiftDay = -1;
+            for (int i = 0; i < p.getDays().size(); i++) {
+                if (p.getDay(i).hasNightShift() && i < day) { // controleren tot als laatste dag van nightshiftreeks
+                    lastNightShiftDay = i;
+                } else {
+                    break;
+                }
+            }
+            return lastNightShiftDay;
+        } else if (when.equals("after")) {
+            int firstNightShiftDay = -1;
+            for (int i = day+1; i < p.getDays().size(); i++) {
+                if (p.getDay(i).hasNightShift()) { // controleren tot eerste dag van nieuwe nightshift reeks
+                    firstNightShiftDay = i;
+                    break;
+                }
+            }
+            return firstNightShiftDay;
+        }
+        return -1;
+    }
+
+    private static void controlNewNightShift(Planning p, int randomDay, int randomBlock) {
+        Day d = p.getDay(randomDay);
+        if (!d.hasNightShift()) { // als er al nightshift is valt er niks te controleren
+            if (randomBlock>d.getIndexOfBlockO() ) { // niet overtime, wel nachtshift
+                int nightshiftBefore = closestNightshift(p, "before", randomDay);
+                int nightshiftAfter = closestNightshift(p, "after", randomDay);
+                // als nightshift niet lang geleden => beter verlengen, dan nieuwe starten
+                if (nightshiftBefore < nightshiftAfter) { // als dichtste nightshift ervoor ligt
+                    if (nightshiftBefore <= maxAantalDagenTussenVerlengingNightshift) {
+                        // alle dagen ervoor ook nighshift maken
+                        for (int i = randomDay; i > randomDay - nightshiftBefore; i--) {
+                            p.getDay(i).setNightShift(true);
+                        }
+                    } else {
+                        // nieuwe nightshift reeks
+                        int amountOfNightShifts = Planning.getMinConsecutiveDaysWithNightShift();
+                        for (int i = randomDay; i < p.getDays().size(); i++) {
+                            if (amountOfNightShifts == 0) {
+                                break;
+                            } else {
+                                p.getDay(i).setNightShift(true);
+                                amountOfNightShifts--;
+                            }
+                        }
+                    }
+                } else { // als dichtste nighshift erna ligt of ze zijn gelijk
+                    if (nightshiftAfter <= maxAantalDagenTussenVerlengingNightshift) {
+                        // alle dagen erna ook nightshift maken
+                        for (int i = randomDay; i < randomDay + nightshiftAfter; i++) {
+                            p.getDay(i).setNightShift(true);
+                        }
+                    } else {
+                        // nieuwe nightshift reeks
+                        int amountOfNightShifts = Planning.getMinConsecutiveDaysWithNightShift();
+                        for (int i = randomDay; i < p.getDays().size(); i++) {
+                            if (amountOfNightShifts == 0) {
+                                break;
+                            } else {
+                                p.getDay(i).setNightShift(true);
+                                amountOfNightShifts--;
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
