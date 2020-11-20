@@ -24,6 +24,7 @@ public class Main {
         logger.info("| Starting reading of input file " + inputFileName);
         Planning initialPlanning = readFileIn(inputFileName);
 
+
         // 2. initial solution
         logger.info("| Starting making first feasible solution");
         initialPlanning = makeInitialPlanning(initialPlanning); //TODO makeInitialPlanning(initialPlanning)  kan ook, de toekenning is overbodig omdat je al op dat object werkt

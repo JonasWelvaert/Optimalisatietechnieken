@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import model.machinestate.Idle;
-import model.setup.LargeSetup;
+import model.machinestate.setup.LargeSetup;
 import model.machinestate.MachineState;
 import model.machinestate.Maintenance;
 import model.machinestate.Production;
-import model.setup.Setup;
-import model.setup.SmallSetup;
+import model.machinestate.setup.Setup;
+import model.machinestate.setup.SmallSetup;
 
 public class Planning {
 	private static int numberOfDays;
@@ -160,8 +160,8 @@ public class Planning {
 				teller++;
 			}
 		}
-		if(teller == 0) return 0;
-		
+		//if(teller == 0) return 0; dit was overbodig
+
 		return teller;
 	}
 

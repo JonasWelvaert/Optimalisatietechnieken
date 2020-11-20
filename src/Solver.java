@@ -1,8 +1,8 @@
 import model.*;
 import model.machinestate.*;
-import model.setup.LargeSetup;
-import model.setup.Setup;
-import model.setup.SmallSetup;
+import model.machinestate.setup.LargeSetup;
+import model.machinestate.setup.Setup;
+import model.machinestate.setup.SmallSetup;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -83,7 +83,7 @@ public class Solver {
         else
             moveProduction(optimizedPlanning);
 
-        // TODO: hier al de cost wijzigen per wijziging
+        // TODO: Romeo (naar kijken) hier al de cost wijzigen per wijziging
 
         return optimizedPlanning;/*
          * dns × pn + to × po + SOM r∈V SOM i∈I (q i r × ci) + SOM d∈D (ud × ps) + dp ×

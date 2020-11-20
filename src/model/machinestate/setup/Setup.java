@@ -1,4 +1,4 @@
-package model.setup;
+package model.machinestate.setup;
 
 import model.Item;
 import model.machinestate.MachineState;
