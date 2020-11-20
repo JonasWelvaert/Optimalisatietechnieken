@@ -49,7 +49,7 @@ public class Solver {
 
 
         for (double t = temperature; t > 1; t *= coolingFactor) {
-            logger.info("hier, t:" + t);
+            logger.info("t=" + t);
 
             Planning neighbor;
             do {
