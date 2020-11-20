@@ -1,5 +1,8 @@
 import model.*;
-import model.machinestate.*;
+import model.machinestate.Idle;
+import model.machinestate.MachineState;
+import model.machinestate.Maintenance;
+import model.machinestate.Production;
 import model.machinestate.setup.LargeSetup;
 import model.machinestate.setup.Setup;
 import model.machinestate.setup.SmallSetup;
@@ -20,7 +23,7 @@ public class Solver {
         if (mode >= 100 && mode <= 100) { //TODO @Jonas: vervangen door ENUM ? of gwn door "mode==100"
             this.mode = mode;
         } else {
-            logger.warning("Optimize mode "+this.mode +" not found");
+            logger.warning("Optimize mode " + this.mode + " not found");
             throw new RuntimeException("Optimize mode not found in Solver constructor");
         }
     }
@@ -44,11 +47,14 @@ public class Solver {
         Planning current = new Planning(initialPlanning);
         Planning best = initialPlanning;
 
+
         for (double t = temperature; t > 1; t *= coolingFactor) {
+            logger.info("hier, t:" + t);
+
             Planning neighbor;
             do {
                 neighbor = new Planning(current);
-                neighbor = localSearch(neighbor); //TODO localsearch(neighbour) kan ook, de toekenning is overbodig omdat je al op dat object werkt
+                localSearch(neighbor);
             } while (!checkFeasible(neighbor));
 
             int neighborCost = neighbor.getCost();
@@ -552,7 +558,7 @@ public class Solver {
             return lastNightShiftDay;
         } else if (when.equals("after")) {
             int firstNightShiftDay = -1;
-            for (int i = day+1; i < p.getDays().size(); i++) {
+            for (int i = day + 1; i < p.getDays().size(); i++) {
                 if (p.getDay(i).hasNightShift()) { // controleren tot eerste dag van nieuwe nightshift reeks
                     firstNightShiftDay = i;
                     break;
@@ -566,7 +572,7 @@ public class Solver {
     private static void controlNewNightShift(Planning p, int randomDay, int randomBlock) {
         Day d = p.getDay(randomDay);
         if (!d.hasNightShift()) { // als er al nightshift is valt er niks te controleren
-            if (randomBlock>d.getIndexOfBlockO() ) { // niet overtime, wel nachtshift
+            if (randomBlock > d.getIndexOfBlockO()) { // niet overtime, wel nachtshift
                 int nightshiftBefore = closestNightshift(p, "before", randomDay);
                 int nightshiftAfter = closestNightshift(p, "after", randomDay);
                 // als nightshift niet lang geleden => beter verlengen, dan nieuwe starten

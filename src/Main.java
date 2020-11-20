@@ -249,7 +249,7 @@ public class Main {
             } else if (inputDelen[0].equals("Min_consecutive_days_with_night_shifts:")) {
                 Planning.setMinConsecutiveDaysWithNightShift(Integer.parseInt(inputDelen[1]));
             } else if (inputDelen[0].equals("Past_consecutive_days_with_night_shifts:")) {
-                //TODO assert planning != null;
+                assert planning != null;
                 planning.setPastConsecutiveDaysWithNightShift(Integer.parseInt(inputDelen[1]));
             } else if (inputDelen[0].equals("Cost_of_overtime_p_o:")) {
                 COST_OF_OVERTIME = Double.parseDouble(inputDelen[1]);
@@ -304,7 +304,7 @@ public class Main {
                 item.setMaxAllowedInStock(maxAllowedInStock);
                 item.setMinAllowedInStock(minAllowedInStock);
                 //TODO assert planning != null;
-                planning.addItem(item);
+                //planning.addItem(item);
                 i++;
             } else if (input_block == 3) {
                 int id = Integer.parseInt(inputDelen[0]);
