@@ -13,13 +13,14 @@ public class Solver {
     private double SATemperature = 1000;
     private double SACoolingFactor = 0.995;
     private int mode;
-    private static Random random = new Random();
+    private static final Random random = new Random();
     private static int maxAantalDagenTussenVerlengingNightshift = 3; //dit is een variabele die kan gewijzigd worden adhv het algoritme
 
     public Solver(int mode) {
-        if (mode >= 100 && mode <= 100) {
+        if (mode >= 100 && mode <= 100) { //TODO @Jonas: vervangen door ENUM ? of gwn door "mode==100"
             this.mode = mode;
         } else {
+            logger.warning("Optimize mode "+this.mode +" not found");
             throw new RuntimeException("Optimize mode not found in Solver constructor");
         }
     }
@@ -47,7 +48,7 @@ public class Solver {
             Planning neighbor;
             do {
                 neighbor = new Planning(current);
-                neighbor = localSearch(neighbor);
+                neighbor = localSearch(neighbor); //TODO localsearch(neighbour) kan ook, de toekenning is overbodig omdat je al op dat object werkt
             } while (!checkFeasible(neighbor));
 
             int neighborCost = neighbor.getCost();
@@ -193,7 +194,7 @@ public class Solver {
 
         if (planning.getDay(d).hasNightShift()) {
 
-            teller++;
+            teller++; //TODO teller opgehoogd, maar niet meer gebruikt ?
             // check that the minimum amount of consecutive days with night shift is
             // fulfilled
             if (d > (Planning.getMinConsecutiveDaysWithNightShift()
@@ -210,7 +211,7 @@ public class Solver {
             if (teller > 0 && teller < Planning.getMinConsecutiveDaysWithNightShift()) {
                 return false;
             } else {
-                teller = 0;
+                teller = 0; //TODO teller op null gezet maar niet meer gebruikt ?
             }
 
             // check that the overtime blocks are consecutive
@@ -248,9 +249,7 @@ public class Solver {
 
         if (state instanceof LargeSetup || state instanceof Maintenance) {
             parallelTeller++;
-            if (parallelTeller > 1) {
-                return false;
-            }
+            return parallelTeller <= 1;
         }
         return true;
     }
@@ -292,9 +291,7 @@ public class Solver {
             }
         }
         if (state1 instanceof Setup && state2 instanceof Production) {
-            if (((Setup) state1).getTo().getId() != ((Production) state2).getItem().getId()) {
-                return false;
-            }
+            return ((Setup) state1).getTo().getId() == ((Production) state2).getItem().getId();
         }
         return true;
     }
@@ -333,9 +330,7 @@ public class Solver {
                     maintenanceTeller++;
                 }
             }
-            if (maintenanceTeller == 0) {
-                return false;
-            }
+            return maintenanceTeller != 0;
         }
 
         return true;
@@ -464,7 +459,7 @@ public class Solver {
 
         // zoek idle blok
         boolean stop = false;
-        while (stop) {
+        while (stop) { //TODO deze lus voert toch nooit uit ?
             String ms = p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine).toString();
             if (ms.equals("IDLE")) {
                 Item previousItem = randMachine.getPreviousItem(p, randomDay, randomBlock);

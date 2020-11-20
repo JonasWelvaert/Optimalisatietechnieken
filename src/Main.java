@@ -26,9 +26,9 @@ public class Main {
 
         // 2. initial solution
         logger.info("| Starting making first feasible solution");
-        initialPlanning = makeInitialPlanning(initialPlanning);
+        initialPlanning = makeInitialPlanning(initialPlanning); //TODO makeInitialPlanning(initialPlanning)  kan ook, de toekenning is overbodig omdat je al op dat object werkt
         if (!Solver.checkFeasible(initialPlanning)) {
-            logger.warning("2. Initial planning is not feasible!");
+            logger.severe("2. Initial planning is not feasible!");
             System.exit(2);
         }
 
@@ -36,16 +36,16 @@ public class Main {
         logger.info("| Starting optimalisation");
         Solver solver = new Solver(Solver.SIMULATED_ANEALING);
         solver.setSimulatedAnealingFactors(1000, 0.995);
-        Planning optimalizedPlanning = solver.optimize(initialPlanning);
-        if (!Solver.checkFeasible(optimalizedPlanning)) {
-            System.err.println("5. optimalized planning is not feasible!");
+        Planning optimizedPlanning = solver.optimize(initialPlanning);
+        if (!Solver.checkFeasible(optimizedPlanning)) {
+            logger.severe("5. optimalized planning is not feasible!");
             System.exit(5);
         }
 
         // 4. output
         logger.info("| Starting writing outputfile");
-        printOutputToConsole(optimalizedPlanning);
-        printOutputToFile("output_" + inputFileName, optimalizedPlanning);
+        printOutputToConsole(optimizedPlanning);
+        printOutputToFile("output_" + inputFileName, optimizedPlanning);
 
         // 5. The end
         logger.info("| Finished execution");
@@ -85,7 +85,7 @@ public class Main {
             int init = m.getInitialDaysPastWithoutMaintenance();
             int max = m.getMaxDaysWithoutMaintenance();
             for (int i = 0; i < Planning.getNumberOfDays(); i++) {
-                if (Math.floorMod(i, max + 1) == max + 1 - (init + 1)) {
+                if (Math.floorMod(i, max + 1) == max + 1 - (init + 1)) { //Romeo: die floorMod() snap ik niet goed
                     // Jonas: ik ga ervanuit dat in een IDLE planning, de beide machines kunnen
                     // onderhouden worden.
                     int teller = 0;
@@ -248,6 +248,7 @@ public class Main {
             } else if (inputDelen[0].equals("Min_consecutive_days_with_night_shifts:")) {
                 Planning.setMinConsecutiveDaysWithNightShift(Integer.parseInt(inputDelen[1]));
             } else if (inputDelen[0].equals("Past_consecutive_days_with_night_shifts:")) {
+                //TODO assert planning != null;
                 planning.setPastConsecutiveDaysWithNightShift(Integer.parseInt(inputDelen[1]));
             } else if (inputDelen[0].equals("Cost_of_overtime_p_o:")) {
                 COST_OF_OVERTIME = Double.parseDouble(inputDelen[1]);
@@ -284,6 +285,8 @@ public class Main {
                 int daysPastWithoutMaintenance = Integer.parseInt(inputDelen[2]);
                 int maxDaysWithoutMaintenance = Integer.parseInt(inputDelen[3]);
                 int maintenanceDurationInBlocks = Integer.parseInt(inputDelen[4]);
+                //TODO assert planning != null;
+                //TODO assert stock != null;
                 planning.addMachine(new Machine(id, stock.getItem(lastItemIdProduced), daysPastWithoutMaintenance,
                         maxDaysWithoutMaintenance, maintenanceDurationInBlocks));
                 i++;
@@ -293,11 +296,13 @@ public class Main {
                 int quantityInStock = Integer.parseInt(inputDelen[2]);
                 int minAllowedInStock = Integer.parseInt(inputDelen[3]);
                 int maxAllowedInStock = Integer.parseInt(inputDelen[4]);
+                //TODO assert stock != null;
                 Item item = stock.getItem(id);
                 item.setCostPerItem(costPerItem);
                 item.setInitialQuantityInStock(quantityInStock);
                 item.setMaxAllowedInStock(maxAllowedInStock);
                 item.setMinAllowedInStock(minAllowedInStock);
+                //TODO assert planning != null;
                 planning.addItem(item);
                 i++;
             } else if (input_block == 3) {
@@ -306,6 +311,7 @@ public class Main {
                     planning.getMachines().get(j).addEfficiency(stock.getItem(id), Integer.parseInt(inputDelen[j]));
                 }
             } else if (input_block == 4) {
+                //TODO assert stock != null;
                 Item item = stock.getItem(i);
                 for (int j = 0; j < stock.getNrOfDifferentItems(); j++) {
                     if (i != j) {
@@ -314,6 +320,7 @@ public class Main {
                 }
                 i++;
             } else if (input_block == 5) {
+                //TODO assert stock != null;
                 Item item = stock.getItem(i);
                 for (int j = 0; j < stock.getNrOfDifferentItems(); j++) {
                     if (i != j) {
@@ -325,13 +332,15 @@ public class Main {
                 Request request = requests.get(i);
                 for (int j = 0; j < Planning.getNumberOfDays(); j++) {
                     if (inputDelen[j].equals("1")) {
+                        //TODO assert planning != null;
                         request.addPossibleShippingDay(planning.getDay(j));
                     }
                 }
                 i++;
             } else if (input_block == 7) {
+                //TODO assert requests != null;
                 Request request = requests.get(i);
-                for (int j = 0; j < stock.getNrOfDifferentItems(); j++) {
+                for (int j = 0; j < stock.getNrOfDifferentItems(); j++) { //TODO getNrOfDifferentItems() can return null
                     if (!inputDelen[j].equals("0")) {
                         request.addItem(stock.getItem(j), Integer.parseInt(inputDelen[j]));
                     }
