@@ -53,7 +53,7 @@ public class Machine {
 	}
 
 	// voor een vorig item te vinden tov een bepaalde block
-	public Item getPreviousSetup(Planning p, int randomDay, int randomBlock) {
+	public Item getPreviousItem(Planning p, int randomDay, int randomBlock) {
 		boolean foundPreviousItem = false;
 		int currentDay = randomDay;
 		int currentBlock = randomBlock;
@@ -78,4 +78,36 @@ public class Machine {
 		}
 		return initialSetup;
 	}
+
+	public Item getNextItem(Planning p, int randomDay, int randomBlock) {
+		boolean foundNextItem = false;
+		int currentDay = randomDay;
+		int currentBlock = randomBlock;
+
+		int aantalBlocks = p.getDay(0).getBlocks().size();
+		int aantalDagen = p.getDays().size();
+
+		while (!foundNextItem) { // afgaan tot als we block met production vinden
+			if (currentBlock == aantalBlocks-1 && currentDay == aantalDagen-1) { // als we helemaal op het einde zitten
+				foundNextItem = true;
+			} else {
+				MachineState ms = p.getDay(currentDay).getBlock(currentBlock).getMachineState(this);
+				String msString = ms.toString();
+				if (msString.startsWith("I_")) {
+					Production prod = (Production) p.getDay(currentDay).getBlock(currentBlock).getMachineState(this);
+					return prod.getItem();
+				} else {
+					if (currentBlock == aantalBlocks-1) {
+						currentDay++;
+						currentBlock = 0;
+					} else {
+						currentBlock++;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+
 }

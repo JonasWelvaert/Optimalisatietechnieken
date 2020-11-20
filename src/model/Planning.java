@@ -18,6 +18,7 @@ public class Planning {
 	private String instanceName;
 	private List<Machine> machines;
 	private List<Day> days;
+	private List<Item> items;
 	private Requests requests;
 	private Stock stock;
 	private int cost;
@@ -162,5 +163,18 @@ public class Planning {
 		if(teller == 0) return 0;
 		
 		return teller;
+	}
+
+	public void addItem(Item i) {
+		items.add(i);
+	}
+
+	public Item getItemById(int id) {
+		for (Item i: items) {
+			if (i.getId() == id) {
+				return i;
+			}
+		}
+		return null;
 	}
 }

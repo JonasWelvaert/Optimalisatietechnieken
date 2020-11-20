@@ -65,15 +65,17 @@ public class Solver {
     }
 
     public static Planning localSearch(Planning optimizedPlanning) {
-        int randomInt = random.nextInt(12);
+        int randomInt = random.nextInt(16);
         if (randomInt == 1)  // willen niet constant maintenance zitten verplaatsen
             moveMaintenance(optimizedPlanning);
         else if (randomInt < 5)
-            addProduction(optimizedPlanning);
+            addProduction(optimizedPlanning, null);
         else if (randomInt < 9)
             removeProduction(optimizedPlanning);
+        else if (randomInt < 13)
+            changeProduction(optimizedPlanning, null);
         else
-            changeProduction(optimizedPlanning);
+            moveProduction(optimizedPlanning);
 
         // TODO: hier al de cost wijzigen per wijziging
 
@@ -82,7 +84,6 @@ public class Solver {
          * pp
          */
     }
-
 
     public static boolean checkFeasible(Planning planning) {
 
@@ -449,7 +450,7 @@ public class Solver {
         }
     }
 
-    private static void addProduction(Planning p) { // van hetzelfde product meer maken, geen setup nodig
+    private static void addProduction(Planning p, Item item) { // van hetzelfde product meer maken, geen setup nodig
         // random
         int randomDay = random.nextInt(Planning.getNumberOfDays());
         int randomBlock = random.nextInt(p.getDay(randomDay).getNumberOfBlocksPerDay());
@@ -457,50 +458,82 @@ public class Solver {
         Machine randMachine = p.getMachines().get(randMachineInt);
 
         // zoek idle blok
-        while (true) {
+        boolean stop = false;
+        while (stop) {
             String ms = p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine).toString();
             if (ms.equals("IDLE")) {
-                Item previousItem = randMachine.getPreviousSetup(p, randomDay, randomBlock);
-                p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(previousItem));
-                break;
+                Item previousItem = randMachine.getPreviousItem(p, randomDay, randomBlock);
+                if (item == null) {
+                    p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(previousItem));
+                    stop = true;
+                } else if (previousItem.getId() == item.getId()) {
+                    p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(item));
+                    stop = true;
+                } else {
+                    changeProduction(p, item);
+                    stop = true;
+                }
             }
         }
         controlNewNightShift(p, randomDay, randomBlock);
     }
 
-    private static void changeProduction(Planning p) { // nieuwe productie op machine starten
+    private static void changeProduction(Planning p, Item item) { // nieuwe productie op machine starten
         // random
         int randomDay = random.nextInt(Planning.getNumberOfDays());
         int randomBlock = random.nextInt(p.getDay(randomDay).getNumberOfBlocksPerDay());
         int randMachineInt = random.nextInt(p.getMachines().size());
         Machine randMachine = p.getMachines().get(randMachineInt);
+        Block b = p.getDay(randomDay).getBlock(randomBlock);
 
         // zoek idle blok
+        Item newItem;
         while (true) {
-            String ms = p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine).toString();
+            String ms = b.getMachineState(randMachine).toString();
             if (ms.equals("IDLE")) {
-                Item previousItem = randMachine.getPreviousSetup(p, randomDay, randomBlock);
-                // TODO: eerst nog setup, dan nieuw item
-                p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(previousItem));
+                Item previousItem = randMachine.getPreviousItem(p, randomDay, randomBlock);
+                if (item == null) {
+                    int aantalItems = previousItem.getAantalItems();
+                    newItem = p.getItemById(random.nextInt(aantalItems)); // ofwel random item uit lijst
+                } else
+                    newItem = item; // ofwel voor methode moveItem
+
+                boolean possibleSetup = setupNewItem(previousItem, newItem, randomDay, randomBlock, randMachine, p);
+                if (possibleSetup)
+                    b.setMachineState(randMachine, new Production(newItem));
+                else
+                    return;
+
                 break;
             }
         }
-
         controlNewNightShift(p, randomDay, randomBlock);
-
     }
 
-    private static void removeProduction(Planning p) {
+    // TODO: setup proberen toevoegen en terug geven of het mogelijk is
+    private static boolean setupNewItem(Item previousItem, Item newItem, int day, int block, Machine machine, Planning p) {
+        // check genoeg tijd voor setup + overdag
+        int tijdSetup = previousItem.getLengthSetup(newItem);
+        Item nextItem = machine.getNextItem(p, day, block); // fout, niet nextitem maar nextmachinestate die niet idle is
+        int tijdBeschikbaar = 0;
+
+        // TODO: kijken ofdat er niet overbodige setup komt hierdoor
+        return false;
+    }
+
+    private static Item removeProduction(Planning p) {
         while (true) {
             int randomDay = random.nextInt(Planning.getNumberOfDays());
             int randomBlock = random.nextInt(p.getDay(randomDay).getNumberOfBlocksPerDay());
             int randMachineInt = random.nextInt(p.getMachines().size());
             Machine randMachine = p.getMachines().get(randMachineInt);
+            Block b = p.getDay(randomDay).getBlock(randomBlock);
 
-            String s = p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine).toString();
+            String s = b.getMachineState(randMachine).toString();
             if (s.contains("I_")) {
-                p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Idle());
-                return;
+                b.setMachineState(randMachine, new Idle());
+                Production prod = (Production) b.getMachineState(randMachine);
+                return prod.getItem();
             }
             // TODO: controle voor eventuele overbodige setup te verwijderen?
         }
@@ -576,5 +609,10 @@ public class Solver {
                 }
             }
         }
+    }
+
+    private static void moveProduction(Planning optimizedPlanning) {
+        Item removedItem = removeProduction(optimizedPlanning);
+        addProduction(optimizedPlanning, removedItem);
     }
 }

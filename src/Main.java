@@ -297,6 +297,7 @@ public class Main {
                 item.setInitialQuantityInStock(quantityInStock);
                 item.setMaxAllowedInStock(maxAllowedInStock);
                 item.setMinAllowedInStock(minAllowedInStock);
+                planning.addItem(item);
                 i++;
             } else if (input_block == 3) {
                 int id = Integer.parseInt(inputDelen[0]);

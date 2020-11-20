@@ -86,4 +86,8 @@ public class Item {
 		}
 		return null;
 	}
+
+	public int getAantalItems() {
+		return largeSetup.size()+1;
+	}
 }
