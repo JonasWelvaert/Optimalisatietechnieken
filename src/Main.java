@@ -1,12 +1,13 @@
-
 import model.*;
 import model.machinestate.Idle;
 import model.machinestate.Maintenance;
 
 import java.io.*;
 import java.util.Scanner;
+import java.util.logging.Logger;
 
 public class Main {
+    private static final Logger logger = Logger.getLogger(Main.class.getName());
     private static final String inputFileName = "toy_inst.txt";
     private static int MIN_CONSECUTIVE_DAYS_WITH_NIGHT_SHIFTS;
     private static int PAST_CONSECUTIVE_DAYS_WITH_NIGHT_SHIFTS;
@@ -17,22 +18,22 @@ public class Main {
     private static final long SEED = 1000;
     private static final long TIME_LIMIT = 60;
 
-    public static void main(String[] args) {
 
+    public static void main(String[] args) {
         // 1. inputfile
-        System.out.println("| Starting reading of input file " + inputFileName);
+        logger.info("| Starting reading of input file " + inputFileName);
         Planning initialPlanning = readFileIn(inputFileName);
 
         // 2. initial solution
-        System.out.println("| Starting making first feasible solution");
+        logger.info("| Starting making first feasible solution");
         initialPlanning = makeInitialPlanning(initialPlanning);
         if (!Solver.checkFeasible(initialPlanning)) {
-            System.err.println("2. Initial planning is not feasible!");
+            logger.warning("2. Initial planning is not feasible!");
             System.exit(2);
         }
 
         // 3. optimalisation
-        System.out.println("| Starting optimalisation");
+        logger.info("| Starting optimalisation");
         Solver solver = new Solver(Solver.SIMULATED_ANEALING);
         solver.setSimulatedAnealingFactors(1000, 0.995);
         Planning optimalizedPlanning = solver.optimize(initialPlanning);
@@ -42,12 +43,12 @@ public class Main {
         }
 
         // 4. output
-        System.out.println("| Starting writing outputfile");
+        logger.info("| Starting writing outputfile");
         printOutputToConsole(optimalizedPlanning);
         printOutputToFile("output_" + inputFileName, optimalizedPlanning);
 
         // 5. The end
-        System.out.println("| Finished execution");
+        logger.info("| Finished execution");
     }
 
     /**
@@ -201,7 +202,7 @@ public class Main {
         try {
             scanner = new Scanner(new File(fileName));
         } catch (FileNotFoundException e) {
-            System.err.println("1. Inputfile " + fileName + " not found.");
+            logger.warning("1. Inputfile " + fileName + " not found.");
             System.exit(1);
         }
 
@@ -337,8 +338,8 @@ public class Main {
                 }
                 i++;
             } else {
-                System.err.println("3. Een lijn is niet verwerkt bij het inlezen van de inputfile: ");
-                System.err.println(inputLine);
+                logger.warning("3. Een lijn is niet verwerkt bij het inlezen van de inputfile: ");
+                logger.warning(inputLine);
                 System.exit(3);
             }
         }

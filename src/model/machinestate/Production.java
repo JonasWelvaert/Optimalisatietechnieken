@@ -3,18 +3,18 @@ package model.machinestate;
 import model.Item;
 
 public class Production implements MachineState {
-	private Item item;
+    private Item item;
 
-	public Production(Item item) {
-		this.item = item;
-	}
+    public Production(Item item) {
+        this.item = item;
+    }
 
-	@Override
-	public String toString() {
-		return "I_" + item.getId();
-	}
+    @Override
+    public String toString() {
+        return "I_" + item.getId();
+    }
 
-	public Item getItem() {
-		return item;
-	}
+    public Item getItem() {
+        return item;
+    }
 }

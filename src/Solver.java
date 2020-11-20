@@ -1,9 +1,14 @@
 import model.*;
 import model.machinestate.*;
+import model.setup.LargeSetup;
+import model.setup.Setup;
+import model.setup.SmallSetup;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 public class Solver {
+    private static final Logger logger = Logger.getLogger(Solver.class.getName());
     public static final int SIMULATED_ANEALING = 100;
     private double SATemperature = 1000;
     private double SACoolingFactor = 0.995;

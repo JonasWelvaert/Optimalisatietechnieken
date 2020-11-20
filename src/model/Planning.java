@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import model.machinestate.Idle;
-import model.machinestate.LargeSetup;
+import model.setup.LargeSetup;
 import model.machinestate.MachineState;
 import model.machinestate.Maintenance;
 import model.machinestate.Production;
-import model.machinestate.Setup;
-import model.machinestate.SmallSetup;
+import model.setup.Setup;
+import model.setup.SmallSetup;
 
 public class Planning {
 	private static int numberOfDays;
