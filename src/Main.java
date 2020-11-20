@@ -304,7 +304,6 @@ public class Main {
                 item.setMaxAllowedInStock(maxAllowedInStock);
                 item.setMinAllowedInStock(minAllowedInStock);
                 //TODO assert planning != null;
-                //planning.addItem(item);
                 i++;
             } else if (input_block == 3) {
                 int id = Integer.parseInt(inputDelen[0]);

@@ -165,16 +165,4 @@ public class Planning {
 		return teller;
 	}
 
-	public void addItem(Item i) {
-		items.add(i);
-	}
-
-	public Item getItemById(int id) {
-		for (Item i: items) {
-			if (i.getId() == id) {
-				return i;
-			}
-		}
-		return null;
-	}
 }

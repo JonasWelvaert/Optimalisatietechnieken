@@ -465,7 +465,7 @@ public class Solver {
 
         // zoek idle blok
         boolean stop = false;
-        while (stop) { //TODO deze lus voert toch nooit uit ?
+        while (!stop) {
             String ms = p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine).toString();
             if (ms.equals("IDLE")) {
                 Item previousItem = randMachine.getPreviousItem(p, randomDay, randomBlock);
@@ -500,7 +500,7 @@ public class Solver {
                 Item previousItem = randMachine.getPreviousItem(p, randomDay, randomBlock);
                 if (item == null) {
                     int aantalItems = previousItem.getAantalItems();
-                    newItem = p.getItemById(random.nextInt(aantalItems)); // ofwel random item uit lijst
+                    newItem = p.getStock().getItem(random.nextInt(aantalItems)); // ofwel random item uit lijst
                 } else
                     newItem = item; // ofwel voor methode moveItem
 
@@ -516,14 +516,14 @@ public class Solver {
         controlNewNightShift(p, randomDay, randomBlock);
     }
 
-    // TODO: setup proberen toevoegen en terug geven of het mogelijk is
+    // TODO: Elke setup proberen toevoegen en terug geven of het mogelijk is
     private static boolean setupNewItem(Item previousItem, Item newItem, int day, int block, Machine machine, Planning p) {
         // check genoeg tijd voor setup + overdag
         int tijdSetup = previousItem.getLengthSetup(newItem);
         Item nextItem = machine.getNextItem(p, day, block); // fout, niet nextitem maar nextmachinestate die niet idle is
         int tijdBeschikbaar = 0;
 
-        // TODO: kijken ofdat er niet overbodige setup komt hierdoor
+        // TODO: Elke kijken ofdat er niet overbodige setup komt hierdoor
         return false;
     }
 
@@ -541,7 +541,7 @@ public class Solver {
                 Production prod = (Production) b.getMachineState(randMachine);
                 return prod.getItem();
             }
-            // TODO: controle voor eventuele overbodige setup te verwijderen?
+            // TODO: Elke controle voor eventuele overbodige setup te verwijderen?
         }
     }
 
