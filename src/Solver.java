@@ -6,6 +6,7 @@ import model.machinestate.Production;
 import model.machinestate.setup.LargeSetup;
 import model.machinestate.setup.Setup;
 import model.machinestate.setup.SmallSetup;
+import sun.security.jca.GetInstance;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -16,6 +17,8 @@ public class Solver {
     private double SATemperature = 1000;
     private double SACoolingFactor = 0.995;
     private int mode;
+    private static List<String> changeList = new ArrayList<>(); //TODO romeo
+    private final static int MAX_REMOVE_PROD_TRIES = 1000;
     private static final Random random = new Random();
     private static int maxAantalDagenTussenVerlengingNightshift = 3; //dit is een variabele die kan gewijzigd worden adhv het algoritme
 
@@ -77,8 +80,10 @@ public class Solver {
     }
 
     public static Planning localSearch(Planning optimizedPlanning) {
-        int randomInt = random.nextInt(16);
-        if (randomInt == 1)  // willen niet constant maintenance zitten verplaatsen
+        changeList.clear();
+        int randomInt = random.nextInt(16);  // [0,100]
+
+        if (randomInt == 0)  // willen niet constant maintenance zitten verplaatsen
             moveMaintenance(optimizedPlanning);
         else if (randomInt < 5)
             addProduction(optimizedPlanning, null);
@@ -89,12 +94,25 @@ public class Solver {
         else
             moveProduction(optimizedPlanning);
 
-        // TODO: Romeo (naar kijken) hier al de cost wijzigen per wijziging
+        //optimizedPlanning.calculateCost();         // TODO: Romeo (naar kijken) hier al de cost wijzigen per wijziging
 
+        calculateCostChange(changeList);
+
+        // Moet niet fesaible terugeven
         return optimizedPlanning;/*
          * dns × pn + to × po + SOM r∈V SOM i∈I (q i r × ci) + SOM d∈D (ud × ps) + dp ×
          * pp
          */
+    }
+
+    public static int calculateCostChange(List<String> changeList) {
+        System.out.println(changeList);
+        for(String s : changeList){
+           /* if(s.getType == removeProduction){
+                return -2; //TODO bepalen van cost change voor bepaalde wijziging
+            }*/
+        }
+        return 0; //TODO romeo
     }
 
     public static boolean checkFeasible(Planning planning) {
@@ -425,6 +443,7 @@ public class Solver {
     }
 
     private static void moveMaintenance(Planning p) {
+        List<String> changeList = new ArrayList();
         while (true) {
             //van
             int randomDay1 = random.nextInt(Planning.getNumberOfDays());
@@ -449,6 +468,8 @@ public class Solver {
 
                     // zet op maintenance
                     p.getDay(randomDay2).getBlock(randomBlock2 + i).setMachineState(randMachine2, ms1);
+
+                    changeList.add("CHANGES");
                 }
                 // klaar dus keer terug (voor romeo aaah skaaan xD)
                 return;
@@ -469,6 +490,7 @@ public class Solver {
             String ms = p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine).toString();
             if (ms.equals("IDLE")) {
                 Item previousItem = randMachine.getPreviousItem(p, randomDay, randomBlock);
+                // creeer random item van zelfde product als null is
                 if (item == null) {
                     p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(previousItem));
                     stop = true;
@@ -528,21 +550,27 @@ public class Solver {
     }
 
     private static Item removeProduction(Planning p) {
-        while (true) {
+        int tries = 0;
+        while (tries < MAX_REMOVE_PROD_TRIES) { //TODO Elke: overaltoepassing
             int randomDay = random.nextInt(Planning.getNumberOfDays());
             int randomBlock = random.nextInt(p.getDay(randomDay).getNumberOfBlocksPerDay());
             int randMachineInt = random.nextInt(p.getMachines().size());
             Machine randMachine = p.getMachines().get(randMachineInt);
             Block b = p.getDay(randomDay).getBlock(randomBlock);
 
-            String s = b.getMachineState(randMachine).toString();
-            if (s.contains("I_")) {
-                b.setMachineState(randMachine, new Idle());
+            //String s = b.getMachineState(randMachine).toString();
+            MachineState ms = b.getMachineState(randMachine);
+
+            if (ms instanceof Production) { //TODO overal aanpassen
                 Production prod = (Production) b.getMachineState(randMachine);
+
+                b.setMachineState(randMachine, new Idle()); // change returnen TODO romeo
                 return prod.getItem();
             }
+            tries++;
             // TODO: Elke controle voor eventuele overbodige setup te verwijderen?
         }
+        return null;
     }
 
     private static int closestNightshift(Planning p, String when, int day) {

@@ -27,7 +27,7 @@ public class Main {
 
         // 2. initial solution
         logger.info("| Starting making first feasible solution");
-        initialPlanning = makeInitialPlanning(initialPlanning); //TODO makeInitialPlanning(initialPlanning)  kan ook, de toekenning is overbodig omdat je al op dat object werkt
+        initialPlanning = makeInitialPlanning(initialPlanning);
         if (!Solver.checkFeasible(initialPlanning)) {
             logger.severe("2. Initial planning is not feasible!");
             System.exit(2);
