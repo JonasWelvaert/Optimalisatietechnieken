@@ -1,5 +1,6 @@
 package model;
 
+import model.machinestate.Idle;
 import model.machinestate.MachineState;
 import model.machinestate.Production;
 
@@ -79,7 +80,7 @@ public class Machine {
 		return initialSetup;
 	}
 
-	public Item getNextItem(Planning p, int randomDay, int randomBlock) {
+	public Item getNextNotIdle(Planning p, int randomDay, int randomBlock) {
 		boolean foundNextItem = false;
 		int currentDay = randomDay;
 		int currentBlock = randomBlock;
@@ -91,9 +92,8 @@ public class Machine {
 			if (currentBlock == aantalBlocks-1 && currentDay == aantalDagen-1) { // als we helemaal op het einde zitten
 				foundNextItem = true;
 			} else {
-				MachineState ms = p.getDay(currentDay).getBlock(currentBlock).getMachineState(this);
-				String msString = ms.toString();
-				if (msString.startsWith("I_")) {
+				boolean instanceOfIdle = p.getDay(currentDay).getBlock(currentBlock).getMachineState(this) instanceof Idle;
+				if (!instanceOfIdle) {
 					Production prod = (Production) p.getDay(currentDay).getBlock(currentBlock).getMachineState(this);
 					return prod.getItem();
 				} else {
