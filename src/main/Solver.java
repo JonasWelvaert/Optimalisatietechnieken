@@ -87,7 +87,7 @@ public class Solver {
 
     public static Planning localSearch(Planning optimizedPlanning) {
         changeList.clear();
-        int randomInt = random.nextInt(16);  // [0,100]
+        int randomInt = random.nextInt(24);  // [0,100]
         //TODO wich part of eval function is changed ? call planning.calculate...()
 
         if (randomInt == 0)  // willen niet constant maintenance zitten verplaatsen
@@ -102,8 +102,12 @@ public class Solver {
         else if (randomInt < 13)
             changeProduction(optimizedPlanning); // 1 BLOCK ? meerdere blokken ? invoegen ?
 
-        else
+        else if (randomInt < 17)
             moveProduction(optimizedPlanning);
+        else if (randomInt < 21)
+            addShippingDay(optimizedPlanning);
+        else
+            moveShippingDay(optimizedPlanning);
 
         /*
         //TODO: add more steps
@@ -119,11 +123,11 @@ public class Solver {
         - productie van een item wisselen met productie van een andere item -> 1 block per keer of alle blocks van een item wisselen
         - productie van een item verwijderen -> 1 block per keer of alle blocks van een item verwijderen
         - productie van een item verplaatsen -> 1 block per keer of alle blocks van een item verplaatsen
-        - shipping day toevoegen (rekening houden met waar het beste komt ?)
+        - shipping day toevoegen (rekening houden met waar het beste komt ? nah)
         - shipping day wisselen
-        - ketting van operators -> na elkaar uitvoeren van een aantal operators
-        - productie van een item verwisselen van machine -> alle blocks van een item verwisselen
-        - maintenance verplaatsen
+        - ketting van operators -> na elkaar uitvoeren van een aantal operators (extra)
+        - productie van een item verwisselen in alle machine
+        - product toevoegen die ne random shipping day nodig heeft
          */
 
         // Moet niet fesaible terugeven
@@ -738,5 +742,38 @@ public class Solver {
             }
             count++;
         }
+    }
+
+    private static void addShippingDay(Planning p) { // random shipping day toevoegen
+        // random request
+        Requests requests = p.getRequests();
+        int randomRequest = random.nextInt(requests.getRequests().size());
+        Request request = requests.get(randomRequest);
+
+        // random shipping day voor random request
+        if (!request.hasShippingDay()) {
+            List<Day> possibleDays = request.getPossibleShippingDays();
+            int randomShippingDay = random.nextInt(possibleDays.size());
+            request.setShippingDay(possibleDays.get(randomShippingDay));
+        }
+    }
+
+    private static void moveShippingDay(Planning p) {
+        // alle requesten met shipping day
+        List<Request> requests = p.getRequests().getRequests();
+        List<Request> requestsWithShippingDay = new ArrayList<>();
+        for (Request r: requests) {
+            if (r.hasShippingDay()) {
+                requestsWithShippingDay.add(r);
+            }
+        }
+
+        // random uit deze lijst
+        Request randomRequest = requestsWithShippingDay.get(random.nextInt(requestsWithShippingDay.size()));
+        Day shippingDay = randomRequest.getShippingDay();
+        if (randomRequest.getPossibleShippingDays().size() >= 2) { // als maar 1 shipping day niet wijzigen
+
+        }
+
     }
 }
