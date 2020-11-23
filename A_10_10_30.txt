@@ -1,0 +1,65 @@
+Instance_name: A_10_10_30.txt
+Number_of_machines: 2
+Number_of_different_items: 5
+Number_of_days: 10
+Number_of_requests: 10
+Number_of_blocks_per_day: 48
+Index_of_block_e: 4
+Index_of_block_l: 18
+Index_of_block_s: 30
+Index_of_block_o: 36
+Min_consecutive_days_with_night_shifts: 5
+Past_consecutive_days_with_night_shifts: 0
+Cost_of_overtime_p_o: 22.5
+Cost_of_nightShift_p_n: 300
+Cost_of_parallel_task_p_p: 120
+Penalty_per_item_under_minimum_level_p_s: 0.0005
+#Machines data [machineID last_itemID_produced(initial_setup) days_passed_without_maintenance max_days_without_maintenance maintenance_duration_in_blocks]
+0 1 0 2 3
+1 3 1 2 3
+#Items data [itemID cost_per_item quantity_in_stock min_allowed_in_stock max_allowd_in_stock]
+0 0.0880436 240000 240000 360000
+1 0.0879443 0 0 400000
+2 0.0842312 0 0 400000
+3 0.0888493 600000 600000 1200000
+4 0.0886764 251 0 400000
+#Machine efficiency per item [itemID production_in_machine_0_per_block production_in_machine_1_per_block]
+0 15000 15000 
+1 15000 15000 
+2 15000 15000 
+3 15000 15000 
+4 15000 0 
+#Large setup description matrix [#items X #items]. [i,j] is 1 if changing production from item i to j is considered a large setup, 0 if considered small. If i == j no setup is needed.
+0 0 1 1 1
+0 0 1 1 1
+1 1 0 0 1
+1 1 0 0 1
+1 1 1 1 0
+#Machine setup duration in blocks [#items X #items]. [i,j] represents the number of blocks it takes to change production from item i to item j
+0 1 6 6 4
+1 0 6 6 4
+6 6 0 1 6
+6 6 1 0 6
+4 4 6 6 0
+#Shipping day matrix [#request X #shipping_day]. [i,j] is 1 if request i can be shipped on day j, 0 otherwise
+0 1 0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 0 1 
+0 0 0 0 1 0 0 0 0 1 
+0 1 0 1 0 1 0 1 0 1 
+1 1 1 1 1 1 1 1 1 1 
+1 1 1 1 1 1 1 1 1 1 
+0 0 0 0 1 0 0 0 0 1 
+0 0 0 0 1 0 0 0 0 1 
+1 1 1 1 1 1 1 1 1 1 
+1 1 1 1 1 1 1 1 1 1 
+#Requested items matrix [#request X #items]. position [i,j] represents: number of items j requested by request i
+405000 0 0 0 0
+0 0 175000 155000 0
+115000 125000 120000 0 0
+0 0 0 0 465000
+0 95000 0 105000 95000
+95000 95000 0 0 105000
+0 125000 110000 115000 0
+0 0 170000 0 125000
+0 0 0 230000 225000
+0 120000 120000 105000 0
