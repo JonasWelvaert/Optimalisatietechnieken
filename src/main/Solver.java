@@ -541,11 +541,22 @@ public class Solver {
                     }
                 }
 
+                // find first block of maintenance
+                boolean firstBlockFound = false;
+                int firstBlock = randomBlock1;
+                while (!firstBlockFound) {
+                    if (p.getDay(randomDay1).getBlock(firstBlock-1).getMachineState(randMachine1) instanceof Maintenance) {
+                        firstBlock--;
+                    } else {
+                        firstBlockFound = true;
+                    }
+                }
+
                 // verplaats volledige maintenance sequence
                 if (verplaatsbaar) {
                     for (int i = 0; i < p.getMachines().get(randMachineInt1).getMaintenanceDurationInBlocks(); i++) {
                         // zet op maintenance op idle
-                        p.getDay(randomDay1).getBlock(randomBlock1 + i).setMachineState(randMachine1, new Idle());
+                        p.getDay(randomDay1).getBlock(firstBlock + i).setMachineState(randMachine1, new Idle());
 
                         // zet op nieuwe blok op maintenance
                         p.getDay(randomDay2).getBlock(randomBlock2 + i).setMachineState(randMachine2, ms1);
