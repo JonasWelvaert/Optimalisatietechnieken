@@ -1,3 +1,5 @@
+package main;
+
 import model.*;
 import model.machinestate.Idle;
 import model.machinestate.Maintenance;
@@ -11,10 +13,10 @@ public class Main {
     private static final String inputFileName = "toy_inst.txt";
     private static int MIN_CONSECUTIVE_DAYS_WITH_NIGHT_SHIFTS;
     private static int PAST_CONSECUTIVE_DAYS_WITH_NIGHT_SHIFTS;
-    private static double COST_OF_OVERTIME;
-    private static int COST_OF_NIGHTSHIFT;
-    private static int COST_OF_PARALLEL_TASK;
-    private static double PENALTY_PER_ITEM_UNDER_MINIMUM_LEVEL;
+    public static double COST_OF_OVERTIME;
+    public static int COST_OF_NIGHTSHIFT;
+    public static int COST_OF_PARALLEL_TASK;
+    public static double PENALTY_PER_ITEM_UNDER_MINIMUM_LEVEL;
     private static final long SEED = 1000;
     private static final long TIME_LIMIT = 60;
 
@@ -28,6 +30,7 @@ public class Main {
         // 2. initial solution
         logger.info("| Starting making first feasible solution");
         initialPlanning = makeInitialPlanning(initialPlanning);
+        // TODO JONAS: EVALUATE COST OF TOTAL PLANNING
         if (!Solver.checkFeasible(initialPlanning)) {
             logger.severe("2. Initial planning is not feasible!");
             System.exit(2);
@@ -56,7 +59,7 @@ public class Main {
      * Makes all machines IDLE and no requests fullfilled except for the maintenance
      * and nightshifts to ensure a feasible planning.
      *
-     * @param planning The planning returned by the Main.readFileIn method
+     * @param planning The planning returned by the main.Main.readFileIn method
      * @return A initial feasible planning
      */
     private static Planning makeInitialPlanning(Planning planning) {
@@ -115,7 +118,7 @@ public class Main {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(new File(filename)));
             bw.write("Instance_name: " + planning.getInstanceName() + System.lineSeparator());
-            bw.write("Cost: " + planning.getCost() + System.lineSeparator());
+            bw.write("Cost: " + planning.getTotalCost() + System.lineSeparator());
             for (Day d : planning.getDays()) {
                 bw.write("#Day " + d.getId() + System.lineSeparator());
                 for (Block b : d) {
@@ -158,7 +161,7 @@ public class Main {
      */
     private static void printOutputToConsole(Planning planning) {
         System.out.println("Instance_name: " + planning.getInstanceName());
-        System.out.println("Cost: " + planning.getCost());
+        System.out.println("Cost: " + planning.getTotalCost());
         for (Day d : planning.getDays()) {
             System.out.println("#Day " + d.getId());
             for (Block b : d) {
@@ -192,7 +195,7 @@ public class Main {
      * This static function reads in all information from the inputfile and returns
      * a new Planning object with all this information.
      * <p>
-     * It's recommended to use Main.makeInitialPlanning after this operation to make
+     * It's recommended to use main.Main.makeInitialPlanning after this operation to make
      * a fully feasible planning.
      *
      * @param fileName name of the inputfile

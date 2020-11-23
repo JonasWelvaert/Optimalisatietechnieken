@@ -8,48 +8,53 @@ import java.util.Set;
 
 public class Request {
 
-	private int id;
-	private Day shippingDay;
-	private List<Day> possibleShippingDays;
-	private Map<Item, Integer> amountOfItem;
+    private int id;
+    private Day shippingDay;
+    private List<Day> possibleShippingDays;
+    private Map<Item, Integer> amountOfItem;
 
-	public Request(int id) {
-		this.id = id;
-		possibleShippingDays = new ArrayList<>();
-		amountOfItem = new HashMap<>();
-		shippingDay = null;
-	}
+    public Request(int id) {
+        this.id = id;
+        possibleShippingDays = new ArrayList<>();
+        amountOfItem = new HashMap<>();
+        shippingDay = null;
+    }
 
-	public void addPossibleShippingDay(Day day) {
-		possibleShippingDays.add(day);
-	}
+    public void addPossibleShippingDay(Day day) {
+        possibleShippingDays.add(day);
+    }
 
-	public void addItem(Item i, int amountOfItem) {
-		this.amountOfItem.put(i, amountOfItem);
-	}
+    public void addItem(Item i, int amountOfItem) {
+        this.amountOfItem.put(i, amountOfItem);
+    }
 
-	public void setShippingDay(Day shippingDay) {
-		this.shippingDay = shippingDay;
-	}
+    public void setShippingDay(Day shippingDay) {
+        this.shippingDay = shippingDay;
+    }
 
-	public Day getShippingDay() {
-		return shippingDay;
-	}
+    public Day getShippingDay() {
+        return shippingDay;
+    }
 
-	public int getId() {
-		return id;
-	}
+    public int getId() {
+        return id;
+    }
 
-	public List<Day> getPossibleShippingDays() {
-		return possibleShippingDays;
-	}
+    public List<Day> getPossibleShippingDays() {
+        return possibleShippingDays;
+    }
 
-	public Set<Item> getItems() {
-		return amountOfItem.keySet();
-	}
+    public Set<Item> getItems() {
+        return amountOfItem.keySet();
+    }
 
-	public int getAmountOfItem(Item i) {
-		return amountOfItem.get(i);
-	}
+    public int getAmountOfItem(Item i) {
+        return amountOfItem.get(i);
+    }
+
+    public boolean hasShippingDay() {
+        return shippingDay != null;
+    }
+
 
 }
