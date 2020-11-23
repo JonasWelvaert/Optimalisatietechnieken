@@ -56,5 +56,10 @@ public class Request {
         return shippingDay != null;
     }
 
+    public Map<Item, Integer> getMap() {
+
+
+        return amountOfItem;
+    }
 
 }

@@ -58,7 +58,7 @@ public class Solver {
 
 
         for (double t = temperature; t > 1; t *= coolingFactor) {
-            logger.info("t=" + t);
+//            logger.info("t=" + t);
 
             Planning neighbor;
             do {
@@ -66,8 +66,8 @@ public class Solver {
                 localSearch(neighbor);
             } while (!checkFeasible(neighbor));
 
-            int neighborCost = neighbor.getTotalCost();
-            int currentCost = current.getTotalCost();
+            double neighborCost = neighbor.getTotalCost();
+            double currentCost = current.getTotalCost();
 
             double probability;
             if (neighborCost < currentCost) {
@@ -108,6 +108,9 @@ public class Solver {
             addShippingDay(optimizedPlanning);
         else
             moveShippingDay(optimizedPlanning);
+
+        optimizedPlanning.calculateAllCosts();
+
 
         /*
         //TODO: add more steps

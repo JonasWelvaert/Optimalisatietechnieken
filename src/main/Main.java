@@ -6,6 +6,7 @@ import model.machinestate.Maintenance;
 
 import java.io.*;
 import java.util.Scanner;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Main {
@@ -14,9 +15,9 @@ public class Main {
     private static int MIN_CONSECUTIVE_DAYS_WITH_NIGHT_SHIFTS;
     private static int PAST_CONSECUTIVE_DAYS_WITH_NIGHT_SHIFTS;
     public static double COST_OF_OVERTIME;
-    public static int COST_OF_NIGHTSHIFT;
-    public static int COST_OF_PARALLEL_TASK;
-    public static double PENALTY_PER_ITEM_UNDER_MINIMUM_LEVEL;
+    public static double COST_OF_NIGHT_SHIFT;
+    public static double COST_OF_PARALLEL_TASK;
+    public static double COST_PER_ITEM_UNDER_MINIMUM_LEVEL;
     private static final long SEED = 1000;
     private static final long TIME_LIMIT = 60;
 
@@ -30,6 +31,7 @@ public class Main {
         // 2. initial solution
         logger.info("| Starting making first feasible solution");
         initialPlanning = makeInitialPlanning(initialPlanning);
+        logger.log(Level.INFO, "--------------- TOTAL COST = " + String.valueOf(initialPlanning.getTotalCost()) + "---------------");
         // TODO JONAS: EVALUATE COST OF TOTAL PLANNING
         if (!Solver.checkFeasible(initialPlanning)) {
             logger.severe("2. Initial planning is not feasible!");
@@ -105,6 +107,7 @@ public class Main {
                 }
             }
         }
+        planning.calculateAllCosts();
         return planning;
     }
 
@@ -257,11 +260,11 @@ public class Main {
             } else if (inputDelen[0].equals("Cost_of_overtime_p_o:")) {
                 COST_OF_OVERTIME = Double.parseDouble(inputDelen[1]);
             } else if (inputDelen[0].equals("Cost_of_nightShift_p_n:")) {
-                COST_OF_NIGHTSHIFT = Integer.parseInt(inputDelen[1]);
+                COST_OF_NIGHT_SHIFT = Integer.parseInt(inputDelen[1]);
             } else if (inputDelen[0].equals("Cost_of_parallel_task_p_p:")) {
                 COST_OF_PARALLEL_TASK = Integer.parseInt(inputDelen[1]);
             } else if (inputDelen[0].equals("Penalty_per_item_under_minimum_level_p_s:")) {
-                PENALTY_PER_ITEM_UNDER_MINIMUM_LEVEL = Double.parseDouble(inputDelen[1]);
+                COST_PER_ITEM_UNDER_MINIMUM_LEVEL = Double.parseDouble(inputDelen[1]);
             } else if (inputLine.startsWith("#Machines data")) {
                 input_block = 1;
                 i = 0;

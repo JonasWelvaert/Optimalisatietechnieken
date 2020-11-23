@@ -1,10 +1,14 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import com.sun.istack.internal.Nullable;
+import main.Main;
 import model.machinestate.Idle;
 import model.machinestate.setup.LargeSetup;
 import model.machinestate.MachineState;
@@ -16,6 +20,9 @@ import model.machinestate.setup.SmallSetup;
 import static main.Main.*;
 
 public class Planning {
+    private static final Logger logger = Logger.getLogger(Planning.class.getName());
+
+
     private static int numberOfDays;
     private static int minConsecutiveDaysWithNightShift;
     private int pastConsecutiveDaysWithNightShift;
@@ -25,11 +32,11 @@ public class Planning {
     private List<Item> items;
     private Requests requests;
     private Stock stock;
-    private int costNS;    //NS = night shift
-    private int costOT; //OT = Over time
-    private int costUR;    //UR = unscheduled request
-    private int costSL;    //SL = Stock Level
-    private int costDP;    //DP = Days Parallel
+    private double costNS;    //NS = night shift
+    private double costOT; //OT = Over time
+    private double costUR;    //UR = unscheduled request
+    private double costSL;    //SL = Stock Level
+    private double costDP;    //DP = Days Parallel
 
 
     public Planning(String instanceName, int nrOfMachines) {
@@ -98,8 +105,12 @@ public class Planning {
             }
             this.requests.add(request);
         }
-        //TODO romeo: alle waarden kopieren (copy constructor)
-        //this.cost = p.cost;
+        this.costUR = p.costUR;
+        this.costSL = p.costSL;
+        this.costOT = p.costOT;
+        this.costDP = p.costDP;
+        this.costNS = p.costNS;
+
     }
 
     public void addMachine(Machine m) {
@@ -177,18 +188,14 @@ public class Planning {
 
 
     /* ------------------------- COSTS ------------------------- */
-
-
-    /*
-     *  +  +
-     */
-
-    public int getCostNS() {
+    public double getCostNS() {
         return costNS;
     }
 
-    public void setCostNS(int costNS) {
+    public void setCostNS(double costNS) {
         this.costNS = costNS;
+//        logger.log(Level.INFO, "Cost of NS= " + String.valueOf(costNS));
+
     }
 
     //dns × pn (=COST_OF_NIGHTSHIFT)
@@ -199,15 +206,16 @@ public class Planning {
                 dns++;
             }
         }
-        setCostNS(dns * COST_OF_NIGHTSHIFT);
+        setCostNS(dns * COST_OF_NIGHT_SHIFT);
     }
 
-    public int getCostOT() {
+    public double getCostOT() {
         return costOT;
     }
 
-    public void setCostOT(int costOT) {
+    public void setCostOT(double costOT) {
         this.costOT = costOT;
+//        logger.log(Level.INFO, "Cost of OT= " + String.valueOf(costOT));
     }
 
     // to × po (=COST_OF_NIGHTSHIFT)
@@ -217,48 +225,68 @@ public class Planning {
             to += d.getNumberOfOvertimeBlock(machines);
         }
 
-        setCostOT(to * COST_OF_NIGHTSHIFT);
+        setCostOT(to * COST_OF_NIGHT_SHIFT);
     }
 
-    public int getCostUR() {
+    public double getCostUR() {
         return costUR;
     }
 
-    public void setCostUR(int costUR) {
+    public void setCostUR(double costUR) {
         this.costUR = costUR;
+//        logger.log(Level.INFO, "Cost of UR= " + String.valueOf(costUR));
     }
 
     //SOM r∈V SOM i∈I (q i r × ci)
     public void calculateUR() {
-        int UR = 0;
-        Map<Item, Integer> amountOfItems;
+        double total = 0;
+        double ci;
+        int qir;
         for (Request req : requests) {
             if (!req.hasShippingDay()) {
-
-
+                for (Map.Entry<Item, Integer> entry : req.getMap().entrySet()) {
+                    ci = entry.getKey().getCostPerItem();
+                    qir = entry.getValue();
+                    total += (ci * qir);
+                }
             }
         }
+        setCostUR(total);
     }
 
-    public int getCostSL() {
+    public double getCostSL() {
         return costSL;
     }
 
-    public void setCostSL(int costSL) {
+    public void setCostSL(double costSL) {
         this.costSL = costSL;
+//        logger.log(Level.INFO, "Cost of SL= " + String.valueOf(costSL));
     }
 
-    //SOM d∈D (ud × ps)
+    //SOM d∈D (ud × ps) ud= aantal items below stock level onder dag d
     public void calculateSL() {
-
+        double totalUD = 0;
+        int i1, i2;
+        for (Item item : stock) {
+            for (Day d : days) {
+                i1 = item.getStockAmount(d);
+                i2 = item.getMinAllowedInStock();
+                int ud = i2 - i1;
+                if (ud > 0) {
+                    totalUD += ud;
+                }
+            }
+        }
+        setCostSL(totalUD * COST_PER_ITEM_UNDER_MINIMUM_LEVEL);
     }
 
-    public int getCostDP() {
+    public double getCostDP() {
         return costDP;
     }
 
-    public void setCostDP(int costDP) {
+    public void setCostDP(double costDP) {
         this.costDP = costDP;
+//        logger.log(Level.INFO, "Cost of DP= " + String.valueOf(costDP));
     }
 
     //dp × pp (=COST_OF_PARALLEL_TASK)
@@ -271,8 +299,22 @@ public class Planning {
 
     }
 
-    public int getTotalCost() {
+    public void calculateAllCosts() {
+        calculateDP();
+        calculateNS();
+        calculateOT();
+        calculateSL();
+        calculateUR();
+        logAllCosts();
+    }
+
+    public double getTotalCost() {
         return costDP + costNS + costOT + costSL + costUR;
+    }
+
+    private void logAllCosts(@Nullable Object... params) {
+        String msg = "(NS: " + costNS + "| OT: " + costOT + "| UR: " + costUR + "| SL: " + costSL + "| DP: " + costDP + ")" + " [TOTAL: " + getTotalCost() + "]";
+        logger.log(Level.INFO, msg, params);
     }
 
 }
