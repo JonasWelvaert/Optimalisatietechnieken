@@ -6,6 +6,8 @@ import model.machinestate.Idle;
 import model.machinestate.Maintenance;
 
 import java.io.*;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.Scanner;
@@ -37,7 +39,7 @@ public class Main {
 		}
 	}
 
-    private static final InputFile inputFileName = InputFile.D10_R10_B30;
+    private static final InputFile inputFileName = InputFile.D40_R100_B60;
     private static final String outputVoorvoegsel = "initial_";
     private static final Logger logger = Logger.getLogger(Main.class.getName());
     public static double COST_OF_OVERTIME;
@@ -144,9 +146,7 @@ public class Main {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(new File(filename)));
             bw.write("Instance_name: " + planning.getInstanceName() + System.lineSeparator());
-            NumberFormat nf = NumberFormat.getNumberInstance(Locale.getDefault());
-            nf.setMaximumFractionDigits(2);
-            System.out.println("Cost: " + nf.format(planning.getTotalCost()) + System.lineSeparator());
+            bw.write("Cost: " + String.format("%.2f",planning.getTotalCost()) + System.lineSeparator());
             for (Day d : planning.getDays()) {
                 bw.write("#Day " + d.getId() + System.lineSeparator());
                 for (Block b : d) {
@@ -189,9 +189,7 @@ public class Main {
      */
     private static void printOutputToConsole(Planning planning) {
         System.out.println("Instance_name: " + planning.getInstanceName());
-        NumberFormat nf = NumberFormat.getNumberInstance(Locale.getDefault());
-        nf.setMaximumFractionDigits(2);
-        System.out.println("Cost: " + nf.format(planning.getTotalCost()));
+        System.out.println("Cost: " + String.format("%.2f",planning.getTotalCost()));
         for (Day d : planning.getDays()) {
             System.out.println("#Day " + d.getId());
             for (Block b : d) {

@@ -70,7 +70,7 @@ public class Machine {
 				} else {
 					if (currentBlock == 0) {
 						currentDay--;
-						currentBlock = p.getDays().size()-1;
+						currentBlock = Day.getNumberOfBlocksPerDay()-1;
 					} else {
 						currentBlock--;
 					}

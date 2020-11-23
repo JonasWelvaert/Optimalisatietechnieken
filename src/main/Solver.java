@@ -562,7 +562,7 @@ public class Solver {
 
         // random
         int randomDay = random.nextInt(Planning.getNumberOfDays());
-        int randomBlock = random.nextInt(p.getDay(randomDay).getNumberOfBlocksPerDay());
+        int randomBlock = random.nextInt(Day.getNumberOfBlocksPerDay());
         int randMachineInt = random.nextInt(p.getMachines().size());
         Machine randMachine = p.getMachines().get(randMachineInt);
 
@@ -584,7 +584,7 @@ public class Solver {
 
         // random
         int randomDay = random.nextInt(Planning.getNumberOfDays());
-        int randomBlock = random.nextInt(p.getDay(randomDay).getNumberOfBlocksPerDay());
+        int randomBlock = random.nextInt(Day.getNumberOfBlocksPerDay());
         int randMachineInt = random.nextInt(p.getMachines().size());
         Machine randMachine = p.getMachines().get(randMachineInt);
         Block b = p.getDay(randomDay).getBlock(randomBlock);
