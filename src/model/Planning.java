@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.sun.istack.internal.Nullable;
 import main.Main;
 import model.machinestate.Idle;
 import model.machinestate.setup.LargeSetup;
@@ -312,7 +311,7 @@ public class Planning {
         return costDP + costNS + costOT + costSL + costUR;
     }
 
-    private void logAllCosts(@Nullable Object... params) {
+    private void logAllCosts(Object... params) {
         String msg = "(NS: " + costNS + "| OT: " + costOT + "| UR: " + costUR + "| SL: " + costSL + "| DP: " + costDP + ")" + " [TOTAL: " + getTotalCost() + "]";
         logger.log(Level.INFO, msg, params);
     }

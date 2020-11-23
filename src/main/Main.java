@@ -1,38 +1,61 @@
 package main;
 
 import model.*;
+
 import model.machinestate.Idle;
 import model.machinestate.Maintenance;
 
 import java.io.*;
+import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Main {
+	private enum InputFile{
+		Toy("toy_inst.txt"),
+		D10_R10_B30("A_10_10_30.txt"),
+		D10_R10_B60("A_10_10_60.txt"),
+		D10_R15_B30("A_10_15_30.txt"),
+		D10_R15_B60("A_10_15_60.txt"),
+		D20_R15_B30("A_20_15_30.txt"),
+		D20_R15_B60("A_20_15_60.txt"),
+		D20_R25_B30("A_20_25_30.txt"),
+		D20_R25_B60("A_20_25_60.txt"),
+		D40_R100_B30("A_40_100_30.txt"),
+		D40_R100_B60("A_40_100_60.txt");
+		
+		private String string;
+		
+		InputFile(String string){
+			this.string = string;
+		}
+		
+		public String toString() {
+			return string;
+		}
+	}
+
+    private static final InputFile inputFileName = InputFile.D10_R10_B30;
+    private static final String outputVoorvoegsel = "initial_";
     private static final Logger logger = Logger.getLogger(Main.class.getName());
-    private static final String inputFileName = "toy_inst.txt";
-    private static int MIN_CONSECUTIVE_DAYS_WITH_NIGHT_SHIFTS;
-    private static int PAST_CONSECUTIVE_DAYS_WITH_NIGHT_SHIFTS;
     public static double COST_OF_OVERTIME;
     public static double COST_OF_NIGHT_SHIFT;
     public static double COST_OF_PARALLEL_TASK;
     public static double COST_PER_ITEM_UNDER_MINIMUM_LEVEL;
-    private static final long SEED = 1000;
-    private static final long TIME_LIMIT = 60;
 
 
     public static void main(String[] args) {
         // 1. inputfile
         logger.info("| Starting reading of input file " + inputFileName);
-        Planning initialPlanning = readFileIn(inputFileName);
+        Planning initialPlanning = readFileIn(inputFileName.toString());
 
 
         // 2. initial solution
         logger.info("| Starting making first feasible solution");
         initialPlanning = makeInitialPlanning(initialPlanning);
         logger.log(Level.INFO, "--------------- TOTAL COST = " + String.valueOf(initialPlanning.getTotalCost()) + "---------------");
-        // TODO JONAS: EVALUATE COST OF TOTAL PLANNING
         if (!Solver.checkFeasible(initialPlanning)) {
             logger.severe("2. Initial planning is not feasible!");
             System.exit(2);
@@ -51,7 +74,7 @@ public class Main {
         // 4. output
         logger.info("| Starting writing outputfile");
         printOutputToConsole(optimizedPlanning);
-        printOutputToFile("output_" + inputFileName, optimizedPlanning);
+        printOutputToFile(outputVoorvoegsel + inputFileName, optimizedPlanning);
 
         // 5. The end
         logger.info("| Finished execution");
@@ -121,7 +144,9 @@ public class Main {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(new File(filename)));
             bw.write("Instance_name: " + planning.getInstanceName() + System.lineSeparator());
-            bw.write("Cost: " + planning.getTotalCost() + System.lineSeparator());
+            NumberFormat nf = NumberFormat.getNumberInstance(Locale.getDefault());
+            nf.setMaximumFractionDigits(2);
+            System.out.println("Cost: " + nf.format(planning.getTotalCost()) + System.lineSeparator());
             for (Day d : planning.getDays()) {
                 bw.write("#Day " + d.getId() + System.lineSeparator());
                 for (Block b : d) {
@@ -164,7 +189,9 @@ public class Main {
      */
     private static void printOutputToConsole(Planning planning) {
         System.out.println("Instance_name: " + planning.getInstanceName());
-        System.out.println("Cost: " + planning.getTotalCost());
+        NumberFormat nf = NumberFormat.getNumberInstance(Locale.getDefault());
+        nf.setMaximumFractionDigits(2);
+        System.out.println("Cost: " + nf.format(planning.getTotalCost()));
         for (Day d : planning.getDays()) {
             System.out.println("#Day " + d.getId());
             for (Block b : d) {
