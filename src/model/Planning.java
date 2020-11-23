@@ -7,20 +7,27 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.sun.istack.internal.Nullable;
 import main.Main;
 import model.machinestate.Idle;
-import model.machinestate.setup.LargeSetup;
 import model.machinestate.MachineState;
 import model.machinestate.Maintenance;
 import model.machinestate.Production;
+import model.machinestate.setup.LargeSetup;
 import model.machinestate.setup.Setup;
 import model.machinestate.setup.SmallSetup;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static main.Main.*;
 
 public class Planning {
     private static final Logger logger = Logger.getLogger(Planning.class.getName());
-
 
     private static int numberOfDays;
     private static int minConsecutiveDaysWithNightShift;
@@ -298,7 +305,7 @@ public class Planning {
 
     }
 
-    public void calculateAllCosts() {
+    public void calculateAllCosts() throws IOException {
         calculateDP();
         calculateNS();
         calculateOT();
@@ -311,9 +318,11 @@ public class Planning {
         return costDP + costNS + costOT + costSL + costUR;
     }
 
-    private void logAllCosts(Object... params) {
+    private void logAllCosts(@Nullable Object... params) throws IOException {
         String msg = "(NS: " + costNS + "| OT: " + costOT + "| UR: " + costUR + "| SL: " + costSL + "| DP: " + costDP + ")" + " [TOTAL: " + getTotalCost() + "]";
         logger.log(Level.INFO, msg, params);
-    }
 
+        String line = getTotalCost() + "," + costNS + "," + costOT + "," + costUR + "," + costSL + "," + costDP;
+        Main.output.add(line);
+    }
 }

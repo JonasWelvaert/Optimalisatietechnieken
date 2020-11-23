@@ -9,6 +9,7 @@ import model.machinestate.setup.LargeSetup;
 import model.machinestate.setup.Setup;
 import model.machinestate.setup.SmallSetup;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -42,7 +43,7 @@ public class Solver {
         this.SATemperature = SATemperature;
     }
 
-    public Planning optimize(Planning initialPlanning) {
+    public Planning optimize(Planning initialPlanning) throws IOException {
         if (mode == SIMULATED_ANEALING) {
             return optimizeUsingSimulatedAnealing(initialPlanning, SATemperature, SACoolingFactor);
         }
@@ -52,7 +53,7 @@ public class Solver {
     }
 
     private Planning optimizeUsingSimulatedAnealing(Planning initialPlanning, double temperature,
-                                                    double coolingFactor) {
+                                                    double coolingFactor) throws IOException {
         Planning current = new Planning(initialPlanning);
         Planning best = initialPlanning;
 
@@ -85,7 +86,7 @@ public class Solver {
         return best;
     }
 
-    public static Planning localSearch(Planning optimizedPlanning) {
+    public static Planning localSearch(Planning optimizedPlanning) throws IOException {
         changeList.clear();
         int randomInt = random.nextInt(24);  // [0,100]
         //TODO wich part of eval function is changed ? call planning.calculate...()
@@ -813,7 +814,7 @@ public class Solver {
         // alle requesten met shipping day
         List<Request> requests = p.getRequests().getRequests();
         List<Request> requestsWithShippingDay = new ArrayList<>();
-        for (Request r: requests) {
+        for (Request r : requests) {
             if (r.hasShippingDay()) {
                 requestsWithShippingDay.add(r);
             }

@@ -1,18 +1,17 @@
 package main;
 
 import model.*;
-
 import model.machinestate.Idle;
 import model.machinestate.Maintenance;
 
 import java.io.*;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.text.NumberFormat;
-import java.util.Locale;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static graphing.OptimalisationGraphing.*;
 
 public class Main {
 	private enum InputFile{
@@ -27,13 +26,13 @@ public class Main {
 		D20_R25_B60("A_20_25_60.txt"),
 		D40_R100_B30("A_40_100_30.txt"),
 		D40_R100_B60("A_40_100_60.txt");
-		
+
 		private String string;
-		
+
 		InputFile(String string){
 			this.string = string;
 		}
-		
+
 		public String toString() {
 			return string;
 		}
@@ -47,8 +46,11 @@ public class Main {
     public static double COST_OF_PARALLEL_TASK;
     public static double COST_PER_ITEM_UNDER_MINIMUM_LEVEL;
 
+    public static List<String> output = new ArrayList<>();
 
-    public static void main(String[] args) {
+
+    public static void main(String[] args) throws IOException {
+
         // 1. inputfile
         logger.info("| Starting reading of input file " + inputFileName);
         Planning initialPlanning = readFileIn(inputFileName.toString());
@@ -78,8 +80,24 @@ public class Main {
         printOutputToConsole(optimizedPlanning);
         printOutputToFile(outputVoorvoegsel + inputFileName, optimizedPlanning);
 
-        // 5. The end
+        //5. print out csv
+        printCSV(optimizedPlanning);
+
+        // 6. The end
         logger.info("| Finished execution");
+    }
+
+    private static void printCSV(Planning optimizedPlanning) throws IOException {
+        FileWriter fw = new FileWriter(csvFile);
+        PrintWriter out = new PrintWriter(fw);
+
+        for (String s : output) {
+            out.println(s);
+        }
+
+        out.flush();
+        out.close();
+        fw.close();
     }
 
     /**
@@ -89,7 +107,7 @@ public class Main {
      * @param planning The planning returned by the main.Main.readFileIn method
      * @return A initial feasible planning
      */
-    private static Planning makeInitialPlanning(Planning planning) {
+    private static Planning makeInitialPlanning(Planning planning) throws IOException {
         for (Day d : planning.getDays()) {
             // putting all machines all the time in idle.
             for (Machine m : planning.getMachines()) {
