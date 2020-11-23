@@ -1,3 +1,5 @@
+package main;
+
 import model.*;
 import model.machinestate.Idle;
 import model.machinestate.MachineState;
@@ -31,7 +33,7 @@ public class Solver {
             this.mode = mode;
         } else {
             logger.warning("Optimize mode " + this.mode + " not found");
-            throw new RuntimeException("Optimize mode not found in Solver constructor");
+            throw new RuntimeException("Optimize mode not found in main.Solver constructor");
         }
     }
 
@@ -46,7 +48,7 @@ public class Solver {
         }
         // hier kunnen andere optimalisaties toegevoegd worden als deze niet goed
         // blijkt.
-        throw new RuntimeException("Optimize mode not found in Solver.optimize()");
+        throw new RuntimeException("Optimize mode not found in main.Solver.optimize()");
     }
 
     private Planning optimizeUsingSimulatedAnealing(Planning initialPlanning, double temperature,
@@ -64,8 +66,8 @@ public class Solver {
                 localSearch(neighbor);
             } while (!checkFeasible(neighbor));
 
-            int neighborCost = neighbor.getCost();
-            int currentCost = current.getCost();
+            int neighborCost = neighbor.getTotalCost();
+            int currentCost = current.getTotalCost();
 
             double probability;
             if (neighborCost < currentCost) {
@@ -76,7 +78,7 @@ public class Solver {
             if (Math.random() < probability) {
                 current = new Planning(neighbor);
             }
-            if (current.getCost() < best.getCost()) {
+            if (current.getTotalCost() < best.getTotalCost()) {
                 best = new Planning(current);
             }
         }
@@ -86,37 +88,46 @@ public class Solver {
     public static Planning localSearch(Planning optimizedPlanning) {
         changeList.clear();
         int randomInt = random.nextInt(16);  // [0,100]
+        //TODO wich part of eval function is changed ? call planning.calculate...()
 
         if (randomInt == 0)  // willen niet constant maintenance zitten verplaatsen
             moveMaintenance(optimizedPlanning);
+
         else if (randomInt < 5)
-            addProduction(optimizedPlanning);
+            addProduction(optimizedPlanning); // 1 BLOCK ? meerdere blokken ? invoegen ? rij van blokken van zelfde item ?
+
         else if (randomInt < 9)
             removeProduction(optimizedPlanning);
+
         else if (randomInt < 13)
-            changeProduction(optimizedPlanning);
+            changeProduction(optimizedPlanning); // 1 BLOCK ? meerdere blokken ? invoegen ?
+
         else
             moveProduction(optimizedPlanning);
 
-        //optimizedPlanning.calculateCost();         // TODO: Romeo (naar kijken) hier al de cost wijzigen per wijziging
+        /*
+        //TODO: add more steps
+        //SHIPPING DAYS VAST LEGGEN  (wisselen, verwijderen, toeveogen)
+        //REQUESTS BEHANDELEN
+        //switch production types
 
-        calculateCostChange(changeList);
+
+
+        local search operators:
+        - productie van een item toevoegen -> 1 block per keer of meerdere blocks per keer
+        - productie van een item tussenvoegen -> 1 block per keer of meerdere blocks per keer
+        - productie van een item wisselen met productie van een andere item -> 1 block per keer of alle blocks van een item wisselen
+        - productie van een item verwijderen -> 1 block per keer of alle blocks van een item verwijderen
+        - productie van een item verplaatsen -> 1 block per keer of alle blocks van een item verplaatsen
+        - shipping day toevoegen (rekening houden met waar het beste komt ?)
+        - shipping day wisselen
+        - ketting van operators -> na elkaar uitvoeren van een aantal operators
+        - productie van een item verwisselen van machine -> alle blocks van een item verwisselen
+        - maintenance verplaatsen
+         */
 
         // Moet niet fesaible terugeven
-        return optimizedPlanning;/*
-         * dns × pn + to × po + SOM r∈V SOM i∈I (q i r × ci) + SOM d∈D (ud × ps) + dp ×
-         * pp
-         */
-    }
-
-    public static int calculateCostChange(List<String> changeList) {
-        //System.out.println(changeList);
-        for(String s : changeList){
-           /* if(s.getType == removeProduction){
-                return -2; //TODO bepalen van cost change voor bepaalde wijziging
-            }*/
-        }
-        return 0; //TODO romeo
+        return optimizedPlanning;
     }
 
     public static boolean checkFeasible(Planning planning) {
@@ -468,8 +479,8 @@ public class Solver {
                 // kijken ofdat op de nieuwe plek geen setup of andere maintenance staat
                 boolean verplaatsbaar = true;
                 for (int i = 0; i < p.getMachines().get(randMachineInt1).getMaintenanceDurationInBlocks(); i++) {
-                    if (p.getDay(randomDay2).getBlock(randomBlock2+i).getMachineState(randMachine1) instanceof Setup
-                        || p.getDay(randomDay2).getBlock(randomBlock2+i).getMachineState(randMachine1) instanceof Maintenance) {
+                    if (p.getDay(randomDay2).getBlock(randomBlock2 + i).getMachineState(randMachine1) instanceof Setup
+                            || p.getDay(randomDay2).getBlock(randomBlock2 + i).getMachineState(randMachine1) instanceof Maintenance) {
                         verplaatsbaar = false;
                     }
                 }
@@ -483,7 +494,6 @@ public class Solver {
                         // zet op nieuwe blok op maintenance
                         p.getDay(randomDay2).getBlock(randomBlock2 + i).setMachineState(randMachine2, ms1);
 
-                        changeList.add("CHANGES");
                     }
                     return;
                 }
@@ -556,26 +566,26 @@ public class Solver {
         // check genoeg tijd voor setup + overdag
         int tijdSetup = previousItem.getLengthSetup(newItem);
         int tijdBeschikbaar = 0;
-        int earliestMomentBlock =block;
+        int earliestMomentBlock = block;
 
         int count = 0;
 
         // hoeveel tijd ervoor + controle na b_l
-        while (count<MAX_NEWSETUP_TRIES) {
+        while (count < MAX_NEWSETUP_TRIES) {
             // snachts is false
-            if (block-count < p.getDay(day).indexOfBlockE) {
+            if (block - count < p.getDay(day).indexOfBlockE) {
                 return false;
-            // als ander product is false
-            } else if (p.getDay(day).getBlock(block-count).getMachineState(machine) instanceof Production) {
+                // als ander product is false
+            } else if (p.getDay(day).getBlock(block - count).getMachineState(machine) instanceof Production) {
                 return false;
-            // als iets in de weg ma nog nie opt einde = tijd terug op nul
-            } else if (p.getDay(day).getBlock(block-count).getMachineState(machine) instanceof Maintenance
-                || p.getDay(day).getBlock(block-count).getMachineState(machine) instanceof Setup) {
+                // als iets in de weg ma nog nie opt einde = tijd terug op nul
+            } else if (p.getDay(day).getBlock(block - count).getMachineState(machine) instanceof Maintenance
+                    || p.getDay(day).getBlock(block - count).getMachineState(machine) instanceof Setup) {
                 tijdBeschikbaar = 0;
-            // dubbele controle ofda het idle is
-            } else if (p.getDay(day).getBlock(block-count).getMachineState(machine) instanceof Idle) {
+                // dubbele controle ofda het idle is
+            } else if (p.getDay(day).getBlock(block - count).getMachineState(machine) instanceof Idle) {
                 tijdBeschikbaar++;
-                earliestMomentBlock = block-count;
+                earliestMomentBlock = block - count;
                 if (tijdBeschikbaar == tijdSetup) {
                     break;
                 }
@@ -587,9 +597,9 @@ public class Solver {
         if (count < MAX_NEWSETUP_TRIES) {
             for (int i = 0; i < tijdSetup; i++) {
                 if (previousItem.isLargeSetup(newItem)) { // large setup
-                    p.getDay(day).getBlock(earliestMomentBlock+i).setMachineState(machine, new LargeSetup(previousItem, newItem));
+                    p.getDay(day).getBlock(earliestMomentBlock + i).setMachineState(machine, new LargeSetup(previousItem, newItem));
                 } else { // small setup
-                    p.getDay(day).getBlock(earliestMomentBlock+i).setMachineState(machine, new SmallSetup(previousItem, newItem));
+                    p.getDay(day).getBlock(earliestMomentBlock + i).setMachineState(machine, new SmallSetup(previousItem, newItem));
                 }
             }
             return true;
