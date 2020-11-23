@@ -104,10 +104,10 @@ public class Solver {
 
         else if (randomInt < 17)
             moveProduction(optimizedPlanning);
-        else if (randomInt < 21)
-            addShippingDay(optimizedPlanning);
-        else
-            moveShippingDay(optimizedPlanning);
+//        else if (randomInt < 21)
+//            addShippingDay(optimizedPlanning);
+//        else
+//            moveShippingDay(optimizedPlanning);
 
         optimizedPlanning.calculateAllCosts();
 
