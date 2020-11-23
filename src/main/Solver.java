@@ -195,6 +195,10 @@ public class Solver {
                 return false;
             }
 
+            if (!checkShippingDayConstraints(d, planning)) {
+                return false;
+            }
+
         }
 
         for (Machine m : planning.getMachines()) {
@@ -463,6 +467,50 @@ public class Solver {
         return true;
 
     }
+
+    private static boolean checkShippingDayConstraints(int d, Planning planning) {
+        // check every request whether the amount produced/in-stock is sufficient
+        for (Request request : planning.getRequests()) {
+
+            // if day d is a shipping day
+            if (request.getShippingDay() != null) {
+                if (request.getShippingDay().getId() == planning.getDay(d).getId()) {
+
+                    // if day d not in possible shipping days
+                    if (!request.getPossibleShippingDays().contains(planning.getDay(d))) {
+                        return false;
+                    }
+
+                    // check if the amount for each item in the request is fulfilled
+                    for (Item i : request.getItems()) {
+                        int amount = 0;
+
+                        // amount in the stock
+                        amount = planning.getStock().getItem(i.getId()).getStockAmount(planning.getDay(d));
+
+                        for (Machine m : planning.getMachines()) {
+                            // check the amount produced on the last block in the day for every machine
+                            int lastBlockOfProduction = 0;
+                            for (int j = 0; j < Day.getNumberOfBlocksPerDay(); j++) {
+                                if (planning.getDay(d).getBlock(j).getMachineState(m) instanceof Production) {
+                                    lastBlockOfProduction = planning.getDay(d).getBlock(j).getId();
+                                }
+                            }
+                            Production production = (Production) planning.getDay(d).getBlock(lastBlockOfProduction).getMachineState(m);
+                            if (production.getItem().getId() == i.getId()) {
+                                amount += production.getItem().getStockAmount(planning.getDay(d));
+                            }
+                        }
+                        if (amount < request.getAmountOfItem(i)) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
 
     private static void moveMaintenance(Planning p) {
         changeList.clear();
