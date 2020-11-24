@@ -376,15 +376,22 @@ public class Solver {
         int init = m.getInitialDaysPastWithoutMaintenance();
         int max = m.getMaxDaysWithoutMaintenance();
         int now = max - init;
-
-        int maintenanceTeller = 0;
-        if (d - now == 0 || (d - now) % (max + 1) == 0) {
-            for (Block b : planning.getDay(d)) {
-                if (b.getMachineState(m) instanceof Maintenance) {
-                    maintenanceTeller++;
+        int maintenanceBlockTeller = 0;
+        int maintenanceDayTeller =0;
+        int duration = 0;
+        if ((d - now) == 0 || ((d - now) % (max + 1)) == 0) {
+            for (int b = 0; b < Day.getNumberOfBlocksPerDay(); b++) {
+                if (planning.getDay(d).getBlock(b).getMachineState(m) instanceof Maintenance) {
+                    duration = m.getMaintenanceDurationInBlocks();
+                    maintenanceBlockTeller++;
+                    if (maintenanceBlockTeller == duration){
+                        return true;
+                    }
+                } else {
+                    maintenanceBlockTeller = 0;
                 }
             }
-            return maintenanceTeller != 0;
+            return false;
         }
 
         return true;
@@ -548,7 +555,7 @@ public class Solver {
                 boolean firstBlockFound = false;
                 int firstBlock = randomBlock1;
                 while (!firstBlockFound) {
-                    if (p.getDay(randomDay1).getBlock(firstBlock-1).getMachineState(randMachine1) instanceof Maintenance) {
+                    if (p.getDay(randomDay1).getBlock(firstBlock - 1).getMachineState(randMachine1) instanceof Maintenance) {
                         firstBlock--;
                     } else {
                         firstBlockFound = true;
@@ -866,7 +873,7 @@ public class Solver {
             // random request die shipping day heeft
             Request randomRequest = requestsWithShippingDay.get(random.nextInt(requestsWithShippingDay.size()));
             Day shippingDay = randomRequest.getShippingDay();
-            Map<Item,Integer> items = randomRequest.getMap();
+            Map<Item, Integer> items = randomRequest.getMap();
             boolean foundRandomItem = false;
             Item randomItem;
             while (!foundRandomItem) {

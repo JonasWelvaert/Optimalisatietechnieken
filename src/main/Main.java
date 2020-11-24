@@ -38,7 +38,7 @@ public class Main {
 		}
 	}
 
-    private static final InputFile inputFileName = InputFile.D20_R15_B60;
+    private static final InputFile inputFileName = InputFile.D40_R100_B30;
     private static final String outputVoorvoegsel = "SA1_";
     private static final Logger logger = Logger.getLogger(Main.class.getName());
     public static double COST_OF_OVERTIME;
