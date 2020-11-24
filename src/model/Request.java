@@ -20,6 +20,10 @@ public class Request {
         shippingDay = null;
     }
 
+    public void removeShippingDay() {
+        shippingDay = null;
+    }
+
     public void addPossibleShippingDay(Day day) {
         possibleShippingDays.add(day);
     }

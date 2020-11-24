@@ -26,6 +26,7 @@ public class Solver {
     private static final int MAX_MAINTENANCE_TRIES = 1000;
     private static final int MAX_NEWSETUP_TRIES = 1000;
     private static final int MAX_MOVEITEM_TRIES = 1000;
+    private static final int MAX_ADDSHIPPINGPROD_TRIES = 1000;
     private static final Random random = new Random();
     private static final int maxAantalDagenTussenVerlengingNightshift = 3; //dit is een variabele die kan gewijzigd worden adhv het algoritme
 
@@ -105,10 +106,12 @@ public class Solver {
 
         else if (randomInt < 17)
             moveProduction(optimizedPlanning);
-//        else if (randomInt < 21)
-//            addShippingDay(optimizedPlanning);
-//        else
-//            moveShippingDay(optimizedPlanning);
+        /*else
+            addProductionForShipping(optimizedPlanning);
+        else if (randomInt < 21)
+            addShippingDay(optimizedPlanning);
+        else
+            moveShippingDay(optimizedPlanning);*/
 
         optimizedPlanning.calculateAllCosts();
 
@@ -831,12 +834,80 @@ public class Solver {
             }
         }
 
-        // random uit deze lijst
-        Request randomRequest = requestsWithShippingDay.get(random.nextInt(requestsWithShippingDay.size()));
-        Day shippingDay = randomRequest.getShippingDay();
-        if (randomRequest.getPossibleShippingDays().size() >= 2) { // als maar 1 shipping day niet wijzigen
+        if (!requestsWithShippingDay.isEmpty()) {
+            // random request die shipping day heeft
+            Request randomRequest = requestsWithShippingDay.get(random.nextInt(requestsWithShippingDay.size()));
+            // als maar 1 shipping day niet wijzigen
+            if (randomRequest.getPossibleShippingDays().size() >= 2) {
+                // random day van alle mogelijke shippingdagen
+                int randomPossibleShippingDay = random.nextInt(randomRequest.getPossibleShippingDays().size());
+                Day newShippingDay = randomRequest.getPossibleShippingDays().get(randomPossibleShippingDay);
+                // shipping day verwijderen
+                randomRequest.removeShippingDay();
+                // nieuwe shipping day toewijzen
+                randomRequest.setShippingDay(newShippingDay);
+            }
+        } else {
+            addShippingDay(p);
+        }
+    }
 
+    private static void addProductionForShipping(Planning p) {
+        // alle requesten met shipping day
+        List<Request> requests = p.getRequests().getRequests();
+        List<Request> requestsWithShippingDay = new ArrayList<>();
+        for (Request r : requests) {
+            if (r.hasShippingDay()) {
+                requestsWithShippingDay.add(r);
+            }
         }
 
+        if (!requestsWithShippingDay.isEmpty()) {
+            // random request die shipping day heeft
+            Request randomRequest = requestsWithShippingDay.get(random.nextInt(requestsWithShippingDay.size()));
+            Day shippingDay = randomRequest.getShippingDay();
+            Map<Item,Integer> items = randomRequest.getMap();
+            boolean foundRandomItem = false;
+            Item randomItem;
+            while (!foundRandomItem) {
+                randomItem = p.getStock().getItem(p.getStock().getNrOfDifferentItems());
+                if (items.containsKey(randomItem)) {
+                    foundRandomItem = true;
+                }
+            }
+
+            boolean itemPlaced = false;
+            int count = 0;
+            /*while (!itemPlaced && count < MAX_ADDSHIPPINGPROD_TRIES) {
+
+                boolean foundPreviousIdle = false;
+                int currentDay = shippingDay.getId();
+                int currentBlock;
+                if (shippingDay.hasNightShift()) {
+                    currentBlock = p.getDay(0).getBlocks().size();
+                } else {
+                    currentBlock = p.getDay(0).indexOfBlockS;
+                } // TODO: controle overtime ook
+
+                while (!foundPreviousIdle) { // afgaan tot als we block met idle vinden
+                    if (currentBlock == 0 && currentDay == 0) { // als we helemaal in het begin zitten
+                        foundPreviousIdle = true;
+                    } else {
+                        if (p.getDay(currentDay).getBlock(currentBlock).getMachineState(this) instanceof Idle) {
+                            return prod.getItem();
+                        } else {
+                            if (currentBlock == 0) {
+                                currentDay--;
+                                currentBlock = Day.getNumberOfBlocksPerDay()-1;
+                            } else {
+                                currentBlock--;
+                            }
+                        }
+                    }
+                }
+
+                count++;
+            }*/
+        }
     }
 }
