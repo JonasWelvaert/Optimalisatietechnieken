@@ -63,8 +63,7 @@ public class Machine {
 				foundPreviousItem = true;
 			} else {
 				MachineState ms = p.getDay(currentDay).getBlock(currentBlock).getMachineState(this);
-				String msString = ms.toString();
-				if (msString.startsWith("I_")) {
+				if (ms instanceof Production) {
 					Production prod = (Production) p.getDay(currentDay).getBlock(currentBlock).getMachineState(this);
 					return prod.getItem();
 				} else {

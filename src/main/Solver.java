@@ -19,7 +19,7 @@ public class Solver {
     private double SATemperature = 1000;
     private double SACoolingFactor = 0.995;
     private int mode;
-    private static List<String> changeList = new ArrayList<>(); //TODO romeo
+    private static final List<String> changeList = new ArrayList<>(); //TODO romeo
     private static final int MAX_REMOVE_PROD_TRIES = 1000;
     private static final int MAX_ADD_PROD_TRIES = 1000;
     private static final int MAX_CHANGE_PROD_TRIES = 1000;
@@ -28,7 +28,9 @@ public class Solver {
     private static final int MAX_MOVEITEM_TRIES = 1000;
     private static final int MAX_ADDSHIPPINGPROD_TRIES = 1000;
     private static final Random random = new Random();
-    private static final int maxAantalDagenTussenVerlengingNightshift = 3; //dit is een variabele die kan gewijzigd worden adhv het algoritme
+    private static final int maxAmountDaysBetweenExtendingNightshift = 3; //dit is een variabele die kan gewijzigd worden adhv het algoritme
+    private static final int maxLengthNewBlocks = 10;
+    private static final int NotFound = 99999;
 
     public Solver(int mode) {
         if (mode >= 100 && mode <= 100) { //TODO @Jonas: vervangen door ENUM ? of gwn door "mode==100"
@@ -89,7 +91,7 @@ public class Solver {
 
     public static Planning localSearch(Planning optimizedPlanning) throws IOException {
         changeList.clear();
-        int randomInt = random.nextInt(24);  // [0,100]
+        int randomInt = random.nextInt(28);  // [0,100]
         //TODO wich part of eval function is changed ? call planning.calculate...()
 
         if (randomInt == 0)  // willen niet constant maintenance zitten verplaatsen
@@ -106,12 +108,18 @@ public class Solver {
 
         else if (randomInt < 17)
             moveProduction(optimizedPlanning);
-        /*else
-            addProductionForShipping(optimizedPlanning);
         else if (randomInt < 21)
-            addShippingDay(optimizedPlanning);
+            addProductionForShipping(optimizedPlanning);
+        else if (randomInt < 25)
+            addMultipleProduction(optimizedPlanning);
+        else if (randomInt < 29)
+            changeMultipleProduction (optimizedPlanning);
         else
-            moveShippingDay(optimizedPlanning);*/
+            removeMultipleProduction(optimizedPlanning);
+        /*else if (randomInt < 24)
+            moveShippingDay(optimizedPlanning);
+        else
+            addShippingDay(optimizedPlanning);*/
 
         optimizedPlanning.calculateAllCosts();
 
@@ -130,11 +138,8 @@ public class Solver {
         - productie van een item wisselen met productie van een andere item -> 1 block per keer of alle blocks van een item wisselen
         - productie van een item verwijderen -> 1 block per keer of alle blocks van een item verwijderen
         - productie van een item verplaatsen -> 1 block per keer of alle blocks van een item verplaatsen
-        - shipping day toevoegen (rekening houden met waar het beste komt ? nah)
-        - shipping day wisselen
         - ketting van operators -> na elkaar uitvoeren van een aantal operators (extra)
         - productie van een item verwisselen in alle machine
-        - product toevoegen die ne random shipping day nodig heeft
          */
 
         // Moet niet fesaible terugeven
@@ -529,14 +534,14 @@ public class Solver {
         while (count < MAX_MAINTENANCE_TRIES) {
             //van
             int randomDay1 = random.nextInt(Planning.getNumberOfDays());
-            int randomBlock1 = random.nextInt(p.getDay(0).getIndexOfBlockL() - p.getDay(0).getIndexOfBlockE()) + p.getDay(0).getIndexOfBlockE(); // enkel overdag
+            int randomBlock1 = random.nextInt(Day.getIndexOfBlockL() - Day.getIndexOfBlockE()) + Day.getIndexOfBlockE(); // enkel overdag
             int randMachineInt1 = random.nextInt(p.getMachines().size());
             Machine randMachine1 = p.getMachines().get(randMachineInt1);
             MachineState ms1 = p.getDay(randomDay1).getBlock(randomBlock1).getMachineState(randMachine1);
 
             // naar
             int randomDay2 = random.nextInt(Planning.getNumberOfDays());
-            int randomBlock2 = random.nextInt(p.getDay(0).getIndexOfBlockL() - p.getDay(0).getIndexOfBlockE()) + p.getDay(0).getIndexOfBlockE(); // enkel overdag
+            int randomBlock2 = random.nextInt(Day.getIndexOfBlockL() - Day.getIndexOfBlockE()) + Day.getIndexOfBlockE(); // enkel overdag
             int randMachineInt2 = random.nextInt(p.getMachines().size());
             Machine randMachine2 = p.getMachines().get(randMachineInt2);
 
@@ -583,14 +588,20 @@ public class Solver {
         int count = 0;
 
         // random
-        int randomDay = random.nextInt(Planning.getNumberOfDays());
-        int randomBlock = random.nextInt(Day.getNumberOfBlocksPerDay());
-        int randMachineInt = random.nextInt(p.getMachines().size());
-        Machine randMachine = p.getMachines().get(randMachineInt);
+        int randomDay = NotFound;
+        int randomBlock = NotFound;
+        int randMachineInt = NotFound;
 
         // zoek idle blok
         boolean stop = false;
         while (!stop && count < MAX_ADD_PROD_TRIES) {
+
+            // random
+            randomDay = random.nextInt(Planning.getNumberOfDays());
+            randomBlock = random.nextInt(Day.getNumberOfBlocksPerDay());
+            randMachineInt = random.nextInt(p.getMachines().size());
+            Machine randMachine = p.getMachines().get(randMachineInt);
+
             if (p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine) instanceof Idle) {
                 Item previousItem = randMachine.getPreviousItem(p, randomDay, randomBlock);
                 p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(previousItem));
@@ -605,15 +616,21 @@ public class Solver {
         int count = 0;
 
         // random
-        int randomDay = random.nextInt(Planning.getNumberOfDays());
-        int randomBlock = random.nextInt(Day.getNumberOfBlocksPerDay());
-        int randMachineInt = random.nextInt(p.getMachines().size());
-        Machine randMachine = p.getMachines().get(randMachineInt);
-        Block b = p.getDay(randomDay).getBlock(randomBlock);
+        int randomDay = NotFound;
+        int randomBlock = NotFound;
+        int randMachineInt = NotFound;
 
         // zoek idle blok
         Item newItem = null;
         while (count < MAX_CHANGE_PROD_TRIES) {
+
+            // random
+            randomDay = random.nextInt(Planning.getNumberOfDays());
+            randomBlock = random.nextInt(Day.getNumberOfBlocksPerDay());
+            randMachineInt = random.nextInt(p.getMachines().size());
+            Machine randMachine = p.getMachines().get(randMachineInt);
+            Block b = p.getDay(randomDay).getBlock(randomBlock);
+
             if (b.getMachineState(randMachine) instanceof Idle) {
                 Item previousItem = randMachine.getPreviousItem(p, randomDay, randomBlock);
                 int aantalItems = p.getStock().getNrOfDifferentItems();
@@ -635,11 +652,14 @@ public class Solver {
             }
             count++;
         }
-
-
     }
 
     private static boolean setupNewItem(Item previousItem, Item newItem, int day, int block, Machine machine, Planning p) {
+        // controle niet hetzelfde item
+        if (previousItem.getId() == newItem.getId()) {
+            return true;
+        }
+
         // check genoeg tijd voor setup + overdag
         int tijdSetup = previousItem.getLengthSetup(newItem);
         int tijdBeschikbaar = 0;
@@ -650,7 +670,7 @@ public class Solver {
         // hoeveel tijd ervoor + controle na b_l
         while (count < MAX_NEWSETUP_TRIES) {
             // snachts is false
-            if (block - count < p.getDay(day).indexOfBlockE) {
+            if (block - count < Day.indexOfBlockE) {
                 return false;
                 // als ander product is false
             } else if (p.getDay(day).getBlock(block - count).getMachineState(machine) instanceof Production) {
@@ -690,7 +710,7 @@ public class Solver {
         int count = 0;
         while (count < MAX_REMOVE_PROD_TRIES) {
             int randomDay = random.nextInt(Planning.getNumberOfDays());
-            int randomBlock = random.nextInt(p.getDay(randomDay).getNumberOfBlocksPerDay());
+            int randomBlock = random.nextInt(Day.getNumberOfBlocksPerDay());
             int randMachineInt = random.nextInt(p.getMachines().size());
             Machine randMachine = p.getMachines().get(randMachineInt);
             Block b = p.getDay(randomDay).getBlock(randomBlock);
@@ -736,12 +756,12 @@ public class Solver {
     private static void controlNewNightShift(Planning p, int randomDay, int randomBlock) {
         Day d = p.getDay(randomDay);
         if (!d.hasNightShift()) { // als er al nightshift is valt er niks te controleren
-            if (randomBlock > d.getIndexOfBlockO()) { // niet overtime, wel nachtshift
+            if (randomBlock > Day.getIndexOfBlockO()) { // niet overtime, wel nachtshift
                 int nightshiftBefore = closestNightshift(p, "before", randomDay);
                 int nightshiftAfter = closestNightshift(p, "after", randomDay);
                 // als nightshift niet lang geleden => beter verlengen, dan nieuwe starten
                 if (nightshiftBefore < nightshiftAfter) { // als dichtste nightshift ervoor ligt
-                    if (nightshiftBefore <= maxAantalDagenTussenVerlengingNightshift) {
+                    if (nightshiftBefore <= maxAmountDaysBetweenExtendingNightshift) {
                         // alle dagen ervoor ook nighshift maken
                         for (int i = randomDay; i > randomDay - nightshiftBefore; i--) {
                             p.getDay(i).setNightShift(true);
@@ -759,7 +779,7 @@ public class Solver {
                         }
                     }
                 } else { // als dichtste nighshift erna ligt of ze zijn gelijk
-                    if (nightshiftAfter <= maxAantalDagenTussenVerlengingNightshift) {
+                    if (nightshiftAfter <= maxAmountDaysBetweenExtendingNightshift) {
                         // alle dagen erna ook nightshift maken
                         for (int i = randomDay; i < randomDay + nightshiftAfter; i++) {
                             p.getDay(i).setNightShift(true);
@@ -793,7 +813,7 @@ public class Solver {
         while (!stop || count < MAX_MOVEITEM_TRIES) {
             // random
             int randomDay = random.nextInt(Planning.getNumberOfDays());
-            int randomBlock = random.nextInt(p.getDay(randomDay).getNumberOfBlocksPerDay());
+            int randomBlock = random.nextInt(Day.getNumberOfBlocksPerDay());
             int randMachineInt = random.nextInt(p.getMachines().size());
             Machine randMachine = p.getMachines().get(randMachineInt);
 
@@ -875,7 +895,7 @@ public class Solver {
             Day shippingDay = randomRequest.getShippingDay();
             Map<Item, Integer> items = randomRequest.getMap();
             boolean foundRandomItem = false;
-            Item randomItem;
+            Item randomItem = null;
             while (!foundRandomItem) {
                 randomItem = p.getStock().getItem(p.getStock().getNrOfDifferentItems());
                 if (items.containsKey(randomItem)) {
@@ -885,36 +905,179 @@ public class Solver {
 
             boolean itemPlaced = false;
             int count = 0;
-            /*while (!itemPlaced && count < MAX_ADDSHIPPINGPROD_TRIES) {
+            int startPart;
+            int stopPart;
 
-                boolean foundPreviousIdle = false;
-                int currentDay = shippingDay.getId();
-                int currentBlock;
-                if (shippingDay.hasNightShift()) {
-                    currentBlock = p.getDay(0).getBlocks().size();
+            int currentBlock;
+            int currentDay;
+            Machine currentMachine;
+
+            // eerst voor overdag, dan voor overtime en dan voor nighshifts
+            for (int i = 0; i < 4; i++) {
+                if (i == 0) {
+                    // overdag
+                    startPart = 0;
+                    stopPart = Day.indexOfBlockS;
+                } else if (i == 1) {
+                    // nightshift waar er al nachtshift is
+                    startPart = Day.indexOfBlockS + 1;
+                    stopPart = p.getDay(0).getBlocks().size()-1;
+
+                } else if (i == 2){
+                    // overtime
+                    startPart = Day.indexOfBlockS + 1;
+                    stopPart = Day.indexOfBlockO;
                 } else {
-                    currentBlock = p.getDay(0).indexOfBlockS;
-                } // TODO: controle overtime ook
+                    // nieuwe nachtshift nodig
+                    startPart = Day.indexOfBlockS + 1;
+                    stopPart = p.getDay(0).getBlocks().size()-1;
+                }
 
-                while (!foundPreviousIdle) { // afgaan tot als we block met idle vinden
-                    if (currentBlock == 0 && currentDay == 0) { // als we helemaal in het begin zitten
-                        foundPreviousIdle = true;
-                    } else {
-                        if (p.getDay(currentDay).getBlock(currentBlock).getMachineState(this) instanceof Idle) {
-                            return prod.getItem();
-                        } else {
-                            if (currentBlock == 0) {
-                                currentDay--;
-                                currentBlock = Day.getNumberOfBlocksPerDay()-1;
+                currentBlock = stopPart;
+                currentDay = shippingDay.getId();
+                while (!itemPlaced && count < MAX_ADDSHIPPINGPROD_TRIES) {
+                    if (i == 0  || (i == 1 && p.getDay(currentDay).hasNightShift()) || (i==2 && !p.getDay(currentDay).hasNightShift()) || (i == 3 && !p.getDay(currentDay).hasNightShift())) {
+                        // ofwel overdag || ofwel is er nighshift || ofwel overtime als er geen nightshift is
+                        if (currentBlock == startPart - 1) {
+                            if (currentDay == 0) {
+                                break; // begin van planning
                             } else {
-                                currentBlock--;
+                                currentBlock = stopPart;
+                                currentDay--; // begin van dag
                             }
                         }
+
+                        for (int m = 0; m < p.getMachines().size(); m++) { // alle machines afgaan
+                            currentMachine = p.getMachines().get(m);
+
+                            if (p.getDay(currentDay).getBlock(currentBlock).getMachineState(currentMachine) instanceof Idle) {
+                                Item previousItem = currentMachine.getPreviousItem(p,currentDay,currentBlock);
+                                if (previousItem.getId() != randomItem.getId()) {
+                                    if (setupNewItem(previousItem, randomItem, currentDay, currentBlock, currentMachine, p)) {
+                                        p.getDay(currentDay).getBlock(currentBlock).setMachineState(currentMachine, new Production(randomItem));
+                                        itemPlaced = true;
+                                    }
+                                }
+
+                            }
+                        }
+                        currentBlock--;
+                        count++;
+
+                    }
+
+                    if (i == 3 && !p.getDay(currentDay).hasNightShift()) {
+                        controlNewNightShift(p,currentDay,currentBlock);
+                    }
+
+                }
+            }
+        }
+    }
+
+    private static void removeMultipleProduction(Planning p) {
+        /*int count = 0;
+        while (count < MAX_REMOVE_PROD_TRIES) {
+            int randomDay = random.nextInt(Planning.getNumberOfDays());
+            int randomBlock = random.nextInt(Day.getNumberOfBlocksPerDay());
+            int randMachineInt = random.nextInt(p.getMachines().size());
+            Machine randMachine = p.getMachines().get(randMachineInt);
+            Block b = p.getDay(randomDay).getBlock(randomBlock);
+
+            MachineState ms = b.getMachineState(randMachine);
+
+            if (ms instanceof Production) {
+                Production prod = (Production) b.getMachineState(randMachine);
+
+                b.setMachineState(randMachine, new Idle()); // change returnen TODO romeo
+            }
+            count++;
+            // TODO: Elke controle voor eventuele overbodige setup te verwijderen?
+        }*/
+    }
+
+    private static void changeMultipleProduction(Planning p) {
+        int count = 0;
+        int newProductions = 0;
+
+        // random
+        int randomDay = NotFound;
+        int randomBlock = NotFound;
+        int randMachineInt = NotFound;
+
+        // zoek idle blok
+        Item newItem = null;
+        while (count < MAX_CHANGE_PROD_TRIES) {
+
+            // random
+            randomDay = random.nextInt(Planning.getNumberOfDays());
+            randomBlock = random.nextInt(Day.getNumberOfBlocksPerDay());
+            randMachineInt = random.nextInt(p.getMachines().size());
+            Machine randMachine = p.getMachines().get(randMachineInt);
+            Block b = p.getDay(randomDay).getBlock(randomBlock);
+
+            if (b.getMachineState(randMachine) instanceof Idle) {
+                Item previousItem = randMachine.getPreviousItem(p, randomDay, randomBlock);
+                int aantalItems = p.getStock().getNrOfDifferentItems();
+                boolean newItemNotPrevItem = false;
+                // random item uit lijst die niet vorige item is
+                while (!newItemNotPrevItem) {
+                    newItem = p.getStock().getItem(random.nextInt(aantalItems));
+                    if (newItem.getId() != previousItem.getId()) {
+                        newItemNotPrevItem = true;
                     }
                 }
 
-                count++;
-            }*/
+                boolean possibleSetup = setupNewItem(previousItem, newItem, randomDay, randomBlock, randMachine, p);
+                if (possibleSetup) {
+                    while (newProductions < maxLengthNewBlocks && randomBlock < Day.getNumberOfBlocksPerDay()
+                            && p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine) instanceof Idle) {
+                        p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(newItem));
+                        newProductions++;
+                        randomBlock++;
+                    }
+
+                    b.setMachineState(randMachine, new Production(newItem));
+                    controlNewNightShift(p, randomDay, randomBlock);
+                    return;
+                }
+            }
+            count++;
         }
+
+    }
+
+    private static void addMultipleProduction(Planning p) {
+        int count = 0;
+        int newProductions = 0;
+
+        // random
+        int randomDay = NotFound;
+        int randomBlock = NotFound;
+        int randMachineInt = NotFound;
+
+        // zoek idle blok
+        boolean stop = false;
+        while (!stop && count < MAX_ADD_PROD_TRIES) {
+
+            // random
+            randomDay = random.nextInt(Planning.getNumberOfDays());
+            randomBlock = random.nextInt(Day.getNumberOfBlocksPerDay());
+            randMachineInt = random.nextInt(p.getMachines().size());
+            Machine randMachine = p.getMachines().get(randMachineInt);
+
+            if (p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine) instanceof Idle) {
+                Item previousItem = randMachine.getPreviousItem(p, randomDay, randomBlock);
+                while (newProductions < maxLengthNewBlocks && randomBlock < Day.getNumberOfBlocksPerDay()
+                        && p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine) instanceof Idle) {
+                    p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(previousItem));
+                    newProductions++;
+                    randomBlock++;
+                }
+                stop = true;
+            }
+            count++;
+        }
+        controlNewNightShift(p, randomDay, randomBlock);
     }
 }
