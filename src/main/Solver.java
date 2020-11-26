@@ -30,6 +30,7 @@ public class Solver {
     private static final Random random = new Random();
     private static final int maxAmountDaysBetweenExtendingNightshift = 3; //dit is een variabele die kan gewijzigd worden adhv het algoritme
     private static final int maxLengthNewBlocks = 10;
+    private static final int maxLengthRemovingBlocks = 10;
     private static final int NotFound = 99999;
 
     public Solver(int mode) {
@@ -91,7 +92,7 @@ public class Solver {
 
     public static Planning localSearch(Planning optimizedPlanning) throws IOException {
         changeList.clear();
-        int randomInt = random.nextInt(28);  // [0,100]
+        int randomInt = random.nextInt(33);  // [0,100]
         //TODO wich part of eval function is changed ? call planning.calculate...()
 
         if (randomInt == 0)  // willen niet constant maintenance zitten verplaatsen
@@ -133,10 +134,7 @@ public class Solver {
 
 
         local search operators:
-        - productie van een item toevoegen -> 1 block per keer of meerdere blocks per keer
-        - productie van een item tussenvoegen -> 1 block per keer of meerdere blocks per keer
         - productie van een item wisselen met productie van een andere item -> 1 block per keer of alle blocks van een item wisselen
-        - productie van een item verwijderen -> 1 block per keer of alle blocks van een item verwijderen
         - productie van een item verplaatsen -> 1 block per keer of alle blocks van een item verplaatsen
         - ketting van operators -> na elkaar uitvoeren van een aantal operators (extra)
         - productie van een item verwisselen in alle machine
@@ -976,24 +974,28 @@ public class Solver {
     }
 
     private static void removeMultipleProduction(Planning p) {
-        /*int count = 0;
+        int count = 0;
+        int removedProductions = 0;
+
         while (count < MAX_REMOVE_PROD_TRIES) {
             int randomDay = random.nextInt(Planning.getNumberOfDays());
             int randomBlock = random.nextInt(Day.getNumberOfBlocksPerDay());
             int randMachineInt = random.nextInt(p.getMachines().size());
             Machine randMachine = p.getMachines().get(randMachineInt);
-            Block b = p.getDay(randomDay).getBlock(randomBlock);
 
-            MachineState ms = b.getMachineState(randMachine);
-
+            MachineState ms = p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine);
+            int amountOfRemovedProductionBlocks = random.nextInt(maxLengthRemovingBlocks);
             if (ms instanceof Production) {
-                Production prod = (Production) b.getMachineState(randMachine);
-
-                b.setMachineState(randMachine, new Idle()); // change returnen TODO romeo
+                while (removedProductions < amountOfRemovedProductionBlocks && randomBlock < Day.getNumberOfBlocksPerDay()
+                        && p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine) instanceof Production) {
+                    p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Idle());
+                    removedProductions++;
+                    randomBlock++;
+                }
             }
             count++;
             // TODO: Elke controle voor eventuele overbodige setup te verwijderen?
-        }*/
+        }
     }
 
     private static void changeMultipleProduction(Planning p) {
@@ -1028,9 +1030,10 @@ public class Solver {
                     }
                 }
 
+                int amountOfNewProductionBlocks = random.nextInt(maxLengthNewBlocks);
                 boolean possibleSetup = setupNewItem(previousItem, newItem, randomDay, randomBlock, randMachine, p);
                 if (possibleSetup) {
-                    while (newProductions < maxLengthNewBlocks && randomBlock < Day.getNumberOfBlocksPerDay()
+                    while (newProductions < amountOfNewProductionBlocks && randomBlock < Day.getNumberOfBlocksPerDay()
                             && p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine) instanceof Idle) {
                         p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(newItem));
                         newProductions++;
@@ -1066,9 +1069,10 @@ public class Solver {
             randMachineInt = random.nextInt(p.getMachines().size());
             Machine randMachine = p.getMachines().get(randMachineInt);
 
+            int amountOfNewProductionBlocks = random.nextInt(maxLengthNewBlocks);
             if (p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine) instanceof Idle) {
                 Item previousItem = randMachine.getPreviousItem(p, randomDay, randomBlock);
-                while (newProductions < maxLengthNewBlocks && randomBlock < Day.getNumberOfBlocksPerDay()
+                while (newProductions < amountOfNewProductionBlocks && randomBlock < Day.getNumberOfBlocksPerDay()
                         && p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine) instanceof Idle) {
                     p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(previousItem));
                     newProductions++;
