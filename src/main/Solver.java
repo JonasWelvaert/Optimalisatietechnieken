@@ -114,13 +114,13 @@ public class Solver {
         else if (randomInt < 25)
             addMultipleProduction(optimizedPlanning);
         else if (randomInt < 29)
-            changeMultipleProduction (optimizedPlanning);
-        else
+            changeMultipleProduction(optimizedPlanning);
+        else if (randomInt < 23)
             removeMultipleProduction(optimizedPlanning);
-        /*else if (randomInt < 24)
+        else if (randomInt < 24)
             moveShippingDay(optimizedPlanning);
         else
-            addShippingDay(optimizedPlanning);*/
+            addShippingDay(optimizedPlanning);
 
         optimizedPlanning.calculateAllCosts();
 
@@ -380,14 +380,14 @@ public class Solver {
         int max = m.getMaxDaysWithoutMaintenance();
         int now = max - init;
         int maintenanceBlockTeller = 0;
-        int maintenanceDayTeller =0;
+        int maintenanceDayTeller = 0;
         int duration = 0;
         if ((d - now) == 0 || ((d - now) % (max + 1)) == 0) {
             for (int b = 0; b < Day.getNumberOfBlocksPerDay(); b++) {
                 if (planning.getDay(d).getBlock(b).getMachineState(m) instanceof Maintenance) {
                     duration = m.getMaintenanceDurationInBlocks();
                     maintenanceBlockTeller++;
-                    if (maintenanceBlockTeller == duration){
+                    if (maintenanceBlockTeller == duration) {
                         return true;
                     }
                 } else {
@@ -510,9 +510,11 @@ public class Solver {
                                     lastBlockOfProduction = planning.getDay(d).getBlock(j).getId();
                                 }
                             }
-                            Production production = (Production) planning.getDay(d).getBlock(lastBlockOfProduction).getMachineState(m);
-                            if (production.getItem().getId() == i.getId()) {
-                                amount += production.getItem().getStockAmount(planning.getDay(d));
+                            if (planning.getDay(d).getBlock(lastBlockOfProduction).getMachineState(m) instanceof Production) {
+                                Production production = (Production) planning.getDay(d).getBlock(lastBlockOfProduction).getMachineState(m);
+                                if (production.getItem().getId() == i.getId()) {
+                                    amount += production.getItem().getStockAmount(planning.getDay(d));
+                                }
                             }
                         }
                         if (amount < request.getAmountOfItem(i)) {
@@ -895,7 +897,7 @@ public class Solver {
             boolean foundRandomItem = false;
             Item randomItem = null;
             while (!foundRandomItem) {
-                randomItem = p.getStock().getItem(p.getStock().getNrOfDifferentItems());
+                randomItem = p.getStock().getItem(random.nextInt(p.getStock().getNrOfDifferentItems()));
                 if (items.containsKey(randomItem)) {
                     foundRandomItem = true;
                 }
@@ -919,22 +921,22 @@ public class Solver {
                 } else if (i == 1) {
                     // nightshift waar er al nachtshift is
                     startPart = Day.indexOfBlockS + 1;
-                    stopPart = p.getDay(0).getBlocks().size()-1;
+                    stopPart = p.getDay(0).getBlocks().size() - 1;
 
-                } else if (i == 2){
+                } else if (i == 2) {
                     // overtime
                     startPart = Day.indexOfBlockS + 1;
                     stopPart = Day.indexOfBlockO;
                 } else {
                     // nieuwe nachtshift nodig
                     startPart = Day.indexOfBlockS + 1;
-                    stopPart = p.getDay(0).getBlocks().size()-1;
+                    stopPart = p.getDay(0).getBlocks().size() - 1;
                 }
 
                 currentBlock = stopPart;
                 currentDay = shippingDay.getId();
                 while (!itemPlaced && count < MAX_ADDSHIPPINGPROD_TRIES) {
-                    if (i == 0  || (i == 1 && p.getDay(currentDay).hasNightShift()) || (i==2 && !p.getDay(currentDay).hasNightShift()) || (i == 3 && !p.getDay(currentDay).hasNightShift())) {
+                    if (i == 0 || (i == 1 && p.getDay(currentDay).hasNightShift()) || (i == 2 && !p.getDay(currentDay).hasNightShift()) || (i == 3 && !p.getDay(currentDay).hasNightShift())) {
                         // ofwel overdag || ofwel is er nighshift || ofwel overtime als er geen nightshift is
                         if (currentBlock == startPart - 1) {
                             if (currentDay == 0) {
@@ -949,7 +951,7 @@ public class Solver {
                             currentMachine = p.getMachines().get(m);
 
                             if (p.getDay(currentDay).getBlock(currentBlock).getMachineState(currentMachine) instanceof Idle) {
-                                Item previousItem = currentMachine.getPreviousItem(p,currentDay,currentBlock);
+                                Item previousItem = currentMachine.getPreviousItem(p, currentDay, currentBlock);
                                 if (previousItem.getId() != randomItem.getId()) {
                                     if (setupNewItem(previousItem, randomItem, currentDay, currentBlock, currentMachine, p)) {
                                         p.getDay(currentDay).getBlock(currentBlock).setMachineState(currentMachine, new Production(randomItem));
@@ -965,7 +967,7 @@ public class Solver {
                     }
 
                     if (i == 3 && !p.getDay(currentDay).hasNightShift()) {
-                        controlNewNightShift(p,currentDay,currentBlock);
+                        controlNewNightShift(p, currentDay, currentBlock);
                     }
 
                 }
