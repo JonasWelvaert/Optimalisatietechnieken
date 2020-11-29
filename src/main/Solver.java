@@ -27,6 +27,7 @@ public class Solver {
     private static final int MAX_NEWSETUP_TRIES = 1000;
     private static final int MAX_MOVEITEM_TRIES = 1000;
     private static final int MAX_ADDSHIPPINGPROD_TRIES = 1000;
+    private static final int MAX_NEW_SHIPPINGDAY_TRIES = 1000;
     private static final Random random = new Random();
     private static final int maxAmountDaysBetweenExtendingNightshift = 3; //dit is een variabele die kan gewijzigd worden adhv het algoritme
     private static final int maxLengthNewBlocks = 10;
@@ -92,35 +93,37 @@ public class Solver {
 
     public static Planning localSearch(Planning optimizedPlanning) throws IOException {
         changeList.clear();
-        int randomInt = random.nextInt(33);  // [0,100]
+        int randomInt = random.nextInt(41);  // [0,100]
         //TODO wich part of eval function is changed ? call planning.calculate...()
 
-        if (randomInt == 0)  // willen niet constant maintenance zitten verplaatsen
+        if (randomInt == 0) {
             moveMaintenance(optimizedPlanning);
-
-        else if (randomInt < 5)
+        } else if (randomInt < 7) {
             addProduction(optimizedPlanning); // 1 BLOCK ? meerdere blokken ? invoegen ? rij van blokken van zelfde item ?
-
-        else if (randomInt < 9)
+        }  else if (randomInt < 9) {
             removeProduction(optimizedPlanning);
-
-        else if (randomInt < 13)
+        } else if (randomInt < 13) {
             changeProduction(optimizedPlanning); // 1 BLOCK ? meerdere blokken ? invoegen ?
-
-        else if (randomInt < 17)
+        } else if (randomInt < 17) {
             moveProduction(optimizedPlanning);
-        else if (randomInt < 21)
+        } else if (randomInt < 25) {
             addProductionForShipping(optimizedPlanning);
-        else if (randomInt < 25)
+        } else if (randomInt < 31) {
             addMultipleProduction(optimizedPlanning);
-        else if (randomInt < 29)
+        } else if (randomInt < 34) {
             changeMultipleProduction(optimizedPlanning);
-        else if (randomInt < 23)
+        } else if (randomInt < 35) {
             removeMultipleProduction(optimizedPlanning);
-        else if (randomInt < 24)
+        } else if (randomInt < 36) {
             moveShippingDay(optimizedPlanning);
-        else
-            addShippingDay(optimizedPlanning);
+        } else {
+            boolean newShippingDay = addShippingDay(optimizedPlanning);
+            if (!newShippingDay) {
+                localSearch(optimizedPlanning);
+            }
+        }
+
+
 
         optimizedPlanning.calculateAllCosts();
 
@@ -132,12 +135,12 @@ public class Solver {
         //switch production types
 
 
-
         local search operators:
         - productie van een item wisselen met productie van een andere item -> 1 block per keer of alle blocks van een item wisselen
         - productie van een item verplaatsen -> 1 block per keer of alle blocks van een item verplaatsen
         - ketting van operators -> na elkaar uitvoeren van een aantal operators (extra)
         - productie van een item verwisselen in alle machine
+        - add overdag product (no overtime, no nighshift)
          */
 
         // Moet niet fesaible terugeven
@@ -604,12 +607,18 @@ public class Solver {
 
             if (p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine) instanceof Idle) {
                 Item previousItem = randMachine.getPreviousItem(p, randomDay, randomBlock);
-                p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(previousItem));
-                stop = true;
+                if (setupAfterNewItem(previousItem, randomDay, randomBlock, randMachine, p, 1)) {
+                    p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(previousItem));
+                    stop = true;
+                }
             }
             count++;
         }
         controlNewNightShift(p, randomDay, randomBlock);
+
+        /*Main.printOutputToConsole(p);
+        System.out.println("iets");*/
+
     }
 
     private static void changeProduction(Planning p) { // nieuwe productie op machine starten
@@ -643,8 +652,7 @@ public class Solver {
                     }
                 }
 
-                boolean possibleSetup = setupNewItem(previousItem, newItem, randomDay, randomBlock, randMachine, p);
-                if (possibleSetup) {
+                if (setupBeforeNewItem(previousItem, newItem, randomDay, randomBlock, randMachine, p, 1, false)) {
                     b.setMachineState(randMachine, new Production(newItem));
                     controlNewNightShift(p, randomDay, randomBlock);
                     return;
@@ -654,36 +662,114 @@ public class Solver {
         }
     }
 
-    private static boolean setupNewItem(Item previousItem, Item newItem, int day, int block, Machine machine, Planning p) {
+    // true als niet nodig, of als al in orde
+    // false als niet mogelijk
+    private static boolean setupAfterNewItem(Item newItem, int day, int block, Machine machine, Planning p, int sizeProductions) {
+
+        int currentBlock = block;
+        int currentDay = day;
+
+        if (sizeProductions == 1) {
+            if (currentBlock == Day.getNumberOfBlocksPerDay()-1) {
+                if (currentDay == Planning.getNumberOfDays()-1) {
+                    return false;
+                } else {
+                    currentBlock = 0;
+                    currentDay ++;
+                }
+            } else {
+                currentBlock++;
+            }
+        } else {
+            currentBlock = currentBlock + sizeProductions;
+            if (currentBlock >= Day.getNumberOfBlocksPerDay()) {
+                if (currentDay == Planning.getNumberOfDays()-1) {
+                    return false;
+                } else {
+                    currentBlock = currentBlock - Day.getNumberOfBlocksPerDay()+1;
+                    currentDay++;
+                }
+            }
+        }
+
+        int dayNextItem = 0;
+        int blockNextItem = 0;
+
+        Item nextItem = null;
+        // get next production block
+        for (int d = currentDay; d < p.getDays().size(); d++) {
+            for (int b = currentBlock; b < Day.getNumberOfBlocksPerDay(); b++) {
+                if (p.getDay(d).getBlock(b).getMachineState(machine) instanceof Production) {
+                    Production production = (Production) p.getDay(d).getBlock(b).getMachineState(machine);
+                    if (production.getItem().getId() != newItem.getId()) {
+                        nextItem = production.getItem();
+                        dayNextItem = d;
+                        blockNextItem = b;
+                        d = p.getDays().size();
+                        b = Day.getNumberOfBlocksPerDay();
+                    }
+                } else if ( p.getDay(d).getBlock(b).getMachineState(machine) instanceof Setup) {
+                    Setup setup = (Setup) p.getDay(d).getBlock(b).getMachineState(machine);
+                    if (setup.getFrom().getId() != newItem.getId()) {
+                        nextItem = setup.getFrom();
+                        blockNextItem = b;
+                        dayNextItem = d;
+                        d = p.getDays().size();
+                        b = Day.getNumberOfBlocksPerDay();
+                    }
+                }
+            }
+        }
+
+        if (nextItem == null) {
+            return true;
+        }
+
+        return setupBeforeNewItem(newItem, nextItem, dayNextItem, blockNextItem, machine, p, sizeProductions, true);
+
+    }
+
+    private static boolean setupBeforeNewItem(Item previousItem, Item newItem, int day, int block, Machine machine, Planning p, int sp, boolean afterAlreadyChecked) {
+
+        if (!afterAlreadyChecked) {
+            if (!setupAfterNewItem(newItem, day,block,machine,p,sp)) {
+                return false;
+            }
+        }
+
         // controle niet hetzelfde item
         if (previousItem.getId() == newItem.getId()) {
             return true;
         }
 
+        int currentBlock = block-1;
+
+
         // check genoeg tijd voor setup + overdag
         int tijdSetup = previousItem.getLengthSetup(newItem);
         int tijdBeschikbaar = 0;
-        int earliestMomentBlock = block;
+        int earliestMomentBlock = 0;
 
         int count = 0;
 
         // hoeveel tijd ervoor + controle na b_l
         while (count < MAX_NEWSETUP_TRIES) {
             // snachts is false
-            if (block - count < Day.indexOfBlockE) {
+            if (currentBlock - count < Day.indexOfBlockE) {
                 return false;
                 // als ander product is false
-            } else if (p.getDay(day).getBlock(block - count).getMachineState(machine) instanceof Production) {
+            } else if (p.getDay(day).getBlock(currentBlock - count).getMachineState(machine) instanceof Production) {
                 return false;
                 // als iets in de weg ma nog nie opt einde = tijd terug op nul
-            } else if (p.getDay(day).getBlock(block - count).getMachineState(machine) instanceof Maintenance
-                    || p.getDay(day).getBlock(block - count).getMachineState(machine) instanceof Setup) {
+            } else if (p.getDay(day).getBlock(currentBlock - count).getMachineState(machine) instanceof Maintenance) {
                 tijdBeschikbaar = 0;
+            } else if (p.getDay(day).getBlock(currentBlock - count).getMachineState(machine) instanceof Setup) {
+                return false;
                 // dubbele controle ofda het idle is
-            } else if (p.getDay(day).getBlock(block - count).getMachineState(machine) instanceof Idle) {
+            } else if (p.getDay(day).getBlock(currentBlock - count).getMachineState(machine) instanceof Idle) {
                 tijdBeschikbaar++;
-                earliestMomentBlock = block - count;
                 if (tijdBeschikbaar == tijdSetup) {
+                    earliestMomentBlock = currentBlock - count;
                     break;
                 }
             }
@@ -691,18 +777,15 @@ public class Solver {
         }
 
         // tijd genoeg?
-        if (count < MAX_NEWSETUP_TRIES) {
-            for (int i = 0; i < tijdSetup; i++) {
-                if (previousItem.isLargeSetup(newItem)) { // large setup
-                    p.getDay(day).getBlock(earliestMomentBlock + i).setMachineState(machine, new LargeSetup(previousItem, newItem));
-                } else { // small setup
-                    p.getDay(day).getBlock(earliestMomentBlock + i).setMachineState(machine, new SmallSetup(previousItem, newItem));
-                }
+        for (int i = 0; i < tijdSetup; i++) {
+            if (previousItem.isLargeSetup(newItem)) { // large setup
+                p.getDay(day).getBlock(earliestMomentBlock + i).setMachineState(machine, new LargeSetup(previousItem, newItem));
+            } else { // small setup
+                p.getDay(day).getBlock(earliestMomentBlock + i).setMachineState(machine, new SmallSetup(previousItem, newItem));
             }
-            return true;
-        } else {
-            return false;
         }
+
+        return true;
 
     }
 
@@ -824,8 +907,7 @@ public class Solver {
                     stop = true;
                     controlNewNightShift(p, randomDay, randomBlock);
                 } else {
-                    boolean possibleSetup = setupNewItem(previousItem, removedItem, randomDay, randomBlock, randMachine, p);
-                    if (possibleSetup) {
+                    if (setupBeforeNewItem(previousItem, removedItem, randomDay, randomBlock, randMachine, p, 1, false)) {
                         p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(removedItem));
                         stop = true;
                         controlNewNightShift(p, randomDay, randomBlock);
@@ -837,18 +919,27 @@ public class Solver {
         }
     }
 
-    private static void addShippingDay(Planning p) { // random shipping day toevoegen
-        // random request
-        Requests requests = p.getRequests();
-        int randomRequest = random.nextInt(requests.getRequests().size());
-        Request request = requests.get(randomRequest);
+    private static boolean addShippingDay(Planning p) { // random shipping day toevoegen
+        int count = 0;
+        boolean newShippingDay = false;
 
-        // random shipping day voor random request
-        if (!request.hasShippingDay()) {
-            List<Day> possibleDays = request.getPossibleShippingDays();
-            int randomShippingDay = random.nextInt(possibleDays.size());
-            request.setShippingDay(possibleDays.get(randomShippingDay));
+        while (!newShippingDay && count < MAX_NEW_SHIPPINGDAY_TRIES) {
+            // random request
+            Requests requests = p.getRequests();
+            int randomRequest = random.nextInt(requests.getRequests().size());
+            Request request = requests.get(randomRequest);
+
+            // random shipping day voor random request
+            if (!request.hasShippingDay()) {
+                List<Day> possibleDays = request.getPossibleShippingDays();
+                int randomShippingDay = random.nextInt(possibleDays.size());
+                request.setShippingDay(possibleDays.get(randomShippingDay));
+                newShippingDay = true;
+            }
+            count++;
         }
+
+        return newShippingDay;
     }
 
     private static void moveShippingDay(Planning p) {
@@ -953,22 +1044,24 @@ public class Solver {
                             if (p.getDay(currentDay).getBlock(currentBlock).getMachineState(currentMachine) instanceof Idle) {
                                 Item previousItem = currentMachine.getPreviousItem(p, currentDay, currentBlock);
                                 if (previousItem.getId() != randomItem.getId()) {
-                                    if (setupNewItem(previousItem, randomItem, currentDay, currentBlock, currentMachine, p)) {
+                                    if (setupBeforeNewItem(previousItem, randomItem, currentDay, currentBlock, currentMachine, p, 1, false)) {
                                         p.getDay(currentDay).getBlock(currentBlock).setMachineState(currentMachine, new Production(randomItem));
                                         itemPlaced = true;
+                                        i = 99999999;
+                                        break;
                                     }
                                 }
 
                             }
                         }
                         currentBlock--;
-                        count++;
-
                     }
 
                     if (i == 3 && !p.getDay(currentDay).hasNightShift()) {
                         controlNewNightShift(p, currentDay, currentBlock);
                     }
+
+                    count++;
 
                 }
             }
@@ -1032,9 +1125,8 @@ public class Solver {
                     }
                 }
 
-                int amountOfNewProductionBlocks = random.nextInt(maxLengthNewBlocks);
-                boolean possibleSetup = setupNewItem(previousItem, newItem, randomDay, randomBlock, randMachine, p);
-                if (possibleSetup) {
+                int amountOfNewProductionBlocks = random.nextInt(maxLengthNewBlocks-2)+2;
+                if (setupBeforeNewItem(previousItem, newItem, randomDay, randomBlock, randMachine, p, amountOfNewProductionBlocks, false)) {
                     while (newProductions < amountOfNewProductionBlocks && randomBlock < Day.getNumberOfBlocksPerDay()
                             && p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine) instanceof Idle) {
                         p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(newItem));
@@ -1071,16 +1163,18 @@ public class Solver {
             randMachineInt = random.nextInt(p.getMachines().size());
             Machine randMachine = p.getMachines().get(randMachineInt);
 
-            int amountOfNewProductionBlocks = random.nextInt(maxLengthNewBlocks);
+            int amountOfNewProductionBlocks = random.nextInt(maxLengthNewBlocks-1)+1;
             if (p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine) instanceof Idle) {
                 Item previousItem = randMachine.getPreviousItem(p, randomDay, randomBlock);
-                while (newProductions < amountOfNewProductionBlocks && randomBlock < Day.getNumberOfBlocksPerDay()
-                        && p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine) instanceof Idle) {
-                    p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(previousItem));
-                    newProductions++;
-                    randomBlock++;
+                if (setupAfterNewItem(previousItem, randomDay, randomBlock, randMachine, p, amountOfNewProductionBlocks)) {
+                    while (newProductions < amountOfNewProductionBlocks && randomBlock < Day.getNumberOfBlocksPerDay()
+                            && p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine) instanceof Idle) {
+                        p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(previousItem));
+                        newProductions++;
+                        randomBlock++;
+                    }
+                    stop = true;
                 }
-                stop = true;
             }
             count++;
         }

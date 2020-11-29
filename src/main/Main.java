@@ -38,7 +38,7 @@ public class Main {
 		}
 	}
 
-    private static final InputFile inputFileName = InputFile.D20_R25_B60;
+    private static final InputFile inputFileName = InputFile.D20_R25_B30;
     private static final String outputVoorvoegsel = "SA2_";
     private static final Logger logger = Logger.getLogger(Main.class.getName());
     public static double COST_OF_OVERTIME;
@@ -206,7 +206,7 @@ public class Main {
      *
      * @param planning The planning which has to be written to the console.
      */
-    private static void printOutputToConsole(Planning planning) {
+    public static void printOutputToConsole(Planning planning) {
         System.out.println("Instance_name: " + planning.getInstanceName());
         System.out.println("Cost: " + String.format("%.2f",planning.getTotalCost()));
         for (Day d : planning.getDays()) {

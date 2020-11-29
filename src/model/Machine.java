@@ -3,6 +3,7 @@ package model;
 import model.machinestate.Idle;
 import model.machinestate.MachineState;
 import model.machinestate.Production;
+import model.machinestate.setup.Setup;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,10 +56,37 @@ public class Machine {
 
 	// voor een vorig item te vinden tov een bepaalde block
 	public Item getPreviousItem(Planning p, int randomDay, int randomBlock) {
-		boolean foundPreviousItem = false;
+		//boolean foundPreviousItem = false;
 		int currentDay = randomDay;
 		int currentBlock = randomBlock;
-		while (!foundPreviousItem) { // afgaan tot als we block met production vinden
+		if (currentBlock == 0) {
+			if (currentDay == 0) {
+				return initialSetup;
+			} else {
+				currentDay--;
+				currentBlock = Day.getNumberOfBlocksPerDay()-1;
+			}
+		} else {
+			currentBlock--;
+		}
+
+		for (int d = currentDay; d > 0; d--) {
+			for (int b = currentBlock; b > 0; b--) {
+				MachineState ms = p.getDay(d).getBlock(b).getMachineState(this);
+				if (ms instanceof Production) {
+					Production prod = (Production) p.getDay(d).getBlock(b).getMachineState(this);
+					return prod.getItem();
+				} else if (ms instanceof Setup) {
+					Setup setup = (Setup) p.getDay(d).getBlock(b).getMachineState(this);
+					return setup.getTo();
+				}
+			}
+		}
+
+		return initialSetup;
+
+
+		/*while (!foundPreviousItem) { // afgaan tot als we block met production vinden
 			if (currentBlock == 0 && currentDay == 0) { // als we helemaal in het begin zitten
 				foundPreviousItem = true;
 			} else {
@@ -66,6 +94,9 @@ public class Machine {
 				if (ms instanceof Production) {
 					Production prod = (Production) p.getDay(currentDay).getBlock(currentBlock).getMachineState(this);
 					return prod.getItem();
+				} else if (ms instanceof Setup) {
+					Setup setup = (Setup) p.getDay(currentDay).getBlock(currentBlock).getMachineState(this);
+					return setup.getTo();
 				} else {
 					if (currentBlock == 0) {
 						currentDay--;
@@ -76,7 +107,7 @@ public class Machine {
 				}
 			}
 		}
-		return initialSetup;
+		return initialSetup;*/
 	}
 
 	public Item getNextNotIdle(Planning p, int randomDay, int randomBlock) {
