@@ -211,6 +211,13 @@ public class Main {
         System.out.println("Cost: " + String.format("%.2f",planning.getTotalCost()));
         for (Day d : planning.getDays()) {
             System.out.println("#Day " + d.getId());
+            System.out.print("Previous items: ");
+            for (Machine m: planning.getMachines()) {
+                Item item = m.getPreviousItem(planning, d.getId(), 0);
+                System.out.print(item.getId() + ";");
+            }
+            System.out.println();
+
             for (Block b : d) {
                 System.out.print(b.getId());
                 for (Machine m : planning.getMachines()) {

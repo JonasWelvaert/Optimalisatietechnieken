@@ -1,5 +1,6 @@
 package model;
 
+import main.Main;
 import model.machinestate.Idle;
 import model.machinestate.MachineState;
 import model.machinestate.Production;
@@ -7,6 +8,8 @@ import model.machinestate.setup.Setup;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Machine {
 	private int id;
@@ -16,6 +19,8 @@ public class Machine {
 	private int maintenanceDurationInBlocks;
 	private Map<Item, Integer> efficiency;
 
+	private static final Logger logger = Logger.getLogger(Machine.class.getName());
+
 	public Machine(int id, Item item, int daysPastWithoutMaintenance, int maxDaysWithoutMaintenance,
 			int maintenanceDurationInBlocks) {
 		this.id = id;
@@ -24,6 +29,7 @@ public class Machine {
 		this.maxDaysWithoutMaintenance = maxDaysWithoutMaintenance;
 		this.maintenanceDurationInBlocks = maintenanceDurationInBlocks;
 		efficiency = new HashMap<>();
+		// logger.setLevel(Level.OFF);
 	}
 
 	public void addEfficiency(Item item, int efficiency) {
@@ -75,13 +81,17 @@ public class Machine {
 				MachineState ms = p.getDay(d).getBlock(b).getMachineState(this);
 				if (ms instanceof Production) {
 					Production prod = (Production) p.getDay(d).getBlock(b).getMachineState(this);
+					logger.log(Level.INFO, "getPreviousItem(): item teruggeven "+ prod.getItem().getId() + " ____________________________________________");
 					return prod.getItem();
 				} else if (ms instanceof Setup) {
 					Setup setup = (Setup) p.getDay(d).getBlock(b).getMachineState(this);
+					logger.log(Level.INFO, "getPreviousItem(): item teruggeven "+ setup.getTo().getId() + " ____________________________________________");
 					return setup.getTo();
 				}
 			}
 		}
+
+		logger.log(Level.INFO, "getPreviousItem(): Initial item teruggeven "+ initialSetup.getId()+ " ____________________________________________");
 
 		return initialSetup;
 

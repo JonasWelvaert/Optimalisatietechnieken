@@ -101,8 +101,9 @@ public class Solver {
         } else if (randomInt < 7) {
             addProduction(optimizedPlanning); // 1 BLOCK ? meerdere blokken ? invoegen ? rij van blokken van zelfde item ?
         }  else if (randomInt < 9) {
-            removeProduction(optimizedPlanning);
-        } else if (randomInt < 13) {
+            addProductionForShipping(optimizedPlanning);
+            //removeProduction(optimizedPlanning);
+        } else if (randomInt < 15) {
             changeProduction(optimizedPlanning); // 1 BLOCK ? meerdere blokken ? invoegen ?
         } else if (randomInt < 17) {
             moveProduction(optimizedPlanning);
@@ -113,11 +114,13 @@ public class Solver {
         } else if (randomInt < 34) {
             changeMultipleProduction(optimizedPlanning);
         } else if (randomInt < 35) {
-            removeMultipleProduction(optimizedPlanning);
+            changeMultipleProduction(optimizedPlanning);
+            //removeMultipleProduction(optimizedPlanning);
         } else if (randomInt < 36) {
             moveShippingDay(optimizedPlanning);
         } else {
             boolean newShippingDay = addShippingDay(optimizedPlanning);
+            // omdat we hier vaak zitten, word localsearch nog eens opgeroepen als er niks gewijzigd is
             if (!newShippingDay) {
                 localSearch(optimizedPlanning);
             }
@@ -587,7 +590,7 @@ public class Solver {
         }
     }
 
-    private static void addProduction(Planning p) { // van hetzelfde product meer maken, geen setup nodig
+    private static void addProduction(Planning p) { // van hetzelfde product meer maken, geen setup nodig voor het item, mss wel na het item
         int count = 0;
 
         // random
@@ -696,28 +699,31 @@ public class Solver {
         int blockNextItem = 0;
 
         Item nextItem = null;
+        boolean foundItem = false;
         // get next production block
         for (int d = currentDay; d < p.getDays().size(); d++) {
             for (int b = currentBlock; b < Day.getNumberOfBlocksPerDay(); b++) {
+                if (foundItem) {
+                    break;
+                }
+
                 if (p.getDay(d).getBlock(b).getMachineState(machine) instanceof Production) {
                     Production production = (Production) p.getDay(d).getBlock(b).getMachineState(machine);
-                    if (production.getItem().getId() != newItem.getId()) {
-                        nextItem = production.getItem();
-                        dayNextItem = d;
-                        blockNextItem = b;
-                        d = p.getDays().size();
-                        b = Day.getNumberOfBlocksPerDay();
-                    }
+                    nextItem = production.getItem();
+                    dayNextItem = d;
+                    blockNextItem = b;
+                    foundItem = true;
+
                 } else if ( p.getDay(d).getBlock(b).getMachineState(machine) instanceof Setup) {
                     Setup setup = (Setup) p.getDay(d).getBlock(b).getMachineState(machine);
-                    if (setup.getFrom().getId() != newItem.getId()) {
-                        nextItem = setup.getFrom();
-                        blockNextItem = b;
-                        dayNextItem = d;
-                        d = p.getDays().size();
-                        b = Day.getNumberOfBlocksPerDay();
-                    }
+                    nextItem = setup.getFrom();
+                    blockNextItem = b;
+                    dayNextItem = d;
+                    foundItem = true;
                 }
+            }
+            if (foundItem) {
+                break;
             }
         }
 
@@ -884,6 +890,9 @@ public class Solver {
         }
     }
 
+    /*
+    verwijdert item en plaats het ergens anders op een lege blok
+     */
     private static void moveProduction(Planning p) {
         Item removedItem = removeProduction(p);
         if (removedItem == null) {
@@ -1162,7 +1171,7 @@ public class Solver {
             randMachineInt = random.nextInt(p.getMachines().size());
             Machine randMachine = p.getMachines().get(randMachineInt);
 
-            int amountOfNewProductionBlocks = random.nextInt(maxLengthNewBlocks-1)+1;
+            int amountOfNewProductionBlocks = random.nextInt(maxLengthNewBlocks-2)+2;
             if (p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine) instanceof Idle) {
                 Item previousItem = randMachine.getPreviousItem(p, randomDay, randomBlock);
                 if (setupAfterNewItem(previousItem, randomDay, randomBlock, randMachine, p, amountOfNewProductionBlocks)) {
