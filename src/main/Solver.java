@@ -35,8 +35,13 @@ public class Solver {
     private static final int maxLengthRemovingBlocks = 10;
     private static final int NotFound = 99999;
 
+    static  ErrorCounting ec = new ErrorCounting();
+
+
     public Solver(int mode) {
         logger.setLevel(Level.OFF);
+
+
 
         if (mode >= 100 && mode <= 100) { //TODO @Jonas: vervangen door ENUM ? of gwn door "mode==100"
             this.mode = mode;
@@ -91,6 +96,7 @@ public class Solver {
                 best = new Planning(current);
             }
         }
+        System.out.println(ec.toString());
         return best;
     }
 
@@ -157,6 +163,7 @@ public class Solver {
         int teller1 = 0;
 
         if (!isConsecutiveInNightShiftsPast(planning)) {
+            ec.isConsecutiveInNightShiftsPast++;
             return false;
         }
 
@@ -168,10 +175,12 @@ public class Solver {
             for (int b = 0; b < Day.getNumberOfBlocksPerDay(); b++) {
 
                 if (!checkNighShiftBlocksConstraints(b, d, planning)) {
+                    ec.checkNighShiftBlocksConstraints++;
                     return false;
                 }
 
                 if (!checkOvertimeConstraints(teller1, b, d, planning)) {
+                    ec.checkOvertimeConstraints++;
                     return false;
                 }
 
@@ -191,11 +200,13 @@ public class Solver {
                     }
 
                     if (!checkParallelConstraints(m, parallelTeller, b, d, planning)) {
+                        ec.checkParallelConstraints++;
                         return false;
                     }
 
                     if (d < Planning.getNumberOfDays() && b < Day.getNumberOfBlocksPerDay() - 1) {
                         if (!checkProductionConstraints(m, b, d, planning)) {
+                            ec.checkProductionConstraints++;
                             return false;
                         }
                     }
@@ -203,14 +214,17 @@ public class Solver {
 
             }
             if (!checkStockConstraints(planning.getDay(d), planning)) {
+                ec.checkStockConstraints++;
                 return false;
             }
 
             if (!checkSetupTypeConstraint(setupTypes, setupMap)) {
+                ec.checkSetupTypeConstraint++;
                 return false;
             }
 
             if (!checkShippingDayConstraints(d, planning)) {
+                ec.checkShippingDayConstraints++;
                 return false;
             }
 
@@ -219,10 +233,12 @@ public class Solver {
         for (Machine m : planning.getMachines()) {
             for (int d = 0; d < Planning.getNumberOfDays(); d++) {
                 if (!checkChangeOverAndMaintenanceBoundaryConstraints(d, m, planning)) {
+                    ec.checkChangeOverAndMaintenanceBoundaryConstraints++;
                     return false;
                 }
 
                 if (!checkMaintenanceConstraints(d, m, planning)) {
+                    ec.checkMaintenanceConstraints++;
                     return false;
                 }
             }
