@@ -264,8 +264,9 @@ public class Solver {
             // fulfilled
             if (d > (Planning.getMinConsecutiveDaysWithNightShift()
                     - planning.getPastConsecutiveDaysWithNightShift())) {
-                for (int l = d; l < (d + Planning.getMinConsecutiveDaysWithNightShift()); l++) {
-                    if (!planning.getDay(l).hasNightShift()) {
+                //for (int l = d; l < (d + Planning.getMinConsecutiveDaysWithNightShift()); l++) {
+                for (int l = d; l < Planning.getNumberOfDays(); l++) {
+                        if (!planning.getDay(l).hasNightShift()) {
                         return false;
                     }
                 }
@@ -733,6 +734,7 @@ public class Solver {
                 }
                 if (foundItem) break;
             }
+            block = 0;
             if (foundItem) break;
         }
 
@@ -859,7 +861,18 @@ public class Solver {
                 int nightshiftBefore = closestNightshift(p, "before", randomDay);
                 int nightshiftAfter = closestNightshift(p, "after", randomDay);
                 // als nightshift niet lang geleden => beter verlengen, dan nieuwe starten
-                if (nightshiftBefore < nightshiftAfter) { // als dichtste nightshift ervoor ligt
+                /*if (nightshiftAfter == -1 && nightshiftBefore == -1) {
+                    // nieuwe nightshift reeks
+                    int amountOfNightShifts = Planning.getMinConsecutiveDaysWithNightShift();
+                    for (int i = randomDay; i < p.getDays().size(); i++) {
+                        if (amountOfNightShifts == 0) {
+                            break;
+                        } else {
+                            p.getDay(i).setNightShift(true);
+                            amountOfNightShifts--;
+                        }
+                    }
+                } else*/ if (nightshiftBefore < nightshiftAfter) { // als dichtste nightshift ervoor ligt
                     if (nightshiftBefore <= maxAmountDaysBetweenExtendingNightshift) {
                         // alle dagen ervoor ook nighshift maken
                         for (int i = randomDay; i > randomDay - nightshiftBefore; i--) {
