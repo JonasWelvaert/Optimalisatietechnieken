@@ -69,7 +69,7 @@ public class Main {
         // 3. optimalisation
         logger.info("| Starting optimalisation");
         Solver solver = new Solver(Solver.SIMULATED_ANEALING);
-        solver.setSimulatedAnealingFactors(1000, 0.9995);
+        solver.setSimulatedAnealingFactors(800000, 0.99);
         Planning optimizedPlanning = solver.optimize(initialPlanning);
         if (!Solver.checkFeasible(optimizedPlanning)) {
             logger.severe("5. optimalized planning is not feasible!");

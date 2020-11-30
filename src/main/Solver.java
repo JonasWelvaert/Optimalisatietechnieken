@@ -41,8 +41,6 @@ public class Solver {
     public Solver(int mode) {
         logger.setLevel(Level.OFF);
 
-
-
         if (mode >= 100 && mode <= 100) { //TODO @Jonas: vervangen door ENUM ? of gwn door "mode==100"
             this.mode = mode;
         } else {
@@ -375,13 +373,16 @@ public class Solver {
         if (state1 instanceof Setup && state2 instanceof Production) {
             return ((Setup) state1).getTo().getId() == ((Production) state2).getItem().getId();
         }
+        if (state2 instanceof Setup && state1 instanceof Production){
+            return ((Setup)state2).getFrom().getId() == ((Production) state1).getItem().getId();
+        }
         return true;
     }
 
     private static boolean checkStockConstraints(Day day, Planning planning) {
 
         for (Item i : planning.getStock().getItems()) {
-
+            int stockAmount = i.getStockAmount(day);
             // check that the stock level on day d is less than the max allowed of stock of an item
             if (i.getStockAmount(day) > i.getMaxAllowedInStock()) {
                 return false;
