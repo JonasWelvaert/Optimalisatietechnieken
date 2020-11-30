@@ -45,8 +45,6 @@ public class Planning {
         for (int i = 0; i < numberOfDays; i++) {
             days.add(new Day(i));
         }
-        //TODO romeo set all max
-        //cost = Integer.MAX_VALUE;
     }
 
     /**
@@ -109,7 +107,13 @@ public class Planning {
         this.costOT = p.costOT;
         this.costDP = p.costDP;
         this.costNS = p.costNS;
-
+        
+        for (Machine m : this.getMachines()) {
+        	Machine otherMachine = p.getMachines().get(m.getId());
+        	for(Item item: this.stock) {
+                m.addEfficiency(item, otherMachine.getEfficiency(p.getStock().getItem(item.getId())));
+        	}
+        }
     }
 
     public void addMachine(Machine m) {
