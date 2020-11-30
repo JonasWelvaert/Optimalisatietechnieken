@@ -197,9 +197,12 @@ public class Solver {
                         setupMap.put(String.valueOf(i1.getId()) + String.valueOf(i2.getId()), i1.getLengthSetup(i2));
                     }
 
-                    if (!checkParallelConstraints(m, parallelTeller, b, d, planning)) {
-                        ec.checkParallelConstraints++;
-                        return false;
+                    // check that only 1 maintenance/large setup is scheduled at any block of a day -> no parallel maintenance/large setup
+                    if (state instanceof LargeSetup || state instanceof Maintenance) {
+                        parallelTeller++;
+                        if (parallelTeller > 1) {
+                            return false;
+                        }
                     }
 
                     if (d < Planning.getNumberOfDays() && b < Day.getNumberOfBlocksPerDay() - 1) {
@@ -209,7 +212,6 @@ public class Solver {
                         }
                     }
                 }
-
             }
             if (!checkStockConstraints(planning.getDay(d), planning)) {
                 ec.checkStockConstraints++;
@@ -229,6 +231,11 @@ public class Solver {
         }
 
         for (Machine m : planning.getMachines()) {
+
+            if (!checkSetupConstraint(m, planning)) {
+                return false;
+            }
+
             for (int d = 0; d < Planning.getNumberOfDays(); d++) {
                 if (!checkChangeOverAndMaintenanceBoundaryConstraints(d, m, planning)) {
                     ec.checkChangeOverAndMaintenanceBoundaryConstraints++;
@@ -239,96 +246,6 @@ public class Solver {
                     ec.checkMaintenanceConstraints++;
                     return false;
                 }
-            }
-        }
-
-        if (!checkSetupConstraint(planning)){
-            return false;
-        }
-
-        return true;
-    }
-
-    private static boolean checkSetupConstraint(Planning p) {
-
-        for (int m = 0; m < p.getMachines().size(); m++) {
-            Item currentItem = p.getMachines().get(m).getInitialSetup();
-            Machine machine = p.getMachines().get(m);
-            for (int d = 0; d < Planning.getNumberOfDays(); d++) {
-                for (int b = 0; b < Day.getNumberOfBlocksPerDay(); b++) {
-                    if (p.getDay(d).getBlock(b).getMachineState(machine) instanceof Production) {
-                        Production production = (Production) p.getDay(d).getBlock(b).getMachineState(machine);
-                        if (production.getItem().getId() != currentItem.getId()) {
-                            return false;
-                        }
-                    } else if (p.getDay(d).getBlock(b).getMachineState(machine) instanceof Setup) {
-                        Setup s = (Setup) p.getDay(d).getBlock(b).getMachineState(machine);
-                        if (s.getFrom().getId() != currentItem.getId()) {
-                            return false;
-                        } else {
-                            currentItem = s.getTo();
-                        }
-                    }
-                }
-            }
-        }
-        return true;
-    }
-
-    private static boolean checkSetupConstraintDay(int d, Machine m, Planning planning) {
-        Setup setupPrevDay = null;
-        Item itemPrevDay = null;
-        Item itemCur = null;
-        Setup setupCur = null;
-        int counter = 0;
-        if (d > 0) {
-            while (counter != (d - 1)) {
-                for (int b = Day.getNumberOfBlocksPerDay() - 1; b >= 0; b--) {
-                    if (planning.getDay(d - counter).getBlock(b).getMachineState(m) instanceof Production) {
-                        itemPrevDay = ((Production) planning.getDay(d - counter).getBlock(b).getMachineState(m)).getItem();
-                        break;
-                    }
-                    if (planning.getDay(d - counter).getBlock(b).getMachineState(m) instanceof Setup) {
-                        setupPrevDay = ((Setup) planning.getDay(d - counter).getBlock(b).getMachineState(m));
-                        break;
-                    }
-                }
-
-                for (int b = 0; b < Day.getNumberOfBlocksPerDay(); b++) {
-                    if (planning.getDay(d).getBlock(b).getMachineState(m) instanceof Production) {
-                        itemCur = ((Production) planning.getDay(d).getBlock(b).getMachineState(m)).getItem();
-                        break;
-                    }
-                    if (planning.getDay(d).getBlock(b).getMachineState(m) instanceof Setup) {
-                        setupCur = ((Setup) planning.getDay(d).getBlock(b).getMachineState(m));
-                        break;
-                    }
-                }
-                if (itemPrevDay != null) {
-                    if (itemCur != null) {
-                        if (itemCur.getId() != itemPrevDay.getId()) {
-                            return false;
-                        }
-                    }
-                    if (setupCur != null) {
-                        if (setupCur.getFrom().getId() != itemPrevDay.getId()) {
-                            return false;
-                        }
-                    }
-                }
-                if (setupPrevDay != null) {
-                    if (itemCur != null) {
-                        if (itemCur.getId() != setupPrevDay.getTo().getId()) {
-                            return false;
-                        }
-                    }
-                    if (setupCur != null) {
-                        if (setupCur.getFrom().getId() != setupPrevDay.getTo().getId()) {
-                            return false;
-                        }
-                    }
-                }
-                counter++;
             }
         }
 
@@ -413,16 +330,6 @@ public class Solver {
         return true;
     }
 
-    // check that only 1 maintenance/large setup is scheduled at any block of a day -> no parallel maintenance/large setup
-    private static boolean checkParallelConstraints(Machine m, int parallelTeller, int b, int d, Planning planning) {
-        MachineState state = planning.getDay(d).getBlock(b).getMachineState(m);
-
-        if (state instanceof LargeSetup || state instanceof Maintenance) {
-            parallelTeller++;
-            return parallelTeller <= 1;
-        }
-        return true;
-    }
 
     // check that for each day only 1 setup of a certain type is scheduled
     private static boolean checkSetupTypeConstraint(List<String> setupTypes, Map<String, Integer> setupMap) {

@@ -38,7 +38,7 @@ public class Planning {
 
 
     public Planning(String instanceName, int nrOfMachines) {
-        logger.setLevel(Level.OFF);
+        //logger.setLevel(Level.OFF);
         this.instanceName = instanceName;
         machines = new ArrayList<>(nrOfMachines);
         days = new ArrayList<>(numberOfDays);
@@ -315,9 +315,9 @@ public class Planning {
         return costDP + costNS + costOT + costSL + costUR;
     }
 
-    private void logAllCosts(Object... params) throws IOException {
+    public void logAllCosts() throws IOException {
         String msg = "(NS: " + costNS + "| OT: " + costOT + "| UR: " + costUR + "| SL: " + costSL + "| DP: " + costDP + ")" + " [TOTAL: " + getTotalCost() + "]";
-        logger.log(Level.INFO, msg, params);
+        logger.log(Level.INFO, msg);
 
         String line = getTotalCost() + "," + costNS + "," + costOT + "," + costUR + "," + costSL + "," + costDP;
         Main.output.add(line);

@@ -51,7 +51,7 @@ public class Main {
 
 
     public static void main(String[] args) throws IOException {
-        logger.setLevel(Level.OFF);
+        //logger.setLevel(Level.OFF);
 
         // 1. inputfile
         logger.info("| Starting reading of input file " + inputFileName);
@@ -90,6 +90,7 @@ public class Main {
         // 6. The end
         logger.info("Total cost: " + optimizedPlanning.getTotalCost());
         logger.info("| Finished execution");
+        optimizedPlanning.logAllCosts();
     }
 
     private static void printCSV(Planning optimizedPlanning) throws IOException {

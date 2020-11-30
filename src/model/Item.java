@@ -25,8 +25,7 @@ public class Item {
 		int efficiency = m.getEfficiency(this);
 		//int efficiency = 123;
 		int newAmount = amount+efficiency;
-		stockAmount.remove(d);
-		stockAmount.put(d,newAmount);
+		stockAmount.replace(d,newAmount);
 	}
 
 	public void setCostPerItem(double costPerItem) {
