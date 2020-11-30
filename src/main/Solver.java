@@ -117,7 +117,7 @@ public class Solver {
             moveProduction(optimizedPlanning);
         } else if (randomInt < 25) {
             addProductionForShipping(optimizedPlanning);
-        } else if (randomInt < 31) {
+        } else if (randomInt < 26) {
             addMultipleProduction(optimizedPlanning);
         } else if (randomInt < 34) {
             changeMultipleProduction(optimizedPlanning);
@@ -127,7 +127,7 @@ public class Solver {
         } else if (randomInt < 36) {
             moveShippingDay(optimizedPlanning);
         } else {
-            addShippingDay(optimizedPlanning);
+            checkNewShippingDays(optimizedPlanning);
         }
 
 
@@ -158,6 +158,7 @@ public class Solver {
         int teller1 = 0;
 
         if (!isConsecutiveInNightShiftsPast(planning)) {
+            System.out.println("isConsecutiveInNightShiftsPast");
             ec.isConsecutiveInNightShiftsPast++;
             return false;
         }
@@ -171,10 +172,12 @@ public class Solver {
 
                 if (!checkNighShiftBlocksConstraints(b, d, planning)) {
                     ec.checkNighShiftBlocksConstraints++;
+                    System.out.println("checkNighShiftBlocksConstraints");
                     return false;
                 }
 
                 if (!checkOvertimeConstraints(teller1, b, d, planning)) {
+                    System.out.println("checkOvertimeConstraints");
                     ec.checkOvertimeConstraints++;
                     return false;
                 }
@@ -198,6 +201,7 @@ public class Solver {
                     if (state instanceof LargeSetup || state instanceof Maintenance) {
                         parallelTeller++;
                         if (parallelTeller > 1) {
+                            System.out.println("niet parallel largesetup maintenance");
                             return false;
                         }
                     }
@@ -205,6 +209,7 @@ public class Solver {
                     if (d < Planning.getNumberOfDays() && b < Day.getNumberOfBlocksPerDay() - 1) {
                         if (!checkProductionConstraints(m, b, d, planning)) {
                             ec.checkProductionConstraints++;
+                            System.out.println("checkProductionConstraints");
                             return false;
                         }
                     }
@@ -212,15 +217,18 @@ public class Solver {
             }
             if (!checkStockConstraints(planning.getDay(d), planning)) {
                 ec.checkStockConstraints++;
+                System.out.println("checkStockConstraints");
                 return false;
             }
 
             if (!checkSetupTypeConstraint(setupTypes, setupMap)) {
+                System.out.println("checkSetupTypeConstraint");
                 ec.checkSetupTypeConstraint++;
                 return false;
             }
 
             if (!checkShippingDayConstraints(d, planning)) {
+                System.out.println("checkShippingDayConstraints");
                 ec.checkShippingDayConstraints++;
                 return false;
             }
@@ -230,16 +238,19 @@ public class Solver {
         for (Machine m : planning.getMachines()) {
 
             if (!checkSetupConstraint(m, planning)) {
+                System.out.println("checkSetupConstraint");
                 return false;
             }
 
             for (int d = 0; d < Planning.getNumberOfDays(); d++) {
                 if (!checkChangeOverAndMaintenanceBoundaryConstraints(d, m, planning)) {
+                    System.out.println("checkChangeOverAndMaintenanceBoundaryConstraints");
                     ec.checkChangeOverAndMaintenanceBoundaryConstraints++;
                     return false;
                 }
 
                 if (!checkMaintenanceConstraints(d, m, planning)) {
+                    System.out.println("checkMaintenanceConstraints");
                     ec.checkMaintenanceConstraints++;
                     return false;
                 }
@@ -408,11 +419,16 @@ public class Solver {
             int stockAmount = i.getStockAmount(day);
             // check that the stock level on day d is less than the max allowed of stock of an item
             if (i.getStockAmount(day) > i.getMaxAllowedInStock()) {
+                System.out.println(i.getStockAmount(day) + " " + i.getMaxAllowedInStock());
                 return false;
             }
 
             // check that the stock level on day d is 0 when the stock level is below the minimum amount
-            if (i.getStockAmount(day) < i.getMinAllowedInStock() && i.getStockAmount(day) != 0) {
+            /*if (i.getStockAmount(day) < i.getMinAllowedInStock() && i.getStockAmount(day) != 0) {
+                return false;
+            }*/
+
+            if (i.getStockAmount(day) < 0) {
                 return false;
             }
 
@@ -1040,6 +1056,43 @@ public class Solver {
             count++;
         }
         return newShippingDay;
+    }
+
+    public static void checkNewShippingDays(Planning p) {
+        List<Request> requests = p.getRequests().getRequests();
+        for (int req = 0; req < requests.size(); req++) {
+            Request request = requests.get(req);
+            boolean containsAllItems = true;
+
+            // zoek dag waarop stock hoog genoeg
+            for (int day = 0; day < Planning.getNumberOfDays(); day++) {
+                for (int item = 0; item < requests.get(req).getItems().size(); item ++) {
+                    // als deze request effectief de item bevat
+                    if (request.containsItem(p.getStock().getItem(item))) {
+                        int aantalItemsNeeded = requests.get(req).getAmountOfItem(p.getStock().getItem(item));
+
+                        if (p.getStock().getItem(item).getStockAmount(p.getDay(day)) < aantalItemsNeeded) {
+                            containsAllItems = false;
+                        }
+                    }
+                }
+                if (containsAllItems) {
+                    request.setShippingDay(p.getDay(day));
+                    for (int item = 0; item < requests.get(req).getItems().size(); item ++) {
+                        // als deze request effectief de item bevat
+                        if (request.containsItem(p.getStock().getItem(item))) {
+                            int aantalItemsNeeded = requests.get(req).getAmountOfItem(p.getStock().getItem(item));
+
+                            Item itemm = p.getStock().getItem(item);
+                            int stockamount = itemm.getStockAmount(p.getDay(day));
+
+                            itemm.replace(p.getDay(day), stockamount - aantalItemsNeeded);
+
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private static void moveShippingDay(Planning p) {
