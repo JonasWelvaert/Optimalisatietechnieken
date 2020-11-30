@@ -111,11 +111,6 @@ public class Planning {
             }
             this.requests.add(request);
         }
-        this.costUR = p.costUR;
-        this.costSL = p.costSL;
-        this.costOT = p.costOT;
-        this.costDP = p.costDP;
-        this.costNS = p.costNS;
 
     }
 

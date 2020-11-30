@@ -20,6 +20,15 @@ public class Item {
 		stockAmount = new HashMap<>();
 	}
 
+	public void updateItem(Day d, Machine m) {
+		int amount = stockAmount.get(d);
+		//int efficiency = m.getEfficiency(this);
+		int efficiency = 123;
+		int newAmount = amount+efficiency;
+		stockAmount.remove(d);
+		stockAmount.put(d,newAmount);
+	}
+
 	public void setCostPerItem(double costPerItem) {
 		this.costPerItem = costPerItem;
 	}

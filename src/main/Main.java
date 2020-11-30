@@ -365,8 +365,8 @@ public class Main {
                 i++;
             } else if (input_block == 3) {
                 int id = Integer.parseInt(inputDelen[0]);
-                for (int j = 1; j < nrOfMachines; j++) {
-                    planning.getMachines().get(j).addEfficiency(stock.getItem(id), Integer.parseInt(inputDelen[j]));
+                for (int j = 1; j < nrOfMachines+1; j++) {
+                    planning.getMachines().get(j-1).addEfficiency(stock.getItem(id), Integer.parseInt(inputDelen[j]));
                 }
             } else if (input_block == 4) {
                 //TODO assert stock != null;

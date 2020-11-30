@@ -384,6 +384,7 @@ public class Solver {
         for (Item i : planning.getStock().getItems()) {
             int stockAmount = i.getStockAmount(day);
             // check that the stock level on day d is less than the max allowed of stock of an item
+            System.out.println(i.getId() + ": " + i.getStockAmount(day));
             if (i.getStockAmount(day) > i.getMaxAllowedInStock()) {
                 return false;
             }
@@ -632,6 +633,7 @@ public class Solver {
                 Item previousItem = randMachine.getPreviousItem(p, randomDay, randomBlock);
                 if (setupAfterNewItem(previousItem, randomDay, randomBlock, randMachine, p, 1)) {
                     p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(previousItem));
+                    previousItem.updateItem(p.getDay(randomDay), randMachine);
                     stop = true;
                 }
             }
@@ -677,6 +679,7 @@ public class Solver {
 
                 if (setupBeforeNewItem(previousItem, newItem, randomDay, randomBlock, randMachine, p, 1, false)) {
                     b.setMachineState(randMachine, new Production(newItem));
+                    newItem.updateItem(p.getDay(randomDay), randMachine);
                     controlNewNightShift(p, randomDay, randomBlock);
                     return;
                 }
@@ -953,11 +956,13 @@ public class Solver {
                 Item previousItem = randMachine.getPreviousItem(p, randomDay, randomBlock);
                 if (previousItem.getId() == removedItem.getId()) {
                     p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(removedItem));
+                    removedItem.updateItem(p.getDay(randomDay), randMachine);
                     stop = true;
                     controlNewNightShift(p, randomDay, randomBlock);
                 } else {
                     if (setupBeforeNewItem(previousItem, removedItem, randomDay, randomBlock, randMachine, p, 1, false)) {
                         p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(removedItem));
+                        removedItem.updateItem(p.getDay(randomDay), randMachine);
                         stop = true;
                         controlNewNightShift(p, randomDay, randomBlock);
                     }
@@ -1094,6 +1099,7 @@ public class Solver {
                                 if (previousItem.getId() != randomItem.getId()) {
                                     if (setupBeforeNewItem(previousItem, randomItem, currentDay, currentBlock, currentMachine, p, 1, false)) {
                                         p.getDay(currentDay).getBlock(currentBlock).setMachineState(currentMachine, new Production(randomItem));
+                                        randomItem.updateItem(p.getDay(currentDay), currentMachine);
                                         itemPlaced = true;
                                         i = 99999999;
                                         break;
@@ -1178,11 +1184,13 @@ public class Solver {
                     while (newProductions < amountOfNewProductionBlocks && randomBlock < Day.getNumberOfBlocksPerDay()
                             && p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine) instanceof Idle) {
                         p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(newItem));
+                        newItem.updateItem(p.getDay(randomDay), randMachine);
                         newProductions++;
                         randomBlock++;
                     }
 
                     b.setMachineState(randMachine, new Production(newItem));
+                    newItem.updateItem(p.getDay(randomDay), randMachine);
                     controlNewNightShift(p, randomDay, randomBlock);
                     return;
                 }
@@ -1218,6 +1226,7 @@ public class Solver {
                     while (newProductions < amountOfNewProductionBlocks && randomBlock < Day.getNumberOfBlocksPerDay()
                             && p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine) instanceof Idle) {
                         p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine, new Production(previousItem));
+                        previousItem.updateItem(p.getDay(randomDay), randMachine);
                         newProductions++;
                         randomBlock++;
                     }
