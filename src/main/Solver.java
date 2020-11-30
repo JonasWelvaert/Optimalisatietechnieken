@@ -157,8 +157,8 @@ public class Solver {
 
         for (int d = 0; d < Planning.getNumberOfDays(); d++) {
 
-            List<Integer> setupTypes = new ArrayList<>();
-            Map<Integer, Integer> setupMap = new HashMap<>();
+            List<String> setupTypes = new ArrayList<>();
+            Map<String, Integer> setupMap = new HashMap<>();
 
             for (int b = 0; b < Day.getNumberOfBlocksPerDay(); b++) {
 
@@ -181,8 +181,8 @@ public class Solver {
                     if (state instanceof Setup) {
                         Item i1 = ((Setup) state).getFrom();
                         Item i2 = ((Setup) state).getTo();
-                        setupTypes.add(i1.getId() + i2.getId());
-                        setupMap.put(i1.getId() + i2.getId(), i1.getLengthSetup(i2));
+                        setupTypes.add(String.valueOf(i1.getId()) + String.valueOf(i2.getId()));
+                        setupMap.put(String.valueOf(i1.getId()) + String.valueOf(i2.getId()), i1.getLengthSetup(i2));
                     }
 
                     if (!checkParallelConstraints(m, parallelTeller, b, d, planning)) {
@@ -315,20 +315,20 @@ public class Solver {
     }
 
     // check that for each day only 1 setup of a certain type is scheduled
-    private static boolean checkSetupTypeConstraint(List<Integer> setupTypes, Map<Integer, Integer> setupMap) {
+    private static boolean checkSetupTypeConstraint(List<String> setupTypes, Map<String, Integer> setupMap) {
 
-        Map<Integer, Integer> hm = new HashMap<>();
+        Map<String, Integer> hm = new HashMap<>();
 
         // setup type is the key -> only 1 value possible
         // key = setup type
         // value = number of occurrences of set up types
-        for (int setUpTime : setupTypes) {
+        for (String setUpTime : setupTypes) {
             Integer j = hm.get(setUpTime);
             hm.put(setUpTime, (j == null) ? 1 : j + 1);
         }
 
         // if number of set up types > set up time -> return false
-        for (Map.Entry<Integer, Integer> setupType : hm.entrySet()) {
+        for (Map.Entry<String, Integer> setupType : hm.entrySet()) {
             int setupTime = setupMap.get(setupType.getKey());
             int setupOccurrences = setupType.getValue();
             if (setupOccurrences > setupTime) {
@@ -913,7 +913,6 @@ public class Solver {
                         controlNewNightShift(p, randomDay, randomBlock);
                     }
                 }
-
             }
             count++;
         }
