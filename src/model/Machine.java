@@ -29,7 +29,7 @@ public class Machine {
 		this.maxDaysWithoutMaintenance = maxDaysWithoutMaintenance;
 		this.maintenanceDurationInBlocks = maintenanceDurationInBlocks;
 		efficiency = new HashMap<>();
-		 logger.setLevel(Level.OFF);
+		logger.setLevel(Level.OFF);
 	}
 
 	public void addEfficiency(Item item, int efficiency) {
