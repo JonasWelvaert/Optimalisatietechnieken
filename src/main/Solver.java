@@ -100,6 +100,7 @@ public class Solver {
 
     public static Planning localSearch(Planning optimizedPlanning) throws IOException {
         changeList.clear();
+        Planning copyPlanning = new Planning(optimizedPlanning);
         int randomInt = random.nextInt(41);  // [0,100]
         //TODO wich part of eval function is changed ? call planning.calculate...()
 
@@ -126,11 +127,7 @@ public class Solver {
         } else if (randomInt < 36) {
             moveShippingDay(optimizedPlanning);
         } else {
-            boolean newShippingDay = addShippingDay(optimizedPlanning);
-            // omdat we hier vaak zitten, word localsearch nog eens opgeroepen als er niks gewijzigd is
-            if (!newShippingDay) {
-                localSearch(optimizedPlanning);
-            }
+            addShippingDay(optimizedPlanning);
         }
 
 
@@ -1008,6 +1005,8 @@ public class Solver {
             int randomRequest = random.nextInt(requests.getRequests().size());
             Request request = requests.get(randomRequest);
 
+            boolean amountWrong = false;
+
             // random shipping day voor random request
             if (!request.hasShippingDay()) {
                 List<Day> possibleDays = request.getPossibleShippingDays();
@@ -1017,18 +1016,26 @@ public class Solver {
                     Item item = p.getStock().getItem(i);
                     if (request.containsItem(item)) {
                         int itemsNeeded = request.getAmountOfItem(item);
-                        for (int d = randomShippingDay; d < p.getDays().size(); i++) {
+                        for (int d = randomShippingDay; d < p.getDays().size(); d++) {
                             int stockAmount = item.getStockAmount(p.getDay(d));
                             int newStockAmount = stockAmount-itemsNeeded;
                             if (newStockAmount < 0) {
-                                return false;
+                                amountWrong = true;
+                                break;
                             }
-                            item.removeStockAmount(p.getDay(d));
-                            item.setStockAmount(p.getDay(d), newStockAmount);
+                        }
+                        if (amountWrong) {
+                            break;
+                        } else {
+                            for (int d = randomShippingDay; d < p.getDays().size(); d++) {
+                                int stockAmount = item.getStockAmount(p.getDay(d));
+                                int newStockAmount = stockAmount-itemsNeeded;
+                                item.replace(p.getDay(d), newStockAmount);
+                            }
+                            newShippingDay = true;
                         }
                     }
                 }
-                newShippingDay = true;
             }
             count++;
         }

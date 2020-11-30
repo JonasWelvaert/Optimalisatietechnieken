@@ -28,6 +28,10 @@ public class Item {
 		stockAmount.replace(d,newAmount);
 	}
 
+	public void replace(Day d, int amount) {
+		stockAmount.replace(d, amount);
+	}
+
 	public void setCostPerItem(double costPerItem) {
 		this.costPerItem = costPerItem;
 	}
