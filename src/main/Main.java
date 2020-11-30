@@ -14,29 +14,29 @@ import java.util.logging.Logger;
 import static graphing.OptimalisationGraphing.*;
 
 public class Main {
-	private enum InputFile{
-		Toy("toy_inst.txt"),
-		D10_R10_B30("A_10_10_30.txt"),
-		D10_R10_B60("A_10_10_60.txt"),
-		D10_R15_B30("A_10_15_30.txt"),
-		D10_R15_B60("A_10_15_60.txt"),
-		D20_R15_B30("A_20_15_30.txt"),
-		D20_R15_B60("A_20_15_60.txt"),
-		D20_R25_B30("A_20_25_30.txt"),
-		D20_R25_B60("A_20_25_60.txt"),
-		D40_R100_B30("A_40_100_30.txt"),
-		D40_R100_B60("A_40_100_60.txt");
+    private enum InputFile {
+        Toy("toy_inst.txt"),
+        D10_R10_B30("A_10_10_30.txt"),
+        D10_R10_B60("A_10_10_60.txt"),
+        D10_R15_B30("A_10_15_30.txt"),
+        D10_R15_B60("A_10_15_60.txt"),
+        D20_R15_B30("A_20_15_30.txt"),
+        D20_R15_B60("A_20_15_60.txt"),
+        D20_R25_B30("A_20_25_30.txt"),
+        D20_R25_B60("A_20_25_60.txt"),
+        D40_R100_B30("A_40_100_30.txt"),
+        D40_R100_B60("A_40_100_60.txt");
 
-		private String string;
+        private String string;
 
-		InputFile(String string){
-			this.string = string;
-		}
+        InputFile(String string) {
+            this.string = string;
+        }
 
-		public String toString() {
-			return string;
-		}
-	}
+        public String toString() {
+            return string;
+        }
+    }
 
     private static final InputFile inputFileName = InputFile.D10_R10_B30;
     private static final String outputVoorvoegsel = "SA2_";
@@ -50,6 +50,7 @@ public class Main {
 
 
     public static void main(String[] args) throws IOException {
+        logger.setLevel(Level.OFF);
 
         // 1. inputfile
         logger.info("| Starting reading of input file " + inputFileName);
@@ -165,7 +166,7 @@ public class Main {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(new File(filename)));
             bw.write("Instance_name: " + planning.getInstanceName() + System.lineSeparator());
-            bw.write("Cost: " + String.format("%.2f",planning.getTotalCost()) + System.lineSeparator());
+            bw.write("Cost: " + String.format("%.2f", planning.getTotalCost()) + System.lineSeparator());
             for (Day d : planning.getDays()) {
                 bw.write("#Day " + d.getId() + System.lineSeparator());
                 for (Block b : d) {
@@ -208,11 +209,11 @@ public class Main {
      */
     public static void printOutputToConsole(Planning planning) {
         System.out.println("Instance_name: " + planning.getInstanceName());
-        System.out.println("Cost: " + String.format("%.2f",planning.getTotalCost()));
+        System.out.println("Cost: " + String.format("%.2f", planning.getTotalCost()));
         for (Day d : planning.getDays()) {
             System.out.println("#Day " + d.getId());
             System.out.print("Previous items: ");
-            for (Machine m: planning.getMachines()) {
+            for (Machine m : planning.getMachines()) {
                 Item item = m.getPreviousItem(planning, d.getId(), 0);
                 System.out.print(item.getId() + ";");
             }
@@ -221,7 +222,7 @@ public class Main {
             for (Block b : d) {
                 System.out.print(b.getId());
                 for (Machine m : planning.getMachines()) {
-                    System.out.print(";" + b.getMachineState(m));
+                    System.out.print("\t \t ;" + b.getMachineState(m));
                 }
                 System.out.println();
             }

@@ -11,6 +11,7 @@ import model.machinestate.setup.SmallSetup;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Solver {
@@ -35,6 +36,8 @@ public class Solver {
     private static final int NotFound = 99999;
 
     public Solver(int mode) {
+        logger.setLevel(Level.OFF);
+
         if (mode >= 100 && mode <= 100) { //TODO @Jonas: vervangen door ENUM ? of gwn door "mode==100"
             this.mode = mode;
         } else {
@@ -100,7 +103,7 @@ public class Solver {
             moveMaintenance(optimizedPlanning);
         } else if (randomInt < 7) {
             addProduction(optimizedPlanning); // 1 BLOCK ? meerdere blokken ? invoegen ? rij van blokken van zelfde item ?
-        }  else if (randomInt < 9) {
+        } else if (randomInt < 9) {
             addProductionForShipping(optimizedPlanning);
             //removeProduction(optimizedPlanning);
         } else if (randomInt < 15) {
@@ -125,7 +128,6 @@ public class Solver {
                 localSearch(optimizedPlanning);
             }
         }
-
 
 
         optimizedPlanning.calculateAllCosts();
@@ -665,33 +667,44 @@ public class Solver {
         }
     }
 
-    // true als niet nodig, of als al in orde
-    // false als niet mogelijk
+    /*    true als niet nodig, of als al in orde
+        false als niet mogelijk*/
     private static boolean setupAfterNewItem(Item newItem, int day, int block, Machine machine, Planning p, int sizeProductions) {
+//        int currentBlock = block;
+//        int day = day;
 
-        int currentBlock = block;
-        int currentDay = day;
-
+        /* CONTROLE OP FEIT DAT JE SETUP KAN DOEN NA IN TE PLANNEN PRODUCTIE*/
         if (sizeProductions == 1) {
-            if (currentBlock == Day.getNumberOfBlocksPerDay()-1) {
-                if (currentDay == Planning.getNumberOfDays()-1) {
+            // Als laatste blok is ...
+            if (block == Day.getNumberOfBlocksPerDay() - 1) {
+                //Als laatste dag van planning is
+                if (day == Planning.getNumberOfDays() - 1) {
                     return false;
                 } else {
-                    currentBlock = 0;
-                    currentDay ++;
+                    // Kijk naar eerste blok van volgende dag
+                    block = 0;
+                    day++;
                 }
-            } else {
-                currentBlock++;
+
+            }
+            //kijk naar volgende blok
+            else {
+                block++;
             }
         } else {
-            currentBlock = currentBlock + sizeProductions;
-            if (currentBlock >= Day.getNumberOfBlocksPerDay()) {
-                if (currentDay == Planning.getNumberOfDays()-1) {
+            block = block + sizeProductions;
+            //Als laatst ingeplande blok komt na het einde van deze dag ...
+            if (block >= Day.getNumberOfBlocksPerDay()) { // controle op voorlaatste blok.
+                if (day == Planning.getNumberOfDays() - 1) {
                     return false;
                 } else {
-                    currentBlock = currentBlock - Day.getNumberOfBlocksPerDay()+1;
-                    currentDay++;
+                    block =block-  Day.getNumberOfBlocksPerDay() + 1; //TODO mss fout
+                    day++;
                 }
+            }
+            //Laatst ingeplande blok komt voor einde van de dag
+            else{
+                block++;
             }
         }
 
@@ -701,11 +714,8 @@ public class Solver {
         Item nextItem = null;
         boolean foundItem = false;
         // get next production block
-        for (int d = currentDay; d < p.getDays().size(); d++) {
-            for (int b = currentBlock; b < Day.getNumberOfBlocksPerDay(); b++) {
-                if (foundItem) {
-                    break;
-                }
+        for (int d = day; d < p.getDays().size(); d++) {
+            for (int b = block; b < Day.getNumberOfBlocksPerDay(); b++) {
 
                 if (p.getDay(d).getBlock(b).getMachineState(machine) instanceof Production) {
                     Production production = (Production) p.getDay(d).getBlock(b).getMachineState(machine);
@@ -714,20 +724,20 @@ public class Solver {
                     blockNextItem = b;
                     foundItem = true;
 
-                } else if ( p.getDay(d).getBlock(b).getMachineState(machine) instanceof Setup) {
+                } else if (p.getDay(d).getBlock(b).getMachineState(machine) instanceof Setup) {
                     Setup setup = (Setup) p.getDay(d).getBlock(b).getMachineState(machine);
                     nextItem = setup.getFrom();
                     blockNextItem = b;
                     dayNextItem = d;
                     foundItem = true;
                 }
+                if (foundItem) break;
             }
-            if (foundItem) {
-                break;
-            }
+            if (foundItem) break;
         }
 
         if (nextItem == null) {
+//            Main.printOutputToConsole(p);
             return true;
         }
 
@@ -738,7 +748,7 @@ public class Solver {
     private static boolean setupBeforeNewItem(Item previousItem, Item newItem, int day, int block, Machine machine, Planning p, int sp, boolean afterAlreadyChecked) {
 
         if (!afterAlreadyChecked) {
-            if (!setupAfterNewItem(newItem, day,block,machine,p,sp)) {
+            if (!setupAfterNewItem(newItem, day, block, machine, p, sp)) {
                 return false;
             }
         }
@@ -748,7 +758,7 @@ public class Solver {
             return true;
         }
 
-        int currentBlock = block-1;
+        int currentBlock = block - 1; //TODO hier
 
 
         // check genoeg tijd voor setup + overdag
@@ -1122,7 +1132,7 @@ public class Solver {
             Block b = p.getDay(randomDay).getBlock(randomBlock);
 
             if (b.getMachineState(randMachine) instanceof Idle) {
-                Item previousItem = randMachine.getPreviousItem(p, randomDay, randomBlock);
+                Item previousItem = randMachine.getPreviousItem(p, randomDay, randomBlock); //TODO
                 int aantalItems = p.getStock().getNrOfDifferentItems();
                 boolean newItemNotPrevItem = false;
                 // random item uit lijst die niet vorige item is
@@ -1133,7 +1143,7 @@ public class Solver {
                     }
                 }
 
-                int amountOfNewProductionBlocks = random.nextInt(maxLengthNewBlocks-2)+2;
+                int amountOfNewProductionBlocks = random.nextInt(maxLengthNewBlocks - 2) + 2;
                 if (setupBeforeNewItem(previousItem, newItem, randomDay, randomBlock, randMachine, p, amountOfNewProductionBlocks, false)) {
                     while (newProductions < amountOfNewProductionBlocks && randomBlock < Day.getNumberOfBlocksPerDay()
                             && p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine) instanceof Idle) {
@@ -1171,7 +1181,7 @@ public class Solver {
             randMachineInt = random.nextInt(p.getMachines().size());
             Machine randMachine = p.getMachines().get(randMachineInt);
 
-            int amountOfNewProductionBlocks = random.nextInt(maxLengthNewBlocks-2)+2;
+            int amountOfNewProductionBlocks = random.nextInt(maxLengthNewBlocks - 2) + 2;
             if (p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine) instanceof Idle) {
                 Item previousItem = randMachine.getPreviousItem(p, randomDay, randomBlock);
                 if (setupAfterNewItem(previousItem, randomDay, randomBlock, randMachine, p, amountOfNewProductionBlocks)) {

@@ -4,8 +4,8 @@ import model.Item;
 import model.machinestate.MachineState;
 
 public abstract class Setup implements MachineState {
-    private Item from;
-    private Item to;
+    private final Item from;
+    private final Item to;
 
     public Setup(Item from, Item to) {
         this.from = from;
