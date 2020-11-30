@@ -114,7 +114,7 @@ public class Solver {
         } else if (randomInt < 15) {
             changeProduction(optimizedPlanning); // 1 BLOCK ? meerdere blokken ? invoegen ?
         } else if (randomInt < 17) {
-            moveProduction(optimizedPlanning);
+            //moveProduction(optimizedPlanning);
         } else if (randomInt < 25) {
             addProductionForShipping(optimizedPlanning);
         } else if (randomInt < 26) {
@@ -125,7 +125,7 @@ public class Solver {
             changeMultipleProduction(optimizedPlanning);
             //removeMultipleProduction(optimizedPlanning);
         } else if (randomInt < 36) {
-            moveShippingDay(optimizedPlanning);
+            //moveShippingDay(optimizedPlanning);
         } else {
             checkNewShippingDays(optimizedPlanning);
         }
@@ -1066,7 +1066,7 @@ public class Solver {
 
             // zoek dag waarop stock hoog genoeg
             for (int day = 0; day < Planning.getNumberOfDays(); day++) {
-                for (int item = 0; item < requests.get(req).getItems().size(); item ++) {
+                for (int item = 0; item < p.getStock().getNrOfDifferentItems(); item ++) {
                     // als deze request effectief de item bevat
                     if (request.containsItem(p.getStock().getItem(item))) {
                         int aantalItemsNeeded = requests.get(req).getAmountOfItem(p.getStock().getItem(item));
@@ -1078,18 +1078,21 @@ public class Solver {
                 }
                 if (containsAllItems) {
                     request.setShippingDay(p.getDay(day));
-                    for (int item = 0; item < requests.get(req).getItems().size(); item ++) {
-                        // als deze request effectief de item bevat
-                        if (request.containsItem(p.getStock().getItem(item))) {
-                            int aantalItemsNeeded = requests.get(req).getAmountOfItem(p.getStock().getItem(item));
+                    for (int d2 =  day; d2 < p.getDays().size(); d2++) {
+                        for (int item = 0; item < p.getStock().getNrOfDifferentItems(); item ++) {
+                            // als deze request effectief de item bevat
+                            if (request.containsItem(p.getStock().getItem(item))) {
+                                int aantalItemsNeeded = requests.get(req).getAmountOfItem(p.getStock().getItem(item));
 
-                            Item itemm = p.getStock().getItem(item);
-                            int stockamount = itemm.getStockAmount(p.getDay(day));
+                                Item itemm = p.getStock().getItem(item);
+                                int stockamount = itemm.getStockAmount(p.getDay(d2));
 
-                            itemm.replace(p.getDay(day), stockamount - aantalItemsNeeded);
+                                itemm.replace(p.getDay(d2), stockamount - aantalItemsNeeded);
 
+                            }
                         }
                     }
+                    return;
                 }
             }
         }
@@ -1119,7 +1122,7 @@ public class Solver {
                 randomRequest.setShippingDay(newShippingDay);
             }
         } else {
-            addShippingDay(p);
+            checkNewShippingDays(p);
         }
     }
 
