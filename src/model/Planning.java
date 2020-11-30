@@ -1,7 +1,6 @@
 package model;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -17,11 +16,6 @@ import model.machinestate.setup.Setup;
 import model.machinestate.setup.SmallSetup;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static main.Main.*;
 
@@ -34,7 +28,6 @@ public class Planning {
     private String instanceName;
     private List<Machine> machines;
     private List<Day> days;
-    private List<Item> items;
     private Requests requests;
     private Stock stock;
     private double costNS;    //NS = night shift
@@ -111,6 +104,11 @@ public class Planning {
             }
             this.requests.add(request);
         }
+        this.costUR = p.costUR;
+        this.costSL = p.costSL;
+        this.costOT = p.costOT;
+        this.costDP = p.costDP;
+        this.costNS = p.costNS;
 
     }
 
