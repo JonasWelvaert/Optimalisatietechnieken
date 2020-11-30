@@ -38,8 +38,8 @@ public class Main {
         }
     }
 
-    private static final InputFile inputFileName = InputFile.D10_R10_B30;
-    private static final String outputVoorvoegsel = "SA2_";
+    private static final InputFile inputFileName = InputFile.D40_R100_B60;
+    private static final String outputVoorvoegsel = "SA1_";
     private static final Logger logger = Logger.getLogger(Main.class.getName());
     public static double COST_OF_OVERTIME;
     public static double COST_OF_NIGHT_SHIFT;
@@ -183,7 +183,7 @@ public class Main {
                         if (teller != 0) {
                             bw.write(";");
                         }
-                        bw.write(r.getId());
+                        bw.write(Integer.toString(r.getId()));
                         teller++;
                     }
                 }
