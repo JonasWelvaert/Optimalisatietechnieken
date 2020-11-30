@@ -41,6 +41,7 @@ public class Main {
     private static final InputFile inputFileName = InputFile.D40_R100_B60;
     private static final String outputVoorvoegsel = "SA1_";
     private static final Logger logger = Logger.getLogger(Main.class.getName());
+    private static final Validator validator = new Validator();
     public static double COST_OF_OVERTIME;
     public static double COST_OF_NIGHT_SHIFT;
     public static double COST_OF_PARALLEL_TASK;
@@ -80,6 +81,8 @@ public class Main {
         logger.info("| Starting writing outputfile");
         printOutputToConsole(optimizedPlanning);
         printOutputToFile(outputVoorvoegsel + inputFileName, optimizedPlanning);
+        
+        validator.validate(inputFileName.toString(),outputVoorvoegsel + inputFileName);
 
         //5. print out csv
         printCSV(optimizedPlanning);
