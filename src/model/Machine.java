@@ -120,6 +120,9 @@ public class Machine {
 		return initialSetup;*/
     }
 
+
+
+
     public Item getNextNotIdle(Planning p, int randomDay, int randomBlock) {
         boolean foundNextItem = false;
         int currentDay = randomDay;

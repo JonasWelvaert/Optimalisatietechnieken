@@ -35,7 +35,7 @@ public class Solver {
     private static final int maxLengthRemovingBlocks = 10;
     private static final int NotFound = 99999;
 
-    static  ErrorCounting ec = new ErrorCounting();
+    static ErrorCounting ec = new ErrorCounting();
 
 
     public Solver(int mode) {
@@ -242,6 +242,96 @@ public class Solver {
             }
         }
 
+        if (!checkSetupConstraint(planning)){
+            return false;
+        }
+
+        return true;
+    }
+
+    private static boolean checkSetupConstraint(Planning p) {
+
+        for (int m = 0; m < p.getMachines().size(); m++) {
+            Item currentItem = p.getMachines().get(m).getInitialSetup();
+            Machine machine = p.getMachines().get(m);
+            for (int d = 0; d < Planning.getNumberOfDays(); d++) {
+                for (int b = 0; b < Day.getNumberOfBlocksPerDay(); b++) {
+                    if (p.getDay(d).getBlock(b).getMachineState(machine) instanceof Production) {
+                        Production production = (Production) p.getDay(d).getBlock(b).getMachineState(machine);
+                        if (production.getItem().getId() != currentItem.getId()) {
+                            return false;
+                        }
+                    } else if (p.getDay(d).getBlock(b).getMachineState(machine) instanceof Setup) {
+                        Setup s = (Setup) p.getDay(d).getBlock(b).getMachineState(machine);
+                        if (s.getFrom().getId() != currentItem.getId()) {
+                            return false;
+                        } else {
+                            currentItem = s.getTo();
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    private static boolean checkSetupConstraintDay(int d, Machine m, Planning planning) {
+        Setup setupPrevDay = null;
+        Item itemPrevDay = null;
+        Item itemCur = null;
+        Setup setupCur = null;
+        int counter = 0;
+        if (d > 0) {
+            while (counter != (d - 1)) {
+                for (int b = Day.getNumberOfBlocksPerDay() - 1; b >= 0; b--) {
+                    if (planning.getDay(d - counter).getBlock(b).getMachineState(m) instanceof Production) {
+                        itemPrevDay = ((Production) planning.getDay(d - counter).getBlock(b).getMachineState(m)).getItem();
+                        break;
+                    }
+                    if (planning.getDay(d - counter).getBlock(b).getMachineState(m) instanceof Setup) {
+                        setupPrevDay = ((Setup) planning.getDay(d - counter).getBlock(b).getMachineState(m));
+                        break;
+                    }
+                }
+
+                for (int b = 0; b < Day.getNumberOfBlocksPerDay(); b++) {
+                    if (planning.getDay(d).getBlock(b).getMachineState(m) instanceof Production) {
+                        itemCur = ((Production) planning.getDay(d).getBlock(b).getMachineState(m)).getItem();
+                        break;
+                    }
+                    if (planning.getDay(d).getBlock(b).getMachineState(m) instanceof Setup) {
+                        setupCur = ((Setup) planning.getDay(d).getBlock(b).getMachineState(m));
+                        break;
+                    }
+                }
+                if (itemPrevDay != null) {
+                    if (itemCur != null) {
+                        if (itemCur.getId() != itemPrevDay.getId()) {
+                            return false;
+                        }
+                    }
+                    if (setupCur != null) {
+                        if (setupCur.getFrom().getId() != itemPrevDay.getId()) {
+                            return false;
+                        }
+                    }
+                }
+                if (setupPrevDay != null) {
+                    if (itemCur != null) {
+                        if (itemCur.getId() != setupPrevDay.getTo().getId()) {
+                            return false;
+                        }
+                    }
+                    if (setupCur != null) {
+                        if (setupCur.getFrom().getId() != setupPrevDay.getTo().getId()) {
+                            return false;
+                        }
+                    }
+                }
+                counter++;
+            }
+        }
+
         return true;
     }
 
@@ -280,7 +370,7 @@ public class Solver {
                     - planning.getPastConsecutiveDaysWithNightShift())) {
                 //for (int l = d; l < (d + Planning.getMinConsecutiveDaysWithNightShift()); l++) {
                 for (int l = d; l < Planning.getNumberOfDays(); l++) {
-                        if (!planning.getDay(l).hasNightShift()) {
+                    if (!planning.getDay(l).hasNightShift()) {
                         return false;
                     }
                 }
@@ -365,6 +455,7 @@ public class Solver {
 
         MachineState state1 = planning.getDay(d).getBlock(b).getMachineState(m);
         MachineState state2 = planning.getDay(d).getBlock(b + 1).getMachineState(m);
+
         if (state1 instanceof Production && state2 instanceof Production) {
             if (((Production) state1).getItem().getId() != ((Production) state2).getItem().getId()) {
                 return false;
@@ -373,8 +464,8 @@ public class Solver {
         if (state1 instanceof Setup && state2 instanceof Production) {
             return ((Setup) state1).getTo().getId() == ((Production) state2).getItem().getId();
         }
-        if (state2 instanceof Setup && state1 instanceof Production){
-            return ((Setup)state2).getFrom().getId() == ((Production) state1).getItem().getId();
+        if (state2 instanceof Setup && state1 instanceof Production) {
+            return ((Setup) state2).getFrom().getId() == ((Production) state1).getItem().getId();
         }
         return true;
     }
@@ -384,7 +475,6 @@ public class Solver {
         for (Item i : planning.getStock().getItems()) {
             int stockAmount = i.getStockAmount(day);
             // check that the stock level on day d is less than the max allowed of stock of an item
-            System.out.println(i.getId() + ": " + i.getStockAmount(day));
             if (i.getStockAmount(day) > i.getMaxAllowedInStock()) {
                 return false;
             }
@@ -719,12 +809,12 @@ public class Solver {
                 if (day == Planning.getNumberOfDays() - 1) {
                     return false;
                 } else {
-                    block =block-  Day.getNumberOfBlocksPerDay() + 1; //TODO mss fout
+                    block = block - Day.getNumberOfBlocksPerDay() + 1; //TODO mss fout
                     day++;
                 }
             }
             //Laatst ingeplande blok komt voor einde van de dag
-            else{
+            else {
                 block++;
             }
         }
@@ -892,7 +982,8 @@ public class Solver {
                             amountOfNightShifts--;
                         }
                     }
-                } else*/ if (nightshiftBefore < nightshiftAfter) { // als dichtste nightshift ervoor ligt
+                } else*/
+                if (nightshiftBefore < nightshiftAfter) { // als dichtste nightshift ervoor ligt
                     if (nightshiftBefore <= maxAmountDaysBetweenExtendingNightshift) {
                         // alle dagen ervoor ook nighshift maken
                         for (int i = randomDay; i > randomDay - nightshiftBefore; i--) {
