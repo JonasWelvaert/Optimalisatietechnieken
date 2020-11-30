@@ -53,6 +53,10 @@ public class Item {
 		setupTime.put(i, time);
 	}
 
+	public void removeStockAmount(Day d) {
+		stockAmount.remove(d);
+	}
+
 	public void setStockAmount(Day d, int amount) {
 		stockAmount.put(d, amount);
 	}

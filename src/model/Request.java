@@ -20,6 +20,10 @@ public class Request {
         shippingDay = null;
     }
 
+    public boolean containsItem(Item item) {
+        return amountOfItem.containsKey(item);
+    }
+
     public void removeShippingDay() {
         shippingDay = null;
     }

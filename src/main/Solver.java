@@ -470,6 +470,34 @@ public class Solver {
         return true;
     }
 
+    private static boolean checkSetupConstraint(Machine m, Planning p) {
+
+        Item currentItem = m.getInitialSetup();
+        for (int d = 0; d < Planning.getNumberOfDays(); d++) {
+            for (int b = 0; b < Day.getNumberOfBlocksPerDay(); b++) {
+                if (p.getDay(d).getBlock(b).getMachineState(m) instanceof Production) {
+                    Production production = (Production) p.getDay(d).getBlock(b).getMachineState(m);
+                    if (production.getItem().getId() != currentItem.getId()) {
+                        return false;
+                    }
+                } else if (p.getDay(d).getBlock(b).getMachineState(m) instanceof Setup) {
+                    Setup s = (Setup) p.getDay(d).getBlock(b).getMachineState(m);
+                    Item to = s.getTo();
+                    Item from = s.getFrom();
+                    int lengthsetup = from.getLengthSetup(to);
+                    if (s.getFrom().getId() != currentItem.getId()) {
+                        return false;
+                    } else {
+                        currentItem = s.getTo();
+                    }
+                    b = b + lengthsetup;
+                }
+            }
+        }
+
+        return true;
+    }
+
     private static boolean checkStockConstraints(Day day, Planning planning) {
 
         for (Item i : planning.getStock().getItems()) {
@@ -1078,11 +1106,25 @@ public class Solver {
                 List<Day> possibleDays = request.getPossibleShippingDays();
                 int randomShippingDay = random.nextInt(possibleDays.size());
                 request.setShippingDay(possibleDays.get(randomShippingDay));
+                for (int i = 0; i < p.getStock().getNrOfDifferentItems(); i++) {
+                    Item item = p.getStock().getItem(i);
+                    if (request.containsItem(item)) {
+                        int itemsNeeded = request.getAmountOfItem(item);
+                        for (int d = randomShippingDay; d < p.getDays().size(); i++) {
+                            int stockAmount = item.getStockAmount(p.getDay(d));
+                            int newStockAmount = stockAmount-itemsNeeded;
+                            if (newStockAmount < 0) {
+                                return false;
+                            }
+                            item.removeStockAmount(p.getDay(d));
+                            item.setStockAmount(p.getDay(d), newStockAmount);
+                        }
+                    }
+                }
                 newShippingDay = true;
             }
             count++;
         }
-
         return newShippingDay;
     }
 
