@@ -1,5 +1,6 @@
 package model;
 
+import main.Main;
 import model.machinestate.Idle;
 import model.machinestate.MachineState;
 import model.machinestate.Production;
@@ -75,6 +76,8 @@ public class Machine {
             currentBlock--;
         }
 
+        //Main.printOutputToConsole(p);
+
         for (int d = currentDay; d > 0; d--) {
             for (int b = currentBlock; b > 0; b--) {
                 MachineState ms = p.getDay(d).getBlock(b).getMachineState(this);
@@ -88,36 +91,13 @@ public class Machine {
                     return setup.getTo();
                 }
             }
-            currentBlock = 0;
+            currentBlock = Day.getNumberOfBlocksPerDay()-1;
         }
 
         logger.log(Level.INFO, "getPreviousItem(): Initial item teruggeven " + initialSetup.getId() + " ____________________________________________");
 
         return initialSetup;
 
-
-		/*while (!foundPreviousItem) { // afgaan tot als we block met production vinden
-			if (currentBlock == 0 && currentDay == 0) { // als we helemaal in het begin zitten
-				foundPreviousItem = true;
-			} else {
-				MachineState ms = p.getDay(currentDay).getBlock(currentBlock).getMachineState(this);
-				if (ms instanceof Production) {
-					Production prod = (Production) p.getDay(currentDay).getBlock(currentBlock).getMachineState(this);
-					return prod.getItem();
-				} else if (ms instanceof Setup) {
-					Setup setup = (Setup) p.getDay(currentDay).getBlock(currentBlock).getMachineState(this);
-					return setup.getTo();
-				} else {
-					if (currentBlock == 0) {
-						currentDay--;
-						currentBlock = Day.getNumberOfBlocksPerDay()-1;
-					} else {
-						currentBlock--;
-					}
-				}
-			}
-		}
-		return initialSetup;*/
     }
 
     public Item getNextNotIdle(Planning p, int randomDay, int randomBlock) {
