@@ -38,8 +38,8 @@ public class Main {
         }
     }
 
-    private static final InputFile inputFileName = InputFile.D40_R100_B60;
-    private static final String outputVoorvoegsel = "SA1_";
+    private static final InputFile inputFileName = InputFile.D10_R15_B60;
+    private static final String outputVoorvoegsel = "SA2";
     private static final Logger logger = Logger.getLogger(Main.class.getName());
     private static final Validator validator = new Validator();
     public static double COST_OF_OVERTIME;
@@ -55,7 +55,7 @@ public class Main {
 
         // 1. inputfile
         logger.info("| Starting reading of input file " + inputFileName);
-        Planning initialPlanning = readFileIn(inputFileName.toString());
+        Planning initialPlanning = readFileIn("instances/" + inputFileName.toString());
 
 
         // 2. initial solution
@@ -70,7 +70,7 @@ public class Main {
         // 3. optimalisation
         logger.info("| Starting optimalisation");
         Solver solver = new Solver(Solver.SIMULATED_ANEALING);
-        solver.setSimulatedAnealingFactors(800000, 0.99);
+        solver.setSimulatedAnealingFactors(100000, 0.995);
         Planning optimizedPlanning = solver.optimize(initialPlanning);
         if (!Solver.checkFeasible(optimizedPlanning)) {
             logger.severe("5. optimalized planning is not feasible!");
@@ -80,9 +80,11 @@ public class Main {
         // 4. output
         logger.info("| Starting writing outputfile");
         printOutputToConsole(optimizedPlanning);
-        printOutputToFile(outputVoorvoegsel + inputFileName, optimizedPlanning);
+        File file = new File(outputVoorvoegsel);
+        file.mkdir();
+        printOutputToFile(outputVoorvoegsel +"/" + outputVoorvoegsel +"_"+ inputFileName, optimizedPlanning);
         
-        validator.validate(inputFileName.toString(),outputVoorvoegsel + inputFileName);
+        validator.validate("instances/" + inputFileName.toString(),outputVoorvoegsel +"/" + outputVoorvoegsel +"_"+ inputFileName);
 
         //5. print out csv
         printCSV(optimizedPlanning);
@@ -168,7 +170,9 @@ public class Main {
      */
     private static void printOutputToFile(String filename, Planning planning) {
         try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter(new File(filename)));
+        	File file = new File(filename);
+        	file.createNewFile();
+            BufferedWriter bw = new BufferedWriter(new FileWriter(file));
             bw.write("Instance_name: " + planning.getInstanceName() + System.lineSeparator());
             bw.write("Cost: " + String.format("%.2f", planning.getTotalCost()) + System.lineSeparator());
             for (Day d : planning.getDays()) {
@@ -202,6 +206,7 @@ public class Main {
             bw.close();
         } catch (IOException e) {
             System.err.println("4. IOException");
+            e.printStackTrace();
             System.exit(4);
         }
     }
