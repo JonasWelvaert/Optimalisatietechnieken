@@ -328,10 +328,10 @@ public class Planning {
     }
 
     public void logAllCosts() throws IOException {
-        String msg = "(NS: " + costNS + "| OT: " + costOT + "| UR: " + costUR + "| SL: " + costSL + "| DP: " + costDP + ")" + " [TOTAL: " + getTotalCost() + "]";
+        String msg = "(NS: " + costNS + "\t | OT: " + costOT + "\t | UR: " + costUR + "\t | SL: " + costSL + "\t | DP: " + costDP + ")" + "\t [TOTAL: " + getTotalCost() + "]";
         logger.log(Level.INFO, msg);
 
         String line = getTotalCost() + "," + costNS + "," + costOT + "," + costUR + "," + costSL + "," + costDP;
-        Main.output.add(line);
+        Main.graphingOutput.add(line);
     }
 }

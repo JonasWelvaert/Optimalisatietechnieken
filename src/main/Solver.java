@@ -1,5 +1,6 @@
 package main;
 
+import feasibilitychecker.ErrorCounting;
 import model.*;
 import model.machinestate.Idle;
 import model.machinestate.MachineState;
@@ -36,7 +37,7 @@ public class Solver {
     private static final int NotFound = 99999;
     private static int localSearchUpperBound = 99999;
 
-    static ErrorCounting ec = new ErrorCounting();
+    public static ErrorCounting ec = new ErrorCounting();
 
     public Solver(int mode) {
         logger.setLevel(Level.OFF);
@@ -995,7 +996,7 @@ public class Solver {
 
         if (!isConsecutiveInNightShiftsPast(planning)) {
             System.out.println("isConsecutiveInNightShiftsPast");
-            ec.isConsecutiveInNightShiftsPast++;
+            ec.increaseIsConsecutiveInNightShiftsPast();
             return false;
         }
 
@@ -1007,14 +1008,14 @@ public class Solver {
             for (int b = 0; b < Day.getNumberOfBlocksPerDay(); b++) {
 
                 if (!checkNighShiftBlocksConstraints(b, d, planning)) {
-                    ec.checkNighShiftBlocksConstraints++;
+                    ec.increaseCheckNighShiftBlocksConstraints();
                     System.out.println("checkNighShiftBlocksConstraints");
                     return false;
                 }
 
                 if (!checkOvertimeConstraints(teller1, b, d, planning)) {
                     System.out.println("checkOvertimeConstraints");
-                    ec.checkOvertimeConstraints++;
+                    ec.increaseCheckOvertimeConstraints();
                     return false;
                 }
 
@@ -1045,7 +1046,7 @@ public class Solver {
 
                     if (d < Planning.getNumberOfDays() && b < Day.getNumberOfBlocksPerDay() - 1) {
                         if (!checkProductionConstraints(m, b, d, planning)) {
-                            ec.checkProductionConstraints++;
+                            ec.increaseCheckProductionConstraints();
                             System.out.println("checkProductionConstraints");
                             return false;
                         }
@@ -1053,14 +1054,14 @@ public class Solver {
                 }
             }
             if (!checkStockConstraints(planning.getDay(d), planning)) {
-                ec.checkStockConstraints++;
+                ec.increaseCheckStockConstraints();
                 System.out.println("checkStockConstraints");
                 return false;
             }
 
             if (!checkSetupTypeConstraint(setupTypes, setupMap)) {
                 System.out.println("checkSetupTypeConstraint");
-                ec.checkSetupTypeConstraint++;
+                ec.increaseCheckSetupTypeConstraint();
                 return false;
             }
 
@@ -1083,13 +1084,13 @@ public class Solver {
             for (int d = 0; d < Planning.getNumberOfDays(); d++) {
                 if (!checkChangeOverAndMaintenanceBoundaryConstraints(d, m, planning)) {
                     System.out.println("checkChangeOverAndMaintenanceBoundaryConstraints");
-                    ec.checkChangeOverAndMaintenanceBoundaryConstraints++;
+                    ec.increaseCheckChangeOverAndMaintenanceBoundaryConstraints();
                     return false;
                 }
 
                 if (!checkMaintenanceConstraints(d, m, planning)) {
                     System.out.println("checkMaintenanceConstraints");
-                    ec.checkMaintenanceConstraints++;
+                    ec.increaseCheckMaintenanceConstraints();
                     return false;
                 }
             }

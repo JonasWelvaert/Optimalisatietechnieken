@@ -14,32 +14,8 @@ import java.util.logging.Logger;
 import static graphing.OptimalisationGraphing.*;
 
 public class Main {
-    private enum InputFile {
-        Toy("toy_inst.txt"),
-        D10_R10_B30("A_10_10_30.txt"),
-        D10_R10_B60("A_10_10_60.txt"),
-        D10_R15_B30("A_10_15_30.txt"),
-        D10_R15_B60("A_10_15_60.txt"),
-        D20_R15_B30("A_20_15_30.txt"),
-        D20_R15_B60("A_20_15_60.txt"),
-        D20_R25_B30("A_20_25_30.txt"),
-        D20_R25_B60("A_20_25_60.txt"),
-        D40_R100_B30("A_40_100_30.txt"),
-        D40_R100_B60("A_40_100_60.txt");
-
-        private String string;
-
-        InputFile(String string) {
-            this.string = string;
-        }
-
-        public String toString() {
-            return string;
-        }
-    }
-
     private static final InputFile inputFileName = InputFile.D40_R100_B60;
-    private static final String outputVoorvoegsel = "SA2";
+    private static final String outputPrefix = "SA2";
     private static final Logger logger = Logger.getLogger(Main.class.getName());
     private static final Validator validator = new Validator();
     public static double COST_OF_OVERTIME;
@@ -47,8 +23,7 @@ public class Main {
     public static double COST_OF_PARALLEL_TASK;
     public static double COST_PER_ITEM_UNDER_MINIMUM_LEVEL;
 
-    public static List<String> output = new ArrayList<>();
-
+    public static List<String> graphingOutput = new ArrayList<>();
 
     public static void main(String[] args) throws IOException {
         //logger.setLevel(Level.OFF);
@@ -61,7 +36,8 @@ public class Main {
         // 2. initial solution
         logger.info("| Starting making first feasible solution");
         initialPlanning = makeInitialPlanning(initialPlanning);
-        logger.log(Level.INFO, "--------------- TOTAL COST = " + String.valueOf(initialPlanning.getTotalCost()) + "---------------");
+        logger.log(Level.INFO, "--------------- TOTAL COST = " + initialPlanning.getTotalCost());
+
         if (!Solver.checkFeasible(initialPlanning)) {
             logger.severe("2. Initial planning is not feasible!");
             System.exit(2);
@@ -71,6 +47,7 @@ public class Main {
         logger.info("| Starting optimalisation");
         Solver solver = new Solver(Solver.SIMULATED_ANEALING);
         solver.setSimulatedAnealingFactors(10000, 0.995);
+
         Planning optimizedPlanning = solver.optimize(initialPlanning);
         if (!Solver.checkFeasible(optimizedPlanning)) {
             logger.severe("5. optimalized planning is not feasible!");
@@ -80,11 +57,11 @@ public class Main {
         // 4. output
         logger.info("| Starting writing outputfile");
         printOutputToConsole(optimizedPlanning);
-        File file = new File(outputVoorvoegsel);
+        File file = new File(outputPrefix);
         file.mkdir();
-        printOutputToFile(outputVoorvoegsel +"/" + outputVoorvoegsel +"_"+ inputFileName, optimizedPlanning);
-        
-        validator.validate("instances/" + inputFileName.toString(),outputVoorvoegsel +"/" + outputVoorvoegsel +"_"+ inputFileName);
+        printOutputToFile(outputPrefix + "/" + outputPrefix + "_" + inputFileName, optimizedPlanning);
+
+        validator.validate("instances/" + inputFileName.toString(), outputPrefix + "/" + outputPrefix + "_" + inputFileName);
 
         //5. print out csv
         printCSV(optimizedPlanning);
@@ -99,7 +76,7 @@ public class Main {
         FileWriter fw = new FileWriter(csvFile);
         PrintWriter out = new PrintWriter(fw);
 
-        for (String s : output) {
+        for (String s : graphingOutput) {
             out.println(s);
         }
 
@@ -170,8 +147,8 @@ public class Main {
      */
     private static void printOutputToFile(String filename, Planning planning) {
         try {
-        	File file = new File(filename);
-        	file.createNewFile();
+            File file = new File(filename);
+            file.createNewFile();
             BufferedWriter bw = new BufferedWriter(new FileWriter(file));
             bw.write("Instance_name: " + planning.getInstanceName() + System.lineSeparator());
             bw.write("Cost: " + String.format("%.2f", planning.getTotalCost()) + System.lineSeparator());
@@ -374,8 +351,8 @@ public class Main {
                 i++;
             } else if (input_block == 3) {
                 int id = Integer.parseInt(inputDelen[0]);
-                for (int j = 1; j < nrOfMachines+1; j++) {
-                    planning.getMachines().get(j-1).addEfficiency(stock.getItem(id), Integer.parseInt(inputDelen[j]));
+                for (int j = 1; j < nrOfMachines + 1; j++) {
+                    planning.getMachines().get(j - 1).addEfficiency(stock.getItem(id), Integer.parseInt(inputDelen[j]));
                 }
             } else if (input_block == 4) {
                 //TODO assert stock != null;
