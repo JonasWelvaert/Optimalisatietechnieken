@@ -12,7 +12,7 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static graphing.OptimalisationGraphing.*;
+import static graphing.OptimalisationGraphing.csvFile;
 
 public class Main {
     private static final InputFile inputFileName = InputFile.D40_R100_B60;
@@ -204,7 +204,7 @@ public class Main {
             System.out.println("#Day " + d.getId());
             System.out.print("Previous items: ");
             for (Machine m : planning.getMachines()) {
-                Item item = m.getPreviousItem(planning, d.getId(), 0);
+                Item item = m.getPreviousItem(planning, d, 0);
                 System.out.print(item.getId() + ";");
             }
             System.out.println();

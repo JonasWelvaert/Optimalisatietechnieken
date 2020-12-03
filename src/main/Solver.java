@@ -1,45 +1,44 @@
 package main;
 
 import feasibilitychecker.FeasibiltyChecker;
-import localsearch.LocalSearchStep;
 import localsearch.LocalSearchStepFactory;
 import model.*;
 import model.machinestate.Idle;
 import model.machinestate.MachineState;
 import model.machinestate.Maintenance;
 import model.machinestate.Production;
-import model.machinestate.setup.LargeSetup;
 import model.machinestate.setup.Setup;
-import model.machinestate.setup.SmallSetup;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static localsearch.EnumStep.*;
+
+
 public class Solver {
+    private static final int MAX_REMOVE_PROD_TRIES = 1000;
+    private static final int MAX_ADD_PROD_TRIES = 1000;
+    private static final int MAX_CHANGE_PROD_TRIES = 1000;
+    private static final int MAX_MAINTENANCE_TRIES = 1000;
+    private static final int MAX_MOVEITEM_TRIES = 1000;
+    private static final int MAX_ADDSHIPPINGPROD_TRIES = 1000;
+    private static final int MAX_NEW_SHIPPINGDAY_TRIES = 1000;
+    private static final int maxAmountDaysBetweenExtendingNightshift = 3; // dit is een variabele die kan gewijzigd
+
+
     private static final Logger logger = Logger.getLogger(Solver.class.getName());
     public static final int SIMULATED_ANEALING = 100;
     private double SATemperature = 1000;
     private double SACoolingFactor = 0.995;
     private int mode;
-    private static final int MAX_REMOVE_PROD_TRIES = 1000;
-    private static final int MAX_ADD_PROD_TRIES = 1000;
-    private static final int MAX_CHANGE_PROD_TRIES = 1000;
-    private static final int MAX_MAINTENANCE_TRIES = 1000;
-    private static final int MAX_NEWSETUP_TRIES = 1000;
-    private static final int MAX_MOVEITEM_TRIES = 1000;
-    private static final int MAX_ADDSHIPPINGPROD_TRIES = 1000;
-    private static final int MAX_NEW_SHIPPINGDAY_TRIES = 1000;
-    private static final Random random = new Random();
-    private static final int maxAmountDaysBetweenExtendingNightshift = 3; // dit is een variabele die kan gewijzigd
-    // worden adhv het algoritme
-/*    private static final int maxLengthNewBlocks = 10;
-    private static final int maxLengthRemovingBlocks = 10;*/
-
-    private static int localSearchUpperBound = 99999;
-
     private final FeasibiltyChecker feasibiltyChecker;
+    private static final Random random = new Random();
+    private static int localSearchUpperBound = 100;
 
     public Solver(int mode, FeasibiltyChecker feasibiltyChecker) {
         logger.setLevel(Level.OFF);
@@ -54,6 +53,7 @@ public class Solver {
     }
 
     public void setSimulatedAnealingFactors(double SATemperature, double SACoolingFactor) {
+        //TODO JONAS: moet in solverklasse staan
         this.SACoolingFactor = SACoolingFactor;
         this.SATemperature = SATemperature;
     }
@@ -71,13 +71,10 @@ public class Solver {
             throws IOException {
         Planning current = new Planning(initialPlanning);
         Planning best = initialPlanning;
+        Planning neighbor;
         int stockRiseLevel = 0;
 
-
         for (double t = temperature; t > 1; t *= coolingFactor) {
-//            logger.info("t=" + t);
-
-            Planning neighbor;
             do {
                 neighbor = new Planning(current);
                 localSearch(neighbor);
@@ -112,36 +109,30 @@ public class Solver {
 
     public static Planning localSearch(Planning p) throws IOException {
         /* ------------------------ ENKEL GETALLEN AANPASSEN VOOR GEWICHTEN AAN TE PASSEN ------------------------ */
-
         LocalSearchStepFactory lssf = new LocalSearchStepFactory();
 
         int randomInt = random.nextInt(localSearchUpperBound);
-        int teller = 0;
-        if (randomInt < (teller += 1)) {
-            moveMaintenance(p);
+        int switcher = 0;
 
-        } else if (randomInt < (teller += 50)) {
-            lssf.getLocalSearchStep("AddSingleProduction").execute(p);
-
-        } else if (randomInt < (teller += 1)) {
-            addProductionForShipping(p);
-        } else if (randomInt < (teller += 1)) {
-            changeProduction(p);
-        } else if (randomInt < (teller += 1)) {
-            removeProduction(p);
-        } else if (randomInt < (teller += 1)) {
-            moveProduction(p);
-        } else if (randomInt < (teller += 1)) {
-            moveShippingDay(p);
-        } else if (randomInt < (teller += 1)) {
-            tryToPlanShippingDay(p);
+        if (randomInt < (switcher += 1)) {
+            lssf.getLocalSearchStep(ADD_SINGLE_PRODUCTION).execute(p);
+        } else if (randomInt < (switcher += 50)) {
+            lssf.getLocalSearchStep(MOVE_MAINTENANCE).execute(p);//TODO
+        } else if (randomInt < (switcher += 1)) {
+            lssf.getLocalSearchStep(ADD_PRODUCTION_FOR_SHIPPING).execute(p);//TODO
+        } else if (randomInt < (switcher += 1)) {
+            lssf.getLocalSearchStep(CHANGE_PRODUCTION).execute(p);//TODO
+        } else if (randomInt < (switcher += 1)) {
+            lssf.getLocalSearchStep(REMOVE_PRODUCTION).execute(p);//TODO
+        } else if (randomInt < (switcher += 1)) {
+            lssf.getLocalSearchStep(MOVE_PRODUCTION).execute(p);//TODO
+        } else if (randomInt < (switcher += 1)) {
+            lssf.getLocalSearchStep(MOVE_SHIPPING_DAY).execute(p);//TODO
+        } else if (randomInt < (switcher += 1)) {
+            lssf.getLocalSearchStep(PLAN_SHIPPING_DAY).execute(p);//TODO
         } else {
-            logger.info("The upperbound for the localsearch is set.");
-            localSearchUpperBound = teller;
+            localSearchUpperBound = switcher; //TODO ROMEO dees is nog fout peisk
         }
-
-        tryToPlanShippingDay(p);
-
 
         p.calculateAllCosts();
         return p;
@@ -253,7 +244,6 @@ public class Solver {
             count++;
         }
     }
-
 
 
     private static Item removeProduction(Planning p) {
@@ -446,7 +436,7 @@ public class Solver {
         return newShippingDay;
     }
 
-    public static void tryToPlanShippingDay(Planning p) {
+    public static void planShippingDay(Planning p) {
         for (Request request : p.getRequests().getRequests()) {
             if (request.getShippingDay() == null) {
                 boolean containsAllItems = true;
@@ -501,7 +491,7 @@ public class Solver {
                 randomRequest.setShippingDay(newShippingDay);
             }
         } else {
-            tryToPlanShippingDay(p);
+            planShippingDay(p);
         }
     }
 

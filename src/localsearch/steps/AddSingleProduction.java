@@ -1,5 +1,6 @@
-package localsearch;
+package localsearch.steps;
 
+import localsearch.LocalSearchStep;
 import model.*;
 import model.machinestate.Idle;
 import model.machinestate.MachineState;
@@ -7,14 +8,12 @@ import model.machinestate.Production;
 import model.machinestate.setup.Setup;
 
 import java.util.List;
-import java.util.Map;
 
 public class AddSingleProduction extends LocalSearchStep {
 
     public AddSingleProduction(int maxTries) {
         super(maxTries);
     }
-
 
     public boolean execute(Planning p) {
         int count = 0;
@@ -48,15 +47,15 @@ public class AddSingleProduction extends LocalSearchStep {
                     beforeBlocks = getSetupBlockBeforeProduction(setupBefore, day, block, machine, p);
                     afterBlocks = getSetupBlocksAfterProduction(setupAfter, day, block, machine, p);
                     //PLAN THE SETUPS IF NOT NULL
-                    if( beforeBlocks != null && afterBlocks != null){
-                        for(Block b: beforeBlocks){
-                            b.setMachineState(machine,setupBefore);
+                    if (beforeBlocks != null && afterBlocks != null) {
+                        for (Block b : beforeBlocks) {
+                            b.setMachineState(machine, setupBefore);
                         }
-                        for(Block b: afterBlocks){
-                            b.setMachineState(machine,setupAfter);
+                        for (Block b : afterBlocks) {
+                            b.setMachineState(machine, setupAfter);
                         }
-                        productionCanBePlanned =true;
-                    }else{
+                        productionCanBePlanned = true;
+                    } else {
                         productionCanBePlanned = false;
                     }
                 }
@@ -68,7 +67,7 @@ public class AddSingleProduction extends LocalSearchStep {
                 if (productionCanBePlanned) {
                     block.setMachineState(machine, new Production(nItem));
                     //TODO update stocklevels
-                    p.updateStockLevels(day,nItem,machine.getEfficiency(nItem));
+                    p.updateStockLevels(day, nItem, machine.getEfficiency(nItem));
                 }
             }
             count++;

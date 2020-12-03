@@ -1,14 +1,18 @@
 package localsearch;
 
-import model.*;
-import model.machinestate.Idle;
+import model.Block;
+import model.Day;
+import model.Machine;
+import model.Planning;
 import model.machinestate.Maintenance;
 import model.machinestate.Production;
-import model.machinestate.setup.LargeSetup;
 import model.machinestate.setup.Setup;
 import model.machinestate.setup.SmallSetup;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 
 
 // USES FACTORY METHOD PATTERN
