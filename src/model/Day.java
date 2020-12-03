@@ -90,8 +90,7 @@ public class Day implements Iterable<Block> {
         int counter = 0;
         boolean working;
         if (!hasNightShift) {
-            //TODO check for index 0 or 1 for block 1
-            for (int i = indexOfBlockS + 1; i <= indexOfBlockO; i++) { //[bs+1;bo]
+            for (int i = indexOfBlockS + 1; i <= indexOfBlockO; i++) { //[bs+1;bo]  // @indexOutOfBounds
                 working = false;
                 Block b = blocks.get(i);
                 for (Machine m : machinesList) {
@@ -109,9 +108,7 @@ public class Day implements Iterable<Block> {
 
     public boolean getParallel(List<Machine> machinesList) {
         boolean bool;
-
-        //TODO check for index 0 or 1 for block 1
-        for (int i = 1; i <= indexOfBlockS; i++) { //[b1;bs]
+        for (int i = 1; i <= indexOfBlockS; i++) { //[b1;bs]  // @indexOutOfBounds
             Block b = blocks.get(i);
             bool = false;
             for (Machine m : machinesList) {

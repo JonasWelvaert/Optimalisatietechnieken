@@ -51,7 +51,7 @@ public abstract class Solver {
         } else if (randomInt < (switcher += 1)) {
             lssf.getLocalSearchStep(ADD_SHIPPING_DAY).execute(p);
         } else {
-            localSearchUpperBound = switcher; //TODO ROMEO dees is nog fout peisk
+            localSearchUpperBound = switcher; //TODO dees is nog fout peisk
         }
 
         p.calculateAllCosts();

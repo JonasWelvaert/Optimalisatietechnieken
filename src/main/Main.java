@@ -34,9 +34,9 @@ public class Main {
         logger.info(titlePrefix + "1. Reading file " + inputFileName);
         Planning initialPlanning = readFileIn("instances/" + inputFileName.toString());
 
-        // 2. BUILD INITIAL SOLUTION //TODO ROMEO: misschien initial een beetje slimmer maken ?
+        // 2. BUILD INITIAL SOLUTION //TODO misschien initial een beetje slimmer maken ?
         logger.info(titlePrefix + "2. Build initial solution");
-        initialPlanning = makeInitialPlanning(initialPlanning); //TODO ROMEO aanpassen ?
+        initialPlanning = makeInitialPlanning(initialPlanning); //TODO aanpassen ?
 
         if (!feasibiltyChecker.checkFeasible(initialPlanning)) {
             logger.severe("2. Initial planning is not feasible!");
@@ -60,7 +60,7 @@ public class Main {
         // 4B. PRINT TO  FILE
         logger.info(titlePrefix + "4B. Printing result to file");
         File file = new File(outputPrefix);
-        file.mkdir(); //TODO Romeo
+        file.mkdir(); //TODO
         printOutputToFile(outputPrefix + "/" + outputPrefix + "_" + inputFileName, optimizedPlanning);
 
         // 5. VALIDATE SOLUTION
@@ -97,7 +97,7 @@ public class Main {
     }
 
     /**
-     * Makes all machines IDLE and no requests fullfilled except for the maintenance //TODO ROMEO is dit fullfilled ?
+     * Makes all machines IDLE and no requests fullfilled except for the maintenance //TODO is dit fullfilled ?
      * and nightshifts to ensure a feasible planning.
      *
      * @param planning The planning returned by the main.Main.readFileIn method
@@ -160,7 +160,7 @@ public class Main {
     private static void printOutputToFile(String filename, Planning planning) {
         try {
             File file = new File(filename);
-            file.createNewFile(); //TODO Romeo
+            file.createNewFile(); //TODO
             BufferedWriter bw = new BufferedWriter(new FileWriter(file));
             bw.write("Instance_name: " + planning.getInstanceName() + System.lineSeparator());
             bw.write("Cost: " + String.format("%.2f", planning.getTotalCost()) + System.lineSeparator());
@@ -342,8 +342,6 @@ public class Main {
                 int daysPastWithoutMaintenance = Integer.parseInt(inputDelen[2]);
                 int maxDaysWithoutMaintenance = Integer.parseInt(inputDelen[3]);
                 int maintenanceDurationInBlocks = Integer.parseInt(inputDelen[4]);
-                //TODO assert planning != null;
-                //TODO assert stock != null;
                 planning.addMachine(new Machine(id, stock.getItem(lastItemIdProduced), daysPastWithoutMaintenance,
                         maxDaysWithoutMaintenance, maintenanceDurationInBlocks));
                 i++;
@@ -353,13 +351,11 @@ public class Main {
                 int quantityInStock = Integer.parseInt(inputDelen[2]);
                 int minAllowedInStock = Integer.parseInt(inputDelen[3]);
                 int maxAllowedInStock = Integer.parseInt(inputDelen[4]);
-                //TODO assert stock != null;
                 Item item = stock.getItem(id);
                 item.setCostPerItem(costPerItem);
                 item.setInitialQuantityInStock(quantityInStock);
                 item.setMaxAllowedInStock(maxAllowedInStock);
                 item.setMinAllowedInStock(minAllowedInStock);
-                //TODO assert planning != null;
                 i++;
             } else if (input_block == 3) {
                 int id = Integer.parseInt(inputDelen[0]);
@@ -367,7 +363,6 @@ public class Main {
                     planning.getMachines().get(j - 1).addEfficiency(stock.getItem(id), Integer.parseInt(inputDelen[j]));
                 }
             } else if (input_block == 4) {
-                //TODO assert stock != null;
                 Item item = stock.getItem(i);
                 for (int j = 0; j < Stock.getNrOfDifferentItems(); j++) {
                     if (i != j) {
@@ -376,7 +371,6 @@ public class Main {
                 }
                 i++;
             } else if (input_block == 5) {
-                //TODO assert stock != null;
                 Item item = stock.getItem(i);
                 for (int j = 0; j < Stock.getNrOfDifferentItems(); j++) {
                     if (i != j) {
@@ -388,15 +382,13 @@ public class Main {
                 Request request = requests.get(i);
                 for (int j = 0; j < Planning.getNumberOfDays(); j++) {
                     if (inputDelen[j].equals("1")) {
-                        //TODO assert planning != null;
                         request.addPossibleShippingDay(planning.getDay(j));
                     }
                 }
                 i++;
             } else if (input_block == 7) {
-                //TODO assert requests != null;
                 Request request = requests.get(i);
-                for (int j = 0; j < Stock.getNrOfDifferentItems(); j++) { //TODO getNrOfDifferentItems() can return null
+                for (int j = 0; j < Stock.getNrOfDifferentItems(); j++) {
                     if (!inputDelen[j].equals("0")) {
                         request.addItem(stock.getItem(j), Integer.parseInt(inputDelen[j]));
                     }

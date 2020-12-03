@@ -38,7 +38,6 @@ public class AddSingleProduction extends LocalSearchStep {
 
 
                 // 1 I I S12 2 I I S21 1
-                //TODO controleer of items van zelfde type zijn
                 List<Block> beforeBlocks;
                 List<Block> afterBlocks;
                 boolean productionCanBePlanned;
@@ -67,7 +66,6 @@ public class AddSingleProduction extends LocalSearchStep {
                 //PLAN PRODUCTION
                 if (productionCanBePlanned) {
                     block.setMachineState(machine, new Production(nItem));
-                    //TODO update stocklevels
                     p.updateStockLevels(day, nItem, machine.getEfficiency(nItem));
                 }
             }

@@ -49,7 +49,7 @@ public class Planning {
      *
      * @param p planning to copy
      */
-    public Planning(Planning p) { //TODO Romeo hier wordt iets niet gekopieerd !!!!
+    public Planning(Planning p) { //TODO hier wordt iets niet gekopieerd !!!!
         this.instanceName = p.instanceName;
         this.days = new ArrayList<>(p.days.size());
         for (Day d : p.days) {

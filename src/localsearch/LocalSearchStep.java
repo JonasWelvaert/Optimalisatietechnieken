@@ -36,7 +36,7 @@ public abstract class LocalSearchStep {
      * @return List of block in which setups will be planned otherwise null
      */
     protected List<Block> getSetupBlockBeforeProduction(Setup setupNeeded, Day day, Block block, Machine machine, Planning p) {
-        int numberOfPredecessorDays = day.getId();  //TODO indexOutOfBounds ?
+        int numberOfPredecessorDays = day.getId();  // @indexOutOfBounds
         int iteration = 0;
         // SET TIME WINDOWS IN WHICH SETUPS CAN HAPPEN
         int t0, t1, t2;
@@ -44,7 +44,7 @@ public abstract class LocalSearchStep {
 
         if (setupNeeded instanceof SmallSetup) {
             t0 = 0;
-            t2 = Day.getNumberOfBlocksPerDay() - 1;  //TODO indexOutOfBounds ?
+            t2 = Day.getNumberOfBlocksPerDay() - 1;  // @indexOutOfBounds
         } else {
             t0 = Day.getIndexOfBlockE();
             t2 = Day.getIndexOfBlockL();
@@ -86,7 +86,7 @@ public abstract class LocalSearchStep {
      * @return List of block in which setups will be planned otherwise null
      */
     protected List<Block> getSetupBlocksAfterProduction(Setup setupNeeded, Day day, Block block, Machine machine, Planning p) {
-        int numberOfSuccesorDays = Planning.getNumberOfDays() - day.getId();  //TODO indexOutOfBounds ?
+        int numberOfSuccesorDays = Planning.getNumberOfDays() - day.getId();   // @indexOutOfBounds
         int iteration = 0;
         // SET TIME WINDOWS IN WHICH SETUPS CAN HAPPEN
         int t0, t1, t2;
@@ -94,7 +94,7 @@ public abstract class LocalSearchStep {
 
         if (setupNeeded instanceof SmallSetup) {
             t0 = 0;
-            t2 = Day.getNumberOfBlocksPerDay() - 1;  //TODO indexOutOfBounds ?
+            t2 = Day.getNumberOfBlocksPerDay() - 1;  // @indexOutOfBounds
         } else {
             t0 = Day.getIndexOfBlockE();
             t2 = Day.getIndexOfBlockL();
