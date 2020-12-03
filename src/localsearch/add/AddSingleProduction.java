@@ -1,4 +1,4 @@
-package localsearch.steps;
+package localsearch.add;
 
 import localsearch.LocalSearchStep;
 import model.*;

@@ -1,4 +1,4 @@
-package localsearch.steps;
+package localsearch.other;
 
 import localsearch.LocalSearchStep;
 import model.Planning;

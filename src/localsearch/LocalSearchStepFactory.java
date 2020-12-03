@@ -1,6 +1,14 @@
 package localsearch;
 
-import localsearch.steps.*;
+import localsearch.add.AddProductionForShipping;
+import localsearch.add.AddSingleProduction;
+import localsearch.add.PlanShippingDay;
+import localsearch.change.ChangeProduction;
+import localsearch.move.MoveMaintenance;
+import localsearch.move.MoveProduction;
+import localsearch.move.MoveShippingDay;
+import localsearch.remove.RemoveProduction;
+import localsearch.other.*;
 
 import java.util.HashMap;
 import java.util.Map;
