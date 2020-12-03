@@ -42,6 +42,13 @@ public class Day implements Iterable<Block> {
     public static void setNumberOfBlocksPerDay(int numberOfBlocksPerDay) {
         Day.numberOfBlocksPerDay = numberOfBlocksPerDay;
     }
+    public List<Block> getBlocksBetweenInclusive(int t1, int t2){
+        List<Block> temp = new ArrayList<>();
+        for (Block b: blocks){
+            if( t1<= b.getId() && b.getId() <= t2) temp.add(b);
+        }
+        return temp;
+    }
 
     public static int getNumberOfBlocksPerDay() {
         return numberOfBlocksPerDay;

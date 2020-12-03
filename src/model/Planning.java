@@ -107,12 +107,12 @@ public class Planning {
         this.costOT = p.costOT;
         this.costDP = p.costDP;
         this.costNS = p.costNS;
-        
+
         for (Machine m : this.getMachines()) {
-        	Machine otherMachine = p.getMachines().get(m.getId());
-        	for(Item item: this.stock) {
+            Machine otherMachine = p.getMachines().get(m.getId());
+            for (Item item : this.stock) {
                 m.addEfficiency(item, otherMachine.getEfficiency(p.getStock().getItem(item.getId())));
-        	}
+            }
         }
     }
 
@@ -170,6 +170,18 @@ public class Planning {
 
     public Stock getStock() {
         return stock;
+    }
+
+    public long getStockAmount() {
+        List<Item> items = stock.getItems();
+
+        long counter = 0;
+        for (Item i : items) {
+            for (Day d : days) {
+                counter += i.getStockAmount(d);
+            }
+        }
+        return counter;
     }
 
     public void setStock(Stock stock) {

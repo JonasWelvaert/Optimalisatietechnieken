@@ -1,109 +1,137 @@
 package model;
 
+import model.machinestate.setup.LargeSetup;
+import model.machinestate.setup.Setup;
+import model.machinestate.setup.SmallSetup;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class Item {
-	private int id;
-	private double costPerItem;
-	private int initialQuantityInStock;
-	private int minAllowedInStock;
-	private int maxAllowedInStock;
-	private Map<Day, Integer> stockAmount;
-	private Map<Item, Boolean> largeSetup;
-	private Map<Item, Integer> setupTime;
+    private int id;
+    private double costPerItem;
+    private int initialQuantityInStock;
+    private int minAllowedInStock;
+    private int maxAllowedInStock;
+    private Map<Day, Integer> stockAmount;
+    private Map<Item, Boolean> largeSetup;
+    private Map<Item, Integer> setupTime;
 
-	public Item(int id) {
-		this.id = id;
-		largeSetup = new HashMap<>();
-		setupTime = new HashMap<>();
-		stockAmount = new HashMap<>();
-	}
+    public Item(int id) {
+        this.id = id;
+        largeSetup = new HashMap<>();
+        setupTime = new HashMap<>();
+        stockAmount = new HashMap<>();
+    }
 
-	public void updateItem(Day d, Machine m) {
-		int amount = stockAmount.get(d);
-		int efficiency = m.getEfficiency(this);
-		//int efficiency = 123;
-		int newAmount = amount+efficiency;
-		stockAmount.replace(d,newAmount);
-	}
+    public void updateItem(Day d, Machine m) {
+        int amount = stockAmount.get(d);
+        int efficiency = m.getEfficiency(this);
+        //int efficiency = 123;
+        int newAmount = amount + efficiency;
+        stockAmount.replace(d, newAmount);
+    }
 
-	public void replace(Day d, int amount) {
-		stockAmount.replace(d, amount);
-	}
+    public void replace(Day d, int amount) {
+        stockAmount.replace(d, amount);
+    }
 
-	public void setCostPerItem(double costPerItem) {
-		this.costPerItem = costPerItem;
-	}
+    public void setCostPerItem(double costPerItem) {
+        this.costPerItem = costPerItem;
+    }
 
-	public void setInitialQuantityInStock(int initialQuantityInStock) {
-		this.initialQuantityInStock = initialQuantityInStock;
-	}
+    public void setInitialQuantityInStock(int initialQuantityInStock) {
+        this.initialQuantityInStock = initialQuantityInStock;
+    }
 
-	public void setMaxAllowedInStock(int maxAllowedInStock) {
-		this.maxAllowedInStock = maxAllowedInStock;
-	}
+    public Setup getSetupTo(Item to) {
+        Setup setup;
+        if (largeSetup.get(to)) {
+            setup = new LargeSetup(this, to);
+        } else {
+            setup = new SmallSetup(this, to);
+        }
+        return setup;
+    }
 
-	public void setMinAllowedInStock(int minAllowedInStock) {
-		this.minAllowedInStock = minAllowedInStock;
-	}
+    public void setMaxAllowedInStock(int maxAllowedInStock) {
+        this.maxAllowedInStock = maxAllowedInStock;
+    }
 
-	public void setLargeSetup(Item i, boolean b) {
-		largeSetup.put(i, b);
-	}
+    public void setMinAllowedInStock(int minAllowedInStock) {
+        this.minAllowedInStock = minAllowedInStock;
+    }
 
-	public void setSetupTime(Item i, int time) {
-		setupTime.put(i, time);
-	}
+    public void setLargeSetup(Item i, boolean b) {
+        largeSetup.put(i, b);
+    }
 
-	public void removeStockAmount(Day d) {
-		stockAmount.remove(d);
-	}
+    public void setSetupTime(Item i, int time) {
+        setupTime.put(i, time);
+    }
 
-	public void setStockAmount(Day d, int amount) {
-		stockAmount.put(d, amount);
-	}
+    public void removeStockAmount(Day d) {
+        stockAmount.remove(d);
+    }
 
-	public int getInitialQuantityInStock() {
-		return initialQuantityInStock;
-	}
+    public void setStockAmount(Day d, int amount) {
+        stockAmount.put(d, amount);
+    }
 
-	public int getId() {
-		return id;
-	}
+    public int getInitialQuantityInStock() {
+        return initialQuantityInStock;
+    }
 
-	public double getCostPerItem() {
-		return costPerItem;
-	}
-	
-	public int getMaxAllowedInStock() {
-		return maxAllowedInStock;
-	}
-	
-	public int getMinAllowedInStock() {
-		return minAllowedInStock;
-	}
-	
-	public boolean isLargeSetup(Item to) {
-		return largeSetup.get(to);
-	}
-	
-	public int getLengthSetup(Item to) {
-		return setupTime.get(to);
-	}
-	
-	public int  getStockAmount(Day d) {
-		return stockAmount.get(d);
-	}
-	
-	public Day findDayWithId(int id) {
-		for(Day d:stockAmount.keySet()) {
-			if(d.getId() == id) return d;
-		}
-		return null;
-	}
+    public int getId() {
+        return id;
+    }
 
-	public int getAantalItems() {
-		return largeSetup.size()+1;
-	}
+    public double getCostPerItem() {
+        return costPerItem;
+    }
+
+    public int getMaxAllowedInStock() {
+        return maxAllowedInStock;
+    }
+
+    public int getMinAllowedInStock() {
+        return minAllowedInStock;
+    }
+
+    public boolean isLargeSetup(Item to) {
+        return largeSetup.get(to);
+    }
+
+    public int getSetupTimeTo(Item to) {
+        return setupTime.get(to);
+    }
+
+    public int getStockAmount(Day d) {
+        return stockAmount.get(d);
+    }
+
+    public Day findDayWithId(int id) {
+        for (Day d : stockAmount.keySet()) {
+            if (d.getId() == id) return d;
+        }
+        return null;
+    }
+
+    public int getAantalItems() {
+        return largeSetup.size() + 1;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Item item = (Item) o;
+        return id == item.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

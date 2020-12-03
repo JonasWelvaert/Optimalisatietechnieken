@@ -38,7 +38,7 @@ public class Main {
         }
     }
 
-    private static final InputFile inputFileName = InputFile.D10_R15_B60;
+    private static final InputFile inputFileName = InputFile.D40_R100_B60;
     private static final String outputVoorvoegsel = "SA2";
     private static final Logger logger = Logger.getLogger(Main.class.getName());
     private static final Validator validator = new Validator();
@@ -70,7 +70,7 @@ public class Main {
         // 3. optimalisation
         logger.info("| Starting optimalisation");
         Solver solver = new Solver(Solver.SIMULATED_ANEALING);
-        solver.setSimulatedAnealingFactors(100000, 0.995);
+        solver.setSimulatedAnealingFactors(10000, 0.995);
         Planning optimizedPlanning = solver.optimize(initialPlanning);
         if (!Solver.checkFeasible(optimizedPlanning)) {
             logger.severe("5. optimalized planning is not feasible!");

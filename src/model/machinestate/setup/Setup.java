@@ -6,10 +6,12 @@ import model.machinestate.MachineState;
 public abstract class Setup implements MachineState {
     private final Item from;
     private final Item to;
+    private int setupTime;
 
     public Setup(Item from, Item to) {
         this.from = from;
         this.to = to;
+        this.setupTime = from.getSetupTimeTo(to);
     }
 
     @Override
@@ -25,4 +27,11 @@ public abstract class Setup implements MachineState {
         return from;
     }
 
+    public int getSetupTime() {
+        return setupTime;
+    }
+
+    public void setSetupTime(int setupTime) {
+        this.setupTime = setupTime;
+    }
 }
