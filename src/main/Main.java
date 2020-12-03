@@ -1,5 +1,6 @@
 package main;
 
+import feasibilitychecker.FeasibiltyChecker;
 import model.*;
 import model.machinestate.Idle;
 import model.machinestate.Maintenance;
@@ -25,8 +26,11 @@ public class Main {
 
     public static List<String> graphingOutput = new ArrayList<>();
 
+    private static FeasibiltyChecker feasibiltyChecker;
+
     public static void main(String[] args) throws IOException {
-        //logger.setLevel(Level.OFF);
+//        logger.setLevel(Level.OFF);
+        feasibiltyChecker = new FeasibiltyChecker();
 
         // 1. inputfile
         logger.info("| Starting reading of input file " + inputFileName);
@@ -38,18 +42,18 @@ public class Main {
         initialPlanning = makeInitialPlanning(initialPlanning);
         logger.log(Level.INFO, "--------------- TOTAL COST = " + initialPlanning.getTotalCost());
 
-        if (!Solver.checkFeasible(initialPlanning)) {
+        if (!feasibiltyChecker.checkFeasible(initialPlanning)) {
             logger.severe("2. Initial planning is not feasible!");
             System.exit(2);
         }
 
         // 3. optimalisation
         logger.info("| Starting optimalisation");
-        Solver solver = new Solver(Solver.SIMULATED_ANEALING);
+        Solver solver = new Solver(Solver.SIMULATED_ANEALING, feasibiltyChecker);
         solver.setSimulatedAnealingFactors(10000, 0.995);
 
         Planning optimizedPlanning = solver.optimize(initialPlanning);
-        if (!Solver.checkFeasible(optimizedPlanning)) {
+        if (!feasibiltyChecker.checkFeasible(optimizedPlanning)) {
             logger.severe("5. optimalized planning is not feasible!");
             System.exit(5);
         }
