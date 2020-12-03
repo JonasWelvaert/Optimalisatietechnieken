@@ -1,6 +1,8 @@
 package main;
 
 import feasibilitychecker.FeasibiltyChecker;
+import localsearch.LocalSearchStep;
+import localsearch.LocalSearchStepFactory;
 import model.*;
 import model.machinestate.Idle;
 import model.machinestate.MachineState;
@@ -32,9 +34,9 @@ public class Solver {
     private static final Random random = new Random();
     private static final int maxAmountDaysBetweenExtendingNightshift = 3; // dit is een variabele die kan gewijzigd
     // worden adhv het algoritme
-    private static final int maxLengthNewBlocks = 10;
-    private static final int maxLengthRemovingBlocks = 10;
-    private static final int NotFound = 99999;
+/*    private static final int maxLengthNewBlocks = 10;
+    private static final int maxLengthRemovingBlocks = 10;*/
+
     private static int localSearchUpperBound = 99999;
 
     private final FeasibiltyChecker feasibiltyChecker;
@@ -108,38 +110,41 @@ public class Solver {
         return best;
     }
 
-    public static Planning localSearch(Planning optimizedPlanning) throws IOException {
+    public static Planning localSearch(Planning p) throws IOException {
         /* ------------------------ ENKEL GETALLEN AANPASSEN VOOR GEWICHTEN AAN TE PASSEN ------------------------ */
+
+        LocalSearchStepFactory lssf = new LocalSearchStepFactory();
 
         int randomInt = random.nextInt(localSearchUpperBound);
         int teller = 0;
         if (randomInt < (teller += 1)) {
-            moveMaintenance(optimizedPlanning);
+            moveMaintenance(p);
 
         } else if (randomInt < (teller += 50)) {
-            addSingleRandomProduction(optimizedPlanning);
-        } else if (randomInt < (teller += 0)) {
-            addProductionForShipping(optimizedPlanning);
-        } else if (randomInt < (teller += 0)) {
-            changeProduction(optimizedPlanning);
-        } else if (randomInt < (teller += 0)) {
-            removeProduction(optimizedPlanning);
-        } else if (randomInt < (teller += 0)) {
-            moveProduction(optimizedPlanning);
-        } else if (randomInt < (teller += 0)) {
-            moveShippingDay(optimizedPlanning);
-        } else if (randomInt < (teller += 0)) {
-            tryToPlanShippingDay(optimizedPlanning);
+            lssf.getLocalSearchStep("AddSingleProduction").execute(p);
+
+        } else if (randomInt < (teller += 1)) {
+            addProductionForShipping(p);
+        } else if (randomInt < (teller += 1)) {
+            changeProduction(p);
+        } else if (randomInt < (teller += 1)) {
+            removeProduction(p);
+        } else if (randomInt < (teller += 1)) {
+            moveProduction(p);
+        } else if (randomInt < (teller += 1)) {
+            moveShippingDay(p);
+        } else if (randomInt < (teller += 1)) {
+            tryToPlanShippingDay(p);
         } else {
             logger.info("The upperbound for the localsearch is set.");
             localSearchUpperBound = teller;
         }
 
-        tryToPlanShippingDay(optimizedPlanning);
+        tryToPlanShippingDay(p);
 
 
-        optimizedPlanning.calculateAllCosts();
-        return optimizedPlanning;
+        p.calculateAllCosts();
+        return p;
     }
 
 
@@ -203,36 +208,7 @@ public class Solver {
     }
 
     private static void addSingleRandomProduction(Planning p) { // van hetzelfde product meer maken, geen setup nodig voor het item,
-        // mss wel na het item
-        int count = 0;
 
-        // random
-        int randomDay = NotFound;
-        int randomBlock = NotFound;
-        int randMachineInt = NotFound;
-
-        // zoek idle blok
-        boolean stop = false;
-        while (!stop && count < MAX_ADD_PROD_TRIES) {
-
-            // random
-            randomDay = random.nextInt(Planning.getNumberOfDays());
-            randomBlock = random.nextInt(Day.getNumberOfBlocksPerDay());
-            randMachineInt = random.nextInt(p.getMachines().size());
-            Machine randMachine = p.getMachines().get(randMachineInt);
-
-            if (p.getDay(randomDay).getBlock(randomBlock).getMachineState(randMachine) instanceof Idle) {
-                Item previousItem = randMachine.getPreviousItem(p, randomDay, randomBlock);
-//                if (setupAfterNewItem(previousItem, randomDay, randomBlock, randMachine, p, 1)) {
-                p.getDay(randomDay).getBlock(randomBlock).setMachineState(randMachine,
-                        new Production(previousItem));
-                previousItem.updateItem(p.getDay(randomDay), randMachine);
-                stop = true;
-//                }
-            }
-            count++;
-        }
-        controlNewNightShift(p, randomDay, randomBlock);
 
     }
 
@@ -278,245 +254,7 @@ public class Solver {
         }
     }
 
-    /*
-     * true als niet nodig, of als al in orde false als niet mogelijk
-     */
-    private static boolean setupAfterNewItem(Item newItem, int day, int block, Machine machine, Planning p,
-                                             int sizeProductions) {
-//        int currentBlock = block;
-//        int day = day;
 
-        /* CONTROLE OP FEIT DAT JE SETUP KAN DOEN NA IN TE PLANNEN PRODUCTIE */
-        if (sizeProductions == 1) {
-            // Als laatste blok is ...
-            if (block == Day.getNumberOfBlocksPerDay() - 1) {
-                // Als laatste dag van planning is
-                if (day == Planning.getNumberOfDays() - 1) {
-                    return false;
-                } else {
-                    // Kijk naar eerste blok van volgende dag
-                    block = 0;
-                    day++;
-                }
-
-            }
-            // kijk naar volgende blok
-            else {
-                block++;
-            }
-        } else {
-            block = block + sizeProductions;
-            // Als laatst ingeplande blok komt na het einde van deze dag ...
-            if (block >= Day.getNumberOfBlocksPerDay()) { // controle op voorlaatste blok.
-                if (day == Planning.getNumberOfDays() - 1) {
-                    return false;
-                } else {
-                    block = block - Day.getNumberOfBlocksPerDay() + 1; // TODO mss fout
-                    day++;
-                }
-            }
-            // Laatst ingeplande blok komt voor einde van de dag
-            else {
-                block++;
-            }
-        }
-
-        int dayNextItem = 0;
-        int blockNextItem = 0;
-
-        Item nextItem = null;
-        boolean foundItem = false;
-        // get next production block
-        for (int d = day; d < p.getDays().size(); d++) {
-            for (int b = block; b < Day.getNumberOfBlocksPerDay(); b++) {
-
-                if (p.getDay(d).getBlock(b).getMachineState(machine) instanceof Production) {
-                    Production production = (Production) p.getDay(d).getBlock(b).getMachineState(machine);
-                    nextItem = production.getItem();
-                    dayNextItem = d;
-                    blockNextItem = b;
-                    foundItem = true;
-
-                } else if (p.getDay(d).getBlock(b).getMachineState(machine) instanceof Setup) {
-                    Setup setup = (Setup) p.getDay(d).getBlock(b).getMachineState(machine);
-                    nextItem = setup.getFrom();
-                    blockNextItem = b;
-                    dayNextItem = d;
-                    foundItem = true;
-                }
-                if (foundItem)
-                    break;
-            }
-            block = 0;
-            if (foundItem)
-                break;
-        }
-
-        if (nextItem == null) {
-//            Main.printOutputToConsole(p);
-            return true;
-        }
-
-        return setupBeforeNewItem(newItem, nextItem, dayNextItem, blockNextItem, machine, p, sizeProductions, true);
-
-    }
-
-    private static Map<Integer, List<Block>> getSetupBeforeOptions(Item newItem, int day, int block, Machine machine, Planning p) {
-        Item previousItem = machine.getPreviousItem(p, day, block);
-        // CHECK IF ITEM TO ADD DOES NOT NEED A SETUP
-        if (previousItem.equals(newItem)) return null;  // TODO check for null in calling part
-
-        //INIT VARIABLES AFTER CHECK !!!
-        Setup setupNeeded = previousItem.getSetupTo(newItem);
-        int numberOfPredecessorDays = Planning.getNumberOfDays() - day;  //TODO indexOutOfBounds ?
-        Map<Integer, List<Block>> setupBlocks = new HashMap<>();
-        int acquiredTime = 0;
-        int iteration = 0;
-
-        // SET TIME WINDOWS IN WHICH SETUPS CAN HAPPEN
-        int t0 = -1, t1, t2 = -1;
-        t1 = block - 1;
-
-        if (setupNeeded instanceof SmallSetup) {         // can happen anytime
-            t0 = 0;
-            t1 = block - 1;
-            t2 = Day.getNumberOfBlocksPerDay() - 1;  //TODO indexOutOfBounds ?
-        } else if (setupNeeded instanceof LargeSetup) {
-            t0 = Day.getIndexOfBlockE();
-            t1 = block - 1;
-            t2 = Day.getIndexOfBlockL();
-            if (t1 < t0) {
-                iteration++; // BEGIN CHECK YESTERDAY (do not check for today)
-                t1 = t2;
-            }
-        } else {
-            return setupBlocks;
-        }
-
-        while (iteration < numberOfPredecessorDays) {
-            List<Block> possibleBlocks = p.getDay(day - iteration).getBlocksBetweenInclusive(t0, t1);
-            possibleBlocks.removeIf(b -> !(b.getMachineState(machine) instanceof Idle)); // remove blocks that are not Idle
-            setupBlocks.put(day - iteration, possibleBlocks); //ADD possible blocks to solution
-            acquiredTime += possibleBlocks.size();
-
-            if (acquiredTime >= setupNeeded.getSetupTime()) {
-                return setupBlocks;
-            }
-            t1 = t2;
-            iteration++;
-        }
-
-        setupBlocks.clear();
-        return setupBlocks; // als leeg: niet mogelijk
-    }
-
-    private static Map<Integer, List<Block>> getSetupAfterOptions(Item newItem, int day, int block, Machine machine, Planning p) {
-        Item previousItem = machine.getPreviousItem(p, day, block);
-        // CHECK IF ITEM TO ADD DOES NOT NEED A SETUP
-        if (previousItem.equals(newItem)) return null;  // TODO check for null in calling part
-
-        //INIT VARIABLES AFTER CHECK !!!
-        Setup setupNeeded = previousItem.getSetupTo(newItem);
-        int numberOfPredecessorDays = Planning.getNumberOfDays() - day;  //TODO indexOutOfBounds ?
-        Map<Integer, List<Block>> setupBlocks = new HashMap<>();
-        int acquiredTime = 0;
-        int iteration = 0;
-
-        // SET TIME WINDOWS IN WHICH SETUPS CAN HAPPEN
-        int t0 = -1, t1, t2 = -1;
-        t1 = block - 1;
-
-        if (setupNeeded instanceof SmallSetup) {         // can happen anytime
-            t0 = 0;
-            t1 = block - 1;
-            t2 = Day.getNumberOfBlocksPerDay() - 1;  //TODO indexOutOfBounds ?
-        } else if (setupNeeded instanceof LargeSetup) {
-            t0 = Day.getIndexOfBlockE();
-            t1 = block - 1;
-            t2 = Day.getIndexOfBlockL();
-            if (t1 < t0) {
-                iteration++; // BEGIN CHECK YESTERDAY (do not check for today)
-                t1 = t2;
-            }
-        } else {
-            return setupBlocks;
-        }
-
-        while (iteration < numberOfPredecessorDays) {
-            List<Block> possibleBlocks = p.getDay(day - iteration).getBlocksBetweenInclusive(t0, t1);
-            //TODO niet aan het werken op een copy !!!
-            possibleBlocks.removeIf(b -> !(b.getMachineState(machine) instanceof Idle)); // remove blocks that are not Idle
-            setupBlocks.put(day - iteration, possibleBlocks); //ADD possible blocks to solution
-            acquiredTime += possibleBlocks.size();
-
-            if (acquiredTime >= setupNeeded.getSetupTime()) {
-                return setupBlocks;
-            }
-            t1 = t2;
-            iteration++;
-        }
-
-        setupBlocks.clear();
-        return setupBlocks; // als leeg: niet mogelijk
-    }
-
-    private static boolean setupBeforeNewItem(Item previousItem, Item newItem, int day, int block, Machine machine, Planning p, int sp, boolean afterAlreadyChecked) {
-        if (!afterAlreadyChecked) {
-            if (!setupAfterNewItem(newItem, day, block, machine, p, sp)) {
-                return false;
-            }
-        }
-
-        // controle niet hetzelfde item
-        if (previousItem.getId() == newItem.getId()) {
-            return true;
-        }
-
-        int currentBlock = block - 1; // TODO hier
-
-        // check genoeg tijd voor setup + overdag
-        int tijdSetup = previousItem.getSetupTimeTo(newItem);
-        int tijdBeschikbaar = 0;
-        int earliestMomentBlock = 0;
-
-        int count = 0;
-
-        // hoeveel tijd ervoor + controle na b_l
-        while (count < MAX_NEWSETUP_TRIES) {
-            // snachts is false
-            if (currentBlock - count < Day.indexOfBlockE) {
-                return false;
-                // als ander product is false
-            } else if (p.getDay(day).getBlock(currentBlock - count).getMachineState(machine) instanceof Production) {
-                return false;
-                // als iets in de weg ma nog nie opt einde = tijd terug op nul
-            } else if (p.getDay(day).getBlock(currentBlock - count).getMachineState(machine) instanceof Maintenance) {
-                tijdBeschikbaar = 0;
-            } else if (p.getDay(day).getBlock(currentBlock - count).getMachineState(machine) instanceof Setup) {
-                return false;
-                // dubbele controle ofda het idle is
-            } else if (p.getDay(day).getBlock(currentBlock - count).getMachineState(machine) instanceof Idle) {
-                tijdBeschikbaar++;
-                if (tijdBeschikbaar == tijdSetup) {
-                    earliestMomentBlock = currentBlock - count;
-                    break;
-                }
-            }
-            count++;
-        }
-
-        // tijd genoeg?
-        for (int i = 0; i < tijdSetup; i++) {
-            if (previousItem.isLargeSetup(newItem)) { // large setup
-                p.getDay(day).getBlock(earliestMomentBlock + i).setMachineState(machine, new LargeSetup(previousItem, newItem));
-            } else { // small setup
-                p.getDay(day).getBlock(earliestMomentBlock + i).setMachineState(machine, new SmallSetup(previousItem, newItem));
-            }
-        }
-
-        return true;
-
-    }
 
     private static Item removeProduction(Planning p) {
         int count = 0;

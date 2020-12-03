@@ -1,11 +1,5 @@
 package model;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import main.Main;
 import model.machinestate.Idle;
 import model.machinestate.MachineState;
@@ -16,6 +10,11 @@ import model.machinestate.setup.Setup;
 import model.machinestate.setup.SmallSetup;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static main.Main.*;
 
@@ -327,11 +326,23 @@ public class Planning {
         return costDP + costNS + costOT + costSL + costUR;
     }
 
-    public void logAllCosts() throws IOException {
+    public void logAllCosts() {
         String msg = "(NS: " + costNS + "\t | OT: " + costOT + "\t | UR: " + costUR + "\t | SL: " + costSL + "\t | DP: " + costDP + ")" + "\t [TOTAL: " + getTotalCost() + "]";
         logger.log(Level.INFO, msg);
 
         String line = getTotalCost() + "," + costNS + "," + costOT + "," + costUR + "," + costSL + "," + costDP;
         Main.graphingOutput.add(line);
+    }
+
+    /**
+     * @param efficiency can be negative
+     */
+    public void updateStockLevels(Day day, Item nItem, int efficiency) {
+        for (int i = day.getId(); i < numberOfDays; i++) {
+            Day dayTemp = days.get(i);
+            int newAmount = nItem.getStockAmount(dayTemp) + efficiency;
+            nItem.setStockAmount(dayTemp, newAmount);
+
+        }
     }
 }

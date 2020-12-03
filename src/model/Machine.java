@@ -61,10 +61,12 @@ public class Machine {
     }
 
     // voor een vorig item te vinden tov een bepaalde block
-    public Item getPreviousItem(Planning p, int randomDay, int randomBlock) {
+    public Item getPreviousItem(Planning p, Day day, Block block) {
+
         //boolean foundPreviousItem = false;
-        int currentDay = randomDay;
-        int currentBlock = randomBlock;
+        int currentDay = day.getId();
+        int currentBlock = block.getId();
+
         if (currentBlock == 0) {
             if (currentDay == 0) {
                 return initialSetup;

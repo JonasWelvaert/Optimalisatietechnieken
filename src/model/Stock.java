@@ -6,7 +6,7 @@ import java.util.List;
 
 public class Stock implements Iterable<Item> {
     private List<Item> items;
-    private int nrOfDifferentItems;
+    private static int nrOfDifferentItems;
 
     public Stock(int nrOfDifferentItems) {
         this.nrOfDifferentItems = nrOfDifferentItems;
@@ -46,7 +46,7 @@ public class Stock implements Iterable<Item> {
         return items.get(id);
     }
 
-    public int getNrOfDifferentItems() {
+    public static int getNrOfDifferentItems() {
         return nrOfDifferentItems;
     }
 
