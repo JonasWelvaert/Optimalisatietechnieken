@@ -1,6 +1,6 @@
 package localsearch;
 
-public enum EnumStep {
+public enum EnumLocalSearchStep {
     //ADD
     ADD_SINGLE_PRODUCTION,
     ADD_PRODUCTION_FOR_SHIPPING,

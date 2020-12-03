@@ -20,15 +20,14 @@ public class Machine {
 
     private static final Logger logger = Logger.getLogger(Machine.class.getName());
 
-    public Machine(int id, Item item, int daysPastWithoutMaintenance, int maxDaysWithoutMaintenance,
-                   int maintenanceDurationInBlocks) {
+    public Machine(int id, Item item, int daysPastWithoutMaintenance, int maxDaysWithoutMaintenance, int maintenanceDurationInBlocks) {
+//        logger.setLevel(Level.OFF);
         this.id = id;
         this.initialSetup = item;
         this.initialDaysPastWithoutMaintenance = daysPastWithoutMaintenance;
         this.maxDaysWithoutMaintenance = maxDaysWithoutMaintenance;
         this.maintenanceDurationInBlocks = maintenanceDurationInBlocks;
         efficiency = new HashMap<>();
-        logger.setLevel(Level.OFF);
     }
 
     public void addEfficiency(Item item, int efficiency) {

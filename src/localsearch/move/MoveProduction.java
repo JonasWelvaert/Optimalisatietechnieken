@@ -19,7 +19,7 @@ public class MoveProduction extends LocalSearchStep {
 
         Item removedItem = removeProduction(p);
         if (removedItem == null) {
-            return;
+            return false;
         }
         int count = 0;
 

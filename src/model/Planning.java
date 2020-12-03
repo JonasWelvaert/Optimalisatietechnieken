@@ -1,6 +1,5 @@
 package model;
 
-import main.Main;
 import model.machinestate.Idle;
 import model.machinestate.MachineState;
 import model.machinestate.Maintenance;
@@ -20,7 +19,6 @@ import static main.Main.*;
 
 public class Planning {
     private static final Logger logger = Logger.getLogger(Planning.class.getName());
-
     private static int numberOfDays;
     private static int minConsecutiveDaysWithNightShift;
     private int pastConsecutiveDaysWithNightShift;
@@ -29,15 +27,15 @@ public class Planning {
     private final List<Day> days;
     private Requests requests;
     private Stock stock;
-    private double costNS;    //NS = night shift
-    private double costOT; //OT = Over time
-    private double costUR;    //UR = unscheduled request
-    private double costSL;    //SL = Stock Level
-    private double costDP;    //DP = Days Parallel
-
+    private double costNightShift;
+    private double costOverTime;
+    private double costUnscheduledRequests;
+    private double costStockLevel;
+    private double costParallelDays;
+    private final List<String> graphingOutput = new ArrayList<>();
 
     public Planning(String instanceName, int nrOfMachines) {
-        //logger.setLevel(Level.OFF);
+//        logger.setLevel(Level.OFF);
         this.instanceName = instanceName;
         machines = new ArrayList<>(nrOfMachines);
         days = new ArrayList<>(numberOfDays);
@@ -47,11 +45,11 @@ public class Planning {
     }
 
     /**
-     * Diepe copy
+     * Constructor which makes a deep copy of a planning p
      *
-     * @param p
+     * @param p planning to copy
      */
-    public Planning(Planning p) {
+    public Planning(Planning p) { //TODO Romeo hier wordt iets niet gekopieerd !!!!
         this.instanceName = p.instanceName;
         this.days = new ArrayList<>(p.days.size());
         for (Day d : p.days) {
@@ -101,11 +99,11 @@ public class Planning {
             }
             this.requests.add(request);
         }
-        this.costUR = p.costUR;
-        this.costSL = p.costSL;
-        this.costOT = p.costOT;
-        this.costDP = p.costDP;
-        this.costNS = p.costNS;
+        this.costUnscheduledRequests = p.costUnscheduledRequests;
+        this.costStockLevel = p.costStockLevel;
+        this.costOverTime = p.costOverTime;
+        this.costParallelDays = p.costParallelDays;
+        this.costNightShift = p.costNightShift;
 
         for (Machine m : this.getMachines()) {
             Machine otherMachine = p.getMachines().get(m.getId());
@@ -171,6 +169,10 @@ public class Planning {
         return stock;
     }
 
+    public List<String> getGraphingOutput() {
+        return graphingOutput;
+    }
+
     public long getStockAmount() {
         List<Item> items = stock.getItems();
 
@@ -187,7 +189,6 @@ public class Planning {
         this.stock = stock;
     }
 
-
     public int getAmountOfNightShiftsInNextPeriod() {
         int teller = 0;
         for (int d = numberOfDays - 1; d == 0; d++) {
@@ -200,16 +201,26 @@ public class Planning {
         return teller;
     }
 
+    /**
+     * @param efficiency can be negative
+     */
+    public void updateStockLevels(Day day, Item nItem, int efficiency) {
+        for (int i = day.getId(); i < numberOfDays; i++) {
+            Day dayTemp = days.get(i);
+            int newAmount = nItem.getStockAmount(dayTemp) + efficiency;
+            nItem.setStockAmount(dayTemp, newAmount);
 
-    /* ------------------------- COSTS ------------------------- */
-    public double getCostNS() {
-        return costNS;
+        }
     }
 
-    public void setCostNS(double costNS) {
-        this.costNS = costNS;
-//        logger.log(Level.INFO, "Cost of NS= " + String.valueOf(costNS));
 
+    /* ------------------------- COSTS ------------------------- */
+    public double getCostNightShift() {
+        return costNightShift;
+    }
+
+    public void setCostNightShift(double costNightShift) {
+        this.costNightShift = costNightShift;
     }
 
     //dns × pn (=COST_OF_NIGHTSHIFT)
@@ -220,16 +231,15 @@ public class Planning {
                 dns++;
             }
         }
-        setCostNS(dns * COST_OF_NIGHT_SHIFT);
+        setCostNightShift(dns * COST_OF_NIGHT_SHIFT);
     }
 
-    public double getCostOT() {
-        return costOT;
+    public double getCostOverTime() {
+        return costOverTime;
     }
 
-    public void setCostOT(double costOT) {
-        this.costOT = costOT;
-//        logger.log(Level.INFO, "Cost of OT= " + String.valueOf(costOT));
+    public void setCostOverTime(double costOverTime) {
+        this.costOverTime = costOverTime;
     }
 
     // to × po (=COST_OF_NIGHTSHIFT)
@@ -239,16 +249,15 @@ public class Planning {
             to += d.getNumberOfOvertimeBlock(machines);
         }
 
-        setCostOT(to * COST_OF_NIGHT_SHIFT);
+        setCostOverTime(to * COST_OF_NIGHT_SHIFT);
     }
 
-    public double getCostUR() {
-        return costUR;
+    public double getCostUnscheduledRequests() {
+        return costUnscheduledRequests;
     }
 
-    public void setCostUR(double costUR) {
-        this.costUR = costUR;
-//        logger.log(Level.INFO, "Cost of UR= " + String.valueOf(costUR));
+    public void setCostUnscheduledRequests(double costUnscheduledRequests) {
+        this.costUnscheduledRequests = costUnscheduledRequests;
     }
 
     //SOM r∈V SOM i∈I (q i r × ci)
@@ -265,16 +274,15 @@ public class Planning {
                 }
             }
         }
-        setCostUR(total);
+        setCostUnscheduledRequests(total);
     }
 
-    public double getCostSL() {
-        return costSL;
+    public double getCostStockLevel() {
+        return costStockLevel;
     }
 
-    public void setCostSL(double costSL) {
-        this.costSL = costSL;
-//        logger.log(Level.INFO, "Cost of SL= " + String.valueOf(costSL));
+    public void setCostStockLevel(double costStockLevel) {
+        this.costStockLevel = costStockLevel;
     }
 
     //SOM d∈D (ud × ps) ud= aantal items below stock level onder dag d
@@ -291,16 +299,15 @@ public class Planning {
                 }
             }
         }
-        setCostSL(totalUD * COST_PER_ITEM_UNDER_MINIMUM_LEVEL);
+        setCostStockLevel(totalUD * COST_PER_ITEM_UNDER_MINIMUM_LEVEL);
     }
 
-    public double getCostDP() {
-        return costDP;
+    public double getCostParallelDays() {
+        return costParallelDays;
     }
 
-    public void setCostDP(double costDP) {
-        this.costDP = costDP;
-//        logger.log(Level.INFO, "Cost of DP= " + String.valueOf(costDP));
+    public void setCostParallelDays(double costParallelDays) {
+        this.costParallelDays = costParallelDays;
     }
 
     //dp × pp (=COST_OF_PARALLEL_TASK)
@@ -309,7 +316,7 @@ public class Planning {
         for (Day d : days) {
             if (d.getParallel(machines)) dp++;
         }
-        setCostDP(dp * COST_OF_PARALLEL_TASK);
+        setCostParallelDays(dp * COST_OF_PARALLEL_TASK);
 
     }
 
@@ -323,26 +330,14 @@ public class Planning {
     }
 
     public double getTotalCost() {
-        return costDP + costNS + costOT + costSL + costUR;
+        return costParallelDays + costNightShift + costOverTime + costStockLevel + costUnscheduledRequests;
     }
 
     public void logAllCosts() {
-        String msg = "(NS: " + costNS + "\t | OT: " + costOT + "\t | UR: " + costUR + "\t | SL: " + costSL + "\t | DP: " + costDP + ")" + "\t [TOTAL: " + getTotalCost() + "]";
+        String msg = "(NS: " + costNightShift + "\t | OT: " + costOverTime + "\t | UR: " + costUnscheduledRequests + "\t | SL: " + costStockLevel + "\t | DP: " + costParallelDays + ")" + "\t [TOTAL: " + getTotalCost() + "]";
         logger.log(Level.INFO, msg);
 
-        String line = getTotalCost() + "," + costNS + "," + costOT + "," + costUR + "," + costSL + "," + costDP;
-        Main.graphingOutput.add(line);
-    }
-
-    /**
-     * @param efficiency can be negative
-     */
-    public void updateStockLevels(Day day, Item nItem, int efficiency) {
-        for (int i = day.getId(); i < numberOfDays; i++) {
-            Day dayTemp = days.get(i);
-            int newAmount = nItem.getStockAmount(dayTemp) + efficiency;
-            nItem.setStockAmount(dayTemp, newAmount);
-
-        }
+        String line = getTotalCost() + "," + costNightShift + "," + costOverTime + "," + costUnscheduledRequests + "," + costStockLevel + "," + costParallelDays;
+        graphingOutput.add(line);
     }
 }

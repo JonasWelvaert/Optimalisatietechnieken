@@ -36,7 +36,7 @@ public class AddShippingDay extends LocalSearchStep {
                                 i.setStockAmount(day, newStockAmount);
                             }
                         }
-                        return;
+                        return false;
                         //break; //TODO also possible
                     }
                 }

@@ -1,4 +1,4 @@
-package main;
+package solver;
 
 import feasibilitychecker.FeasibiltyChecker;
 import localsearch.LocalSearchStepFactory;
@@ -10,88 +10,25 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static localsearch.EnumStep.*;
+import static localsearch.EnumLocalSearchStep.*;
 
 
-public class Solver {
-    private static final Logger logger = Logger.getLogger(Solver.class.getName());
-    public static final int SIMULATED_ANEALING = 100;
-    private double SATemperature = 1000;
-    private double SACoolingFactor = 0.995;
-    private int mode;
-    private final FeasibiltyChecker feasibiltyChecker;
+public abstract class Solver {
+    protected static final Logger logger = Logger.getLogger(Solver.class.getName());
+    protected final FeasibiltyChecker feasibiltyChecker;
     private static final Random random = new Random();
     private static int localSearchUpperBound = 100;
 
-    public Solver(int mode, FeasibiltyChecker feasibiltyChecker) {
-        logger.setLevel(Level.OFF);
+    public Solver(FeasibiltyChecker feasibiltyChecker) {
+//        logger.setLevel(Level.OFF);
         this.feasibiltyChecker = feasibiltyChecker;
 
-        if (mode == 100) {
-            this.mode = mode;
-        } else {
-            logger.warning("Optimize mode " + this.mode + " not found");
-            throw new RuntimeException("Optimize mode not found in main.Solver constructor");
-        }
     }
 
-    public void setSimulatedAnealingFactors(double SATemperature, double SACoolingFactor) {
-        //TODO JONAS: moet in solverklasse staan
-        this.SACoolingFactor = SACoolingFactor;
-        this.SATemperature = SATemperature;
-    }
+    public abstract Planning optimize(Planning initialPlanning) throws IOException;
 
-    public Planning optimize(Planning initialPlanning) throws IOException {
-        if (mode == SIMULATED_ANEALING) {
-            return optimizeUsingSimulatedAnealing(initialPlanning, SATemperature, SACoolingFactor);
-        }
-        // hier kunnen andere optimalisaties toegevoegd worden als deze niet goed
-        // blijkt.
-        throw new RuntimeException("Optimize mode not found in main.Solver.optimize()");
-    }
-
-    private Planning optimizeUsingSimulatedAnealing(Planning initialPlanning, double temperature, double coolingFactor)
-            throws IOException {
-        Planning current = new Planning(initialPlanning);
-        Planning best = initialPlanning;
-        Planning neighbor;
-        int stockRiseLevel = 0;
-
-        for (double t = temperature; t > 1; t *= coolingFactor) {
-            do {
-                neighbor = new Planning(current);
-                localSearch(neighbor);
-            } while (!feasibiltyChecker.checkFeasible(neighbor));
-
-            double neighborCost = neighbor.getTotalCost();
-            double currentCost = current.getTotalCost();
-
-            double probability;
-            if (neighborCost < currentCost) {
-                probability = 1;
-            } else {
-                probability = Math.exp((currentCost - neighborCost) / t);
-            }
-            // ACCEPT SOMETIMES EVEN IF COST IS WORSE
-            if (Math.random() < probability) {
-                current = new Planning(neighbor);
-            }
-            // ALSO ACCEPT SOLUTION IF STOKE ROSE MORE THAN stockRiseLevel
-            else if (neighbor.getStockAmount() - stockRiseLevel > current.getStockAmount()) {
-                current = new Planning(neighbor);
-            }
-            // OVERWRITE BEST IF COST IS IMPROVED
-            if (current.getTotalCost() < best.getTotalCost()) {
-                best = new Planning(current);
-            }
-
-        }
-        System.out.println(feasibiltyChecker.getEc().toString());
-        return best;
-    }
 
     public static Planning localSearch(Planning p) throws IOException {
-        /* ------------------------ ENKEL GETALLEN AANPASSEN VOOR GEWICHTEN AAN TE PASSEN ------------------------ */
         LocalSearchStepFactory lssf = new LocalSearchStepFactory();
 
         int randomInt = random.nextInt(localSearchUpperBound);
@@ -100,19 +37,19 @@ public class Solver {
         if (randomInt < (switcher += 1)) {
             lssf.getLocalSearchStep(ADD_SINGLE_PRODUCTION).execute(p);
         } else if (randomInt < (switcher += 50)) {
-            lssf.getLocalSearchStep(MOVE_MAINTENANCE).execute(p);//TODO
+            lssf.getLocalSearchStep(MOVE_MAINTENANCE).execute(p);
         } else if (randomInt < (switcher += 1)) {
-            lssf.getLocalSearchStep(ADD_PRODUCTION_FOR_SHIPPING).execute(p);//TODO
+            lssf.getLocalSearchStep(ADD_PRODUCTION_FOR_SHIPPING).execute(p);
         } else if (randomInt < (switcher += 1)) {
-            lssf.getLocalSearchStep(CHANGE_PRODUCTION).execute(p);//TODO
+            lssf.getLocalSearchStep(CHANGE_PRODUCTION).execute(p);
         } else if (randomInt < (switcher += 1)) {
-            lssf.getLocalSearchStep(REMOVE_PRODUCTION).execute(p);//TODO
+            lssf.getLocalSearchStep(REMOVE_PRODUCTION).execute(p);
         } else if (randomInt < (switcher += 1)) {
-            lssf.getLocalSearchStep(MOVE_PRODUCTION).execute(p);//TODO
+            lssf.getLocalSearchStep(MOVE_PRODUCTION).execute(p);
         } else if (randomInt < (switcher += 1)) {
-            lssf.getLocalSearchStep(MOVE_SHIPPING_DAY).execute(p);//TODO
+            lssf.getLocalSearchStep(MOVE_SHIPPING_DAY).execute(p);
         } else if (randomInt < (switcher += 1)) {
-            lssf.getLocalSearchStep(ADD_SHIPPING_DAY).execute(p);//TODO
+            lssf.getLocalSearchStep(ADD_SHIPPING_DAY).execute(p);
         } else {
             localSearchUpperBound = switcher; //TODO ROMEO dees is nog fout peisk
         }
@@ -122,7 +59,6 @@ public class Solver {
     }
 
 
-    //TODO ROMEO
     private static int closestNightshift(Planning p, String when, int day) {
         if (when.equals("before")) {
             int lastNightShiftDay = -1;

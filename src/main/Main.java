@@ -4,18 +4,18 @@ import feasibilitychecker.FeasibiltyChecker;
 import model.*;
 import model.machinestate.Idle;
 import model.machinestate.Maintenance;
+import solver.SimulatedAnnealingSolver;
+import solver.Solver;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static graphing.OptimalisationGraphing.csvFile;
+import static main.EnumInputFile.D20_R25_B60;
 
 public class Main {
-    private static final InputFile inputFileName = InputFile.D40_R100_B60;
+    private static final EnumInputFile inputFileName = D20_R25_B60;
     private static final String outputPrefix = "SA2";
     private static final Logger logger = Logger.getLogger(Main.class.getName());
     private static final Validator validator = new Validator();
@@ -23,74 +23,81 @@ public class Main {
     public static double COST_OF_NIGHT_SHIFT;
     public static double COST_OF_PARALLEL_TASK;
     public static double COST_PER_ITEM_UNDER_MINIMUM_LEVEL;
-
-    public static List<String> graphingOutput = new ArrayList<>();
-
-    private static FeasibiltyChecker feasibiltyChecker;
+    public static double initialCost;
+    private static final String titlePrefix = "\t \t \t ****************************";
 
     public static void main(String[] args) throws IOException {
 //        logger.setLevel(Level.OFF);
-        feasibiltyChecker = new FeasibiltyChecker();
+        FeasibiltyChecker feasibiltyChecker = new FeasibiltyChecker();
 
-        // 1. inputfile
-        logger.info("| Starting reading of input file " + inputFileName);
+        // 1. READ IN
+        logger.info(titlePrefix + "1. Reading file " + inputFileName);
         Planning initialPlanning = readFileIn("instances/" + inputFileName.toString());
 
-
-        // 2. initial solution
-        logger.info("| Starting making first feasible solution");
-        initialPlanning = makeInitialPlanning(initialPlanning);
-        logger.log(Level.INFO, "--------------- TOTAL COST = " + initialPlanning.getTotalCost());
+        // 2. BUILD INITIAL SOLUTION //TODO ROMEO: misschien initial een beetje slimmer maken ?
+        logger.info(titlePrefix + "2. Build initial solution");
+        initialPlanning = makeInitialPlanning(initialPlanning); //TODO ROMEO aanpassen ?
 
         if (!feasibiltyChecker.checkFeasible(initialPlanning)) {
             logger.severe("2. Initial planning is not feasible!");
             System.exit(2);
         }
 
-        // 3. optimalisation
-        logger.info("| Starting optimalisation");
-        Solver solver = new Solver(Solver.SIMULATED_ANEALING, feasibiltyChecker);
-        solver.setSimulatedAnealingFactors(10000, 0.995);
+        // 3. OPTIMIZE
+        logger.info(titlePrefix + "3. Optimize");
+        Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 10000, 0.995);
 
         Planning optimizedPlanning = solver.optimize(initialPlanning);
         if (!feasibiltyChecker.checkFeasible(optimizedPlanning)) {
-            logger.severe("5. optimalized planning is not feasible!");
+            logger.severe("3. optimalized planning is not feasible!");
             System.exit(5);
         }
 
-        // 4. output
-        logger.info("| Starting writing outputfile");
+        // 4A. PRINT TO CONSOLE
+        logger.info(titlePrefix + "4A. Printing result to console");
         printOutputToConsole(optimizedPlanning);
+
+        // 4B. PRINT TO  FILE
+        logger.info(titlePrefix + "4B. Printing result to file");
         File file = new File(outputPrefix);
-        file.mkdir();
+        file.mkdir(); //TODO Romeo
         printOutputToFile(outputPrefix + "/" + outputPrefix + "_" + inputFileName, optimizedPlanning);
 
+        // 5. VALIDATE SOLUTION
+        logger.info(titlePrefix + "5. Validate Solution");
         validator.validate("instances/" + inputFileName.toString(), outputPrefix + "/" + outputPrefix + "_" + inputFileName);
 
-        //5. print out csv
-        printCSV(optimizedPlanning);
-
-        // 6. The end
-        logger.info("Total cost: " + optimizedPlanning.getTotalCost());
-        logger.info("| Finished execution");
+        // 6. print out csv
+        logger.info(titlePrefix + "6. Writing optimisation points to csv:");
         optimizedPlanning.logAllCosts();
+        writingOptimisationPointsToCSV(optimizedPlanning);
+
+        // 7. RESUME
+        logger.info(titlePrefix + "7. Resume:");
+        logger.info("Initial cost: \t" + initialCost);
+        logger.info("Total cost: \t" + optimizedPlanning.getTotalCost());
+
     }
 
-    private static void printCSV(Planning optimizedPlanning) throws IOException {
+    /**
+     * Writes out a line to a csv line (separated by a ;)
+     * This CSV contains the improvement made by the algorithm
+     *
+     * @param p planning of which the optimization points needs to be written out
+     */
+    private static void writingOptimisationPointsToCSV(Planning p) throws IOException {
         FileWriter fw = new FileWriter(csvFile);
         PrintWriter out = new PrintWriter(fw);
-
-        for (String s : graphingOutput) {
+        for (String s : p.getGraphingOutput()) {
             out.println(s);
         }
-
         out.flush();
         out.close();
         fw.close();
     }
 
     /**
-     * Makes all machines IDLE and no requests fullfilled except for the maintenance
+     * Makes all machines IDLE and no requests fullfilled except for the maintenance //TODO ROMEO is dit fullfilled ?
      * and nightshifts to ensure a feasible planning.
      *
      * @param planning The planning returned by the main.Main.readFileIn method
@@ -140,6 +147,7 @@ public class Main {
             }
         }
         planning.calculateAllCosts();
+        initialCost = planning.getTotalCost();
         return planning;
     }
 
@@ -152,7 +160,7 @@ public class Main {
     private static void printOutputToFile(String filename, Planning planning) {
         try {
             File file = new File(filename);
-            file.createNewFile();
+            file.createNewFile(); //TODO Romeo
             BufferedWriter bw = new BufferedWriter(new FileWriter(file));
             bw.write("Instance_name: " + planning.getInstanceName() + System.lineSeparator());
             bw.write("Cost: " + String.format("%.2f", planning.getTotalCost()) + System.lineSeparator());
@@ -204,7 +212,7 @@ public class Main {
             System.out.println("#Day " + d.getId());
             System.out.print("Previous items: ");
             for (Machine m : planning.getMachines()) {
-                Item item = m.getPreviousItem(planning, d, 0);
+                Item item = m.getPreviousItem(planning, d, d.getBlock(0));
                 System.out.print(item.getId() + ";");
             }
             System.out.println();
@@ -361,7 +369,7 @@ public class Main {
             } else if (input_block == 4) {
                 //TODO assert stock != null;
                 Item item = stock.getItem(i);
-                for (int j = 0; j < stock.getNrOfDifferentItems(); j++) {
+                for (int j = 0; j < Stock.getNrOfDifferentItems(); j++) {
                     if (i != j) {
                         item.setLargeSetup(stock.getItem(j), inputDelen[j].equals("1"));
                     }
@@ -370,7 +378,7 @@ public class Main {
             } else if (input_block == 5) {
                 //TODO assert stock != null;
                 Item item = stock.getItem(i);
-                for (int j = 0; j < stock.getNrOfDifferentItems(); j++) {
+                for (int j = 0; j < Stock.getNrOfDifferentItems(); j++) {
                     if (i != j) {
                         item.setSetupTime(stock.getItem(j), Integer.parseInt(inputDelen[j]));
                     }
@@ -388,7 +396,7 @@ public class Main {
             } else if (input_block == 7) {
                 //TODO assert requests != null;
                 Request request = requests.get(i);
-                for (int j = 0; j < stock.getNrOfDifferentItems(); j++) { //TODO getNrOfDifferentItems() can return null
+                for (int j = 0; j < Stock.getNrOfDifferentItems(); j++) { //TODO getNrOfDifferentItems() can return null
                     if (!inputDelen[j].equals("0")) {
                         request.addItem(stock.getItem(j), Integer.parseInt(inputDelen[j]));
                     }
@@ -403,5 +411,4 @@ public class Main {
         scanner.close();
         return planning;
     }
-
 }

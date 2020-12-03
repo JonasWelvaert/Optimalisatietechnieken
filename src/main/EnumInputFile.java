@@ -1,6 +1,6 @@
 package main;
 
-public enum InputFile {
+public enum EnumInputFile {
     Toy("toy_inst.txt"),
     D10_R10_B30("A_10_10_30.txt"),
     D10_R10_B60("A_10_10_60.txt"),
@@ -13,9 +13,9 @@ public enum InputFile {
     D40_R100_B30("A_40_100_30.txt"),
     D40_R100_B60("A_40_100_60.txt");
 
-    private String string;
+    private final String string;
 
-    InputFile(String string) {
+    EnumInputFile(String string) {
         this.string = string;
     }
 

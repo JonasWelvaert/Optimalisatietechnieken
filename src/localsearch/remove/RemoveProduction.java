@@ -31,14 +31,11 @@ public class RemoveProduction extends LocalSearchStep {
                 Production prod = (Production) b.getMachineState(randMachine);
 
                 b.setMachineState(randMachine, new Idle());
-                return prod.getItem();
+                return false;
             }
             count++;
             // Elke controle voor eventuele overbodige setup te verwijderen?
         }
-        return null;
-
-
         return false;
     }
 }

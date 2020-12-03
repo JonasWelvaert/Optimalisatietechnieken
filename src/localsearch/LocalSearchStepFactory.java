@@ -13,11 +13,11 @@ import localsearch.remove.RemoveProduction;
 import java.util.HashMap;
 import java.util.Map;
 
-import static localsearch.EnumStep.*;
+import static localsearch.EnumLocalSearchStep.*;
 
 public class LocalSearchStepFactory {
 
-    private final Map<EnumStep, LocalSearchStep> localSearchSteps;
+    private final Map<EnumLocalSearchStep, LocalSearchStep> localSearchSteps;
 
     public LocalSearchStepFactory() {
         localSearchSteps = new HashMap<>();
@@ -44,11 +44,11 @@ public class LocalSearchStepFactory {
 
     }
 
-    public LocalSearchStep getLocalSearchStep(EnumStep es) {
+    public LocalSearchStep getLocalSearchStep(EnumLocalSearchStep es) {
         return localSearchSteps.get(es);
     }
 
-    public void addLocalSearchStep(EnumStep es, LocalSearchStep localSearchStep) {
+    public void addLocalSearchStep(EnumLocalSearchStep es, LocalSearchStep localSearchStep) {
         localSearchSteps.put(es, localSearchStep);
     }
 }
