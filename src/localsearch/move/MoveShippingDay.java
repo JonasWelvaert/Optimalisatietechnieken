@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MoveShippingDay extends LocalSearchStep {
+
     public MoveShippingDay(int maxTries) {
         super(maxTries);
     }

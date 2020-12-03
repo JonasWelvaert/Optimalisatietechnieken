@@ -1,6 +1,5 @@
 package model;
 
-import main.Main;
 import model.machinestate.Idle;
 import model.machinestate.MachineState;
 import model.machinestate.Production;
@@ -12,12 +11,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Machine {
-    private int id;
-    private Item initialSetup;
-    private int initialDaysPastWithoutMaintenance;
-    private int maxDaysWithoutMaintenance;
-    private int maintenanceDurationInBlocks;
-    private Map<Item, Integer> efficiency;
+    private final int id;
+    private final Item initialSetup;
+    private final int initialDaysPastWithoutMaintenance;
+    private final int maxDaysWithoutMaintenance;
+    private final int maintenanceDurationInBlocks;
+    private final Map<Item, Integer> efficiency;
 
     private static final Logger logger = Logger.getLogger(Machine.class.getName());
 
@@ -77,29 +76,20 @@ public class Machine {
         } else {
             currentBlock--;
         }
-
-        //Main.printOutputToConsole(p);
-
         for (int d = currentDay; d > 0; d--) {
             for (int b = currentBlock; b > 0; b--) {
                 MachineState ms = p.getDay(d).getBlock(b).getMachineState(this);
                 if (ms instanceof Production) {
                     Production prod = (Production) p.getDay(d).getBlock(b).getMachineState(this);
-                    logger.log(Level.INFO, "getPreviousItem(): item teruggeven " + prod.getItem().getId() + " ____________________________________________");
                     return prod.getItem();
                 } else if (ms instanceof Setup) {
                     Setup setup = (Setup) p.getDay(d).getBlock(b).getMachineState(this);
-                    logger.log(Level.INFO, "getPreviousItem(): item teruggeven " + setup.getTo().getId() + " ____________________________________________");
                     return setup.getTo();
                 }
             }
-            currentBlock = Day.getNumberOfBlocksPerDay()-1;
+            currentBlock = Day.getNumberOfBlocksPerDay() - 1;
         }
-
-        logger.log(Level.INFO, "getPreviousItem(): Initial item teruggeven " + initialSetup.getId() + " ____________________________________________");
-
         return initialSetup;
-
     }
 
     public Item getNextNotIdle(Planning p, int randomDay, int randomBlock) {
@@ -130,6 +120,4 @@ public class Machine {
         }
         return null;
     }
-
-
 }

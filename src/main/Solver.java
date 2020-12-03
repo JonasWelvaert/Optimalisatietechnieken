@@ -112,7 +112,7 @@ public class Solver {
         } else if (randomInt < (switcher += 1)) {
             lssf.getLocalSearchStep(MOVE_SHIPPING_DAY).execute(p);//TODO
         } else if (randomInt < (switcher += 1)) {
-            lssf.getLocalSearchStep(PLAN_SHIPPING_DAY).execute(p);//TODO
+            lssf.getLocalSearchStep(ADD_SHIPPING_DAY).execute(p);//TODO
         } else {
             localSearchUpperBound = switcher; //TODO ROMEO dees is nog fout peisk
         }

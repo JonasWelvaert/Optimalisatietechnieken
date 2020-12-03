@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Block {
-    private int id;
-    private Map<Machine, MachineState> machineState;
+    private final int id;
+    private final Map<Machine, MachineState> machineState;
 
     public Block(int id) {
         this.id = id;

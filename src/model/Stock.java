@@ -5,11 +5,11 @@ import java.util.Iterator;
 import java.util.List;
 
 public class Stock implements Iterable<Item> {
-    private List<Item> items;
+    private final List<Item> items;
     private static int nrOfDifferentItems;
 
     public Stock(int nrOfDifferentItems) {
-        this.nrOfDifferentItems = nrOfDifferentItems;
+        Stock.nrOfDifferentItems = nrOfDifferentItems;
         items = new ArrayList<>(nrOfDifferentItems);
         for (int i = 0; i < nrOfDifferentItems; i++) {
             items.add(new Item(i));
@@ -17,7 +17,6 @@ public class Stock implements Iterable<Item> {
     }
 
     protected Stock(Stock s, List<Day> days) {
-        this.nrOfDifferentItems = s.nrOfDifferentItems;
         this.items = new ArrayList<>(nrOfDifferentItems);
         for (int i = 0; i < nrOfDifferentItems; i++) {
             Item item = new Item(s.getItem(i).getId());

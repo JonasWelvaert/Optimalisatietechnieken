@@ -9,14 +9,14 @@ import java.util.Map;
 import java.util.Objects;
 
 public class Item {
-    private int id;
+    private final int id;
     private double costPerItem;
     private int initialQuantityInStock;
     private int minAllowedInStock;
     private int maxAllowedInStock;
-    private Map<Day, Integer> stockAmount;
-    private Map<Item, Boolean> largeSetup;
-    private Map<Item, Integer> setupTime;
+    private final Map<Day, Integer> stockAmount;
+    private final Map<Item, Boolean> largeSetup;
+    private final Map<Item, Integer> setupTime;
 
     public Item(int id) {
         this.id = id;

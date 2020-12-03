@@ -3,10 +3,13 @@ package localsearch.other;
 import localsearch.LocalSearchStep;
 import model.Planning;
 
-
+/**
+ * Will convert next planning p1 to p2
+ * p1: 1    1   1   1   1   s12     2   2   2   s23     s31      1   1   1
+ * p2: 1    1   1   1   1   s12     2   2   2   s31     IDLE     1   1   1
+ */
 public class JoinNeighbouringSetups extends LocalSearchStep {
 
-    //WILL JOIN SETUPS LIKE THIS :     1 1 1 1 S12 2 2 2 (S23 S31) 1 1 1  --> 1 1 1 1 S12 2 2 2 (Idle S21) 1 1 1
 
     public JoinNeighbouringSetups(int maxTries) {
         super(maxTries);

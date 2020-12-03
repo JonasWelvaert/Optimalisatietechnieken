@@ -1,17 +1,13 @@
 package model;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Request {
 
-    private int id;
+    private final int id;
     private Day shippingDay;
-    private List<Day> possibleShippingDays;
-    private Map<Item, Integer> amountOfItem;
+    private final List<Day> possibleShippingDays;
+    private final Map<Item, Integer> amountOfItem;
 
     public Request(int id) {
         this.id = id;
@@ -65,8 +61,6 @@ public class Request {
     }
 
     public Map<Item, Integer> getMap() {
-
-
         return amountOfItem;
     }
 

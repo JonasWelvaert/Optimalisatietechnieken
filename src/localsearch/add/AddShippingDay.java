@@ -6,8 +6,9 @@ import model.Item;
 import model.Planning;
 import model.Request;
 
-public class PlanShippingDay extends LocalSearchStep {
-    public PlanShippingDay(int maxTries) {
+public class AddShippingDay extends LocalSearchStep {
+
+    public AddShippingDay(int maxTries) {
         super(maxTries);
     }
 

@@ -24,9 +24,9 @@ public class Planning {
     private static int numberOfDays;
     private static int minConsecutiveDaysWithNightShift;
     private int pastConsecutiveDaysWithNightShift;
-    private String instanceName;
-    private List<Machine> machines;
-    private List<Day> days;
+    private final String instanceName;
+    private final List<Machine> machines;
+    private final List<Day> days;
     private Requests requests;
     private Stock stock;
     private double costNS;    //NS = night shift

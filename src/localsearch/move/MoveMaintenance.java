@@ -10,6 +10,7 @@ import model.machinestate.Maintenance;
 import model.machinestate.setup.Setup;
 
 public class MoveMaintenance extends LocalSearchStep {
+
     public MoveMaintenance(int maxTries) {
         super(maxTries);
     }

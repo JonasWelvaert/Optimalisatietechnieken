@@ -5,16 +5,15 @@ import java.io.InputStream;
 import java.util.Scanner;
 
 public class Validator {
+
     public Validator() {
-        // TODO Auto-generated constructor stub
     }
 
     public void validate(String inputFileName, String outputFileName) {
         try {
             // Run a java app in a separate system process
             Process proc;
-            proc = Runtime.getRuntime()
-                    .exec("java -jar AspValidator.jar -i " + inputFileName + " -s " + outputFileName);
+            proc = Runtime.getRuntime().exec("java -jar AspValidator.jar -i " + inputFileName + " -s " + outputFileName);
             // Then retreive the process output
             InputStream in = proc.getInputStream();
             InputStream err = proc.getErrorStream();

@@ -2,7 +2,6 @@ package model;
 
 import model.machinestate.Idle;
 
-import javax.crypto.Mac;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -13,8 +12,8 @@ public class Day implements Iterable<Block> {
     public static int indexOfBlockL;
     public static int indexOfBlockS;
     public static int indexOfBlockO;
-    private int id;
-    private List<Block> blocks;
+    private final int id;
+    private final List<Block> blocks;
     private boolean hasNightShift;
 
     public Day(int id) {
@@ -42,10 +41,11 @@ public class Day implements Iterable<Block> {
     public static void setNumberOfBlocksPerDay(int numberOfBlocksPerDay) {
         Day.numberOfBlocksPerDay = numberOfBlocksPerDay;
     }
-    public List<Block> getBlocksBetweenInclusive(int t1, int t2){
+
+    public List<Block> getBlocksBetweenInclusive(int t1, int t2) {
         List<Block> temp = new ArrayList<>();
-        for (Block b: blocks){
-            if( t1<= b.getId() && b.getId() <= t2) temp.add(b);
+        for (Block b : blocks) {
+            if (t1 <= b.getId() && b.getId() <= t2) temp.add(b);
         }
         return temp;
     }

@@ -34,7 +34,7 @@ public class AddProductionForShipping extends LocalSearchStep {
             boolean foundRandomItem = false;
             Item randomItem = null;
             while (!foundRandomItem) {
-                randomItem = p.getStock().getItem(random.nextInt(p.getStock().getNrOfDifferentItems()));
+                randomItem = p.getStock().getItem(random.nextInt(Stock.getNrOfDifferentItems()));
                 if (items.containsKey(randomItem)) {
                     foundRandomItem = true;
                 }
@@ -72,7 +72,7 @@ public class AddProductionForShipping extends LocalSearchStep {
 
                 currentBlock = stopPart;
                 currentDay = shippingDay.getId();
-                while (!itemPlaced && count < MAX_ADDSHIPPINGPROD_TRIES) {
+                while (!itemPlaced && count < maxTries) {
                     if (i == 0 || (i == 1 && p.getDay(currentDay).hasNightShift())
                             || (i == 2 && !p.getDay(currentDay).hasNightShift())
                             || (i == 3 && !p.getDay(currentDay).hasNightShift())) {

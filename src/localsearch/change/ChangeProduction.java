@@ -6,6 +6,7 @@ import model.machinestate.Idle;
 import model.machinestate.Production;
 
 public class ChangeProduction extends LocalSearchStep {
+
     public ChangeProduction(int maxTries) {
         super(maxTries);
     }
