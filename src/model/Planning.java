@@ -33,7 +33,6 @@ public class Planning {
     private double costUnscheduledRequests;
     private double costStockLevel;
     private double costParallelDays;
-    private final List<String> graphingOutput = new ArrayList<>();
 
     public Planning(String instanceName, int nrOfMachines) {
         logger.setLevel(Level.OFF);

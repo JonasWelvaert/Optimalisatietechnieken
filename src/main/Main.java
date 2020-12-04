@@ -8,6 +8,8 @@ import solver.SimulatedAnnealingSolver;
 import solver.Solver;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,6 +28,9 @@ public class Main {
     public static double COST_PER_ITEM_UNDER_MINIMUM_LEVEL;
     public static double initialCost;
     private static final String titlePrefix = "\t \t \t ****************************";
+
+    public static final List<String> graphingOutput = new ArrayList<>();
+
 
     public static void main(String[] args) throws IOException {
         logger.setLevel(Level.OFF);
@@ -87,10 +92,15 @@ public class Main {
      * @param p planning of which the optimization points needs to be written out
      */
     private static void writingOptimisationPointsToCSV(Planning p) throws IOException {
-        FileWriter fw = new FileWriter(csvFile);
+
+        File file = new File(System.getProperty("user.dir") + "/optimisation.csv");
+        System.out.println(file);
+
+        FileWriter fw = new FileWriter(file);
+
         //TODO Romeo
         PrintWriter out = new PrintWriter(fw);
-        for (String s : p.getGraphingOutput()) {
+        for (String s : graphingOutput) {
             out.println(s);
         }
         out.flush();

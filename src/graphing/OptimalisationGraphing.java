@@ -14,10 +14,8 @@ import java.util.List;
 import java.util.Scanner;
 
 public class OptimalisationGraphing extends Application {
-    public static File csvFile = new File(System.getProperty("user.dir") + "/graphing");
+    public static File csvFile = new File(System.getProperty("user.dir") + "/optimisation.csv");
     public static final String CSV_SEP = ",";
-
-
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -31,9 +29,8 @@ public class OptimalisationGraphing extends Application {
         }*/
         Scanner sc = new Scanner(csvFile);
 
-
         List<Series> series = generateSeriesList();
-        String stageTitle = "stage title";
+        String stageTitle = "Cost in function of temperature";
         stage.setTitle(stageTitle);
         final NumberAxis yAxis = new NumberAxis();
         final NumberAxis xAxis = new NumberAxis();
@@ -43,23 +40,25 @@ public class OptimalisationGraphing extends Application {
         yAxis.setLabel(yAxisLabel);
         String xAxisLabel = "Temperature";
         xAxis.setLabel(xAxisLabel);
-        String lineChartTitle = "Cost in function of steps taken";
+        String lineChartTitle = "Cost in function of temperature";
         lineChart.setTitle(lineChartTitle);
 
 
 
-        int step = 0;
         while (sc.hasNextLine()) {
             String[] nextLine = sc.nextLine().split(CSV_SEP);
-            for (int i = 0; i < 6; i++) {
+            double t = Double.parseDouble(nextLine[0]);
+            for (int i = 1; i < 6; i++) {
                 double value = Double.parseDouble(nextLine[i]);
-                series.get(i).getData().add(new Data(step, value));
+                series.get(i).getData().add(new Data(t, value));
             }
-            step++;
         }
-        for (Series s : series) {
+        lineChart.getData().add(series.get(1));
+
+        /* for (Series s : series) {
             lineChart.getData().addAll(s);
-        }
+        }*/
+
         Scene scene = new Scene(lineChart, 500, 400);
         stage.setScene(scene);
         stage.setMaximized(true);
