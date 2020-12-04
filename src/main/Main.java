@@ -1,5 +1,6 @@
 package main;
 
+import feasibilitychecker.Counting;
 import feasibilitychecker.FeasibiltyChecker;
 import model.*;
 import model.machinestate.Idle;
@@ -30,11 +31,11 @@ public class Main {
     private static final String titlePrefix = "\t \t \t ****************************";
 
     public static final List<String> graphingOutput = new ArrayList<>();
-
+   private static final FeasibiltyChecker feasibiltyChecker = new FeasibiltyChecker();
 
     public static void main(String[] args) throws IOException {
         logger.setLevel(Level.OFF);
-        FeasibiltyChecker feasibiltyChecker = new FeasibiltyChecker();
+
 
         // 1. READ IN
         logger.info(titlePrefix + "1. Reading file " + inputFileName);
@@ -51,7 +52,7 @@ public class Main {
 
         // 3. OPTIMIZE
         logger.info(titlePrefix + "3. Optimize");
-        Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 1000000, 0.998);
+        Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 1000000, 0.9999);
 
         Planning optimizedPlanning = solver.optimize(initialPlanning);
         if (!feasibiltyChecker.checkFeasible(optimizedPlanning)) {
@@ -218,6 +219,7 @@ public class Main {
      * @param planning The planning which has to be written to the console.
      */
     public static void printOutputToConsole(Planning planning) {
+
         System.out.println("Instance_name: " + planning.getInstanceName());
         System.out.println("Cost: " + String.format("%.2f", planning.getTotalCost()));
         for (Day d : planning.getDays()) {
@@ -254,6 +256,8 @@ public class Main {
             System.out.println("#Night shift");
             System.out.println(d.hasNightShift() ? 1 : 0);
         }
+        System.out.println("#JoinSingleNeighbouringSetup actually done: " + Counting.JoinSingleNeighbouringSetup);
+        System.out.println( "Error counting"+feasibiltyChecker.getEc() );
     }
 
     /**

@@ -38,10 +38,10 @@ public abstract class Solver {
 
         if (randomInt < (switcher += param1)) {
             lssf.getLocalSearchStep(ADD_SINGLE_PRODUCTION).execute(p);
+        } else if (randomInt < (switcher += param1)) {
+            lssf.getLocalSearchStep(ADD_PRODUCTION_AFTER_PLANNED_PRODUCTION).execute(p);
         } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(MOVE_MAINTENANCE).execute(p);
-        } else if (randomInt < (switcher += 0)) {
-            lssf.getLocalSearchStep(ADD_PRODUCTION_FOR_SHIPPING).execute(p);
         } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(CHANGE_PRODUCTION).execute(p);
         } else if (randomInt < (switcher += 0)) {

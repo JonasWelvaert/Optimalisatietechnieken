@@ -3,8 +3,8 @@ package localsearch;
 public enum EnumLocalSearchStep {
     //ADD
     ADD_SINGLE_PRODUCTION,
-    ADD_PRODUCTION_FOR_SHIPPING,
     ADD_SHIPPING_DAY,
+    ADD_PRODUCTION_AFTER_PLANNED_PRODUCTION,
 
     //CHANGE
     CHANGE_PRODUCTION,

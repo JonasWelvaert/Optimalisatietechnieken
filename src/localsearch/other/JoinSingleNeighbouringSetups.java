@@ -1,5 +1,6 @@
 package localsearch.other;
 
+import feasibilitychecker.Counting;
 import localsearch.LocalSearchStep;
 import model.*;
 import model.machinestate.Idle;
@@ -26,6 +27,8 @@ public class JoinSingleNeighbouringSetups extends LocalSearchStep {
 
     @Override
     public boolean execute(Planning p) {
+
+
 
         int iteration = 0;
         int randomDay, randomBlock, randomMachine;
@@ -90,6 +93,7 @@ public class JoinSingleNeighbouringSetups extends LocalSearchStep {
                         for (Block bTemp : foundBlocks) {
                             bTemp.setMachineState(machine, new Idle());
                         }
+                        Counting.JoinSingleNeighbouringSetup++;
                         return true;
                     }
 
@@ -112,6 +116,7 @@ public class JoinSingleNeighbouringSetups extends LocalSearchStep {
                     } else {
                         return false;
                     }
+                    Counting.JoinSingleNeighbouringSetup++;
                     return true; // EOF function
                 }
 

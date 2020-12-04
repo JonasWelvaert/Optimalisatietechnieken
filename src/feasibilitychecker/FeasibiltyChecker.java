@@ -16,10 +16,10 @@ import java.util.Map;
 
 public class FeasibiltyChecker {
 
-    private ErrorCounting ec;
+    private Counting ec;
 
     public FeasibiltyChecker() {
-        ec = new ErrorCounting();
+        ec = new Counting();
     }
 
     public boolean checkFeasible(Planning planning) {
@@ -87,7 +87,7 @@ public class FeasibiltyChecker {
             }
             if (!checkStockConstraints(planning.getDay(d), planning)) {
                 ec.increaseCheckStockConstraints();
-                System.out.print("checkStockConstraints \t\t");
+                System.out.println("checkStockConstraints \t\t");
                 return false;
             }
 
@@ -295,7 +295,6 @@ public class FeasibiltyChecker {
             // check that the stock level on day d is less than the max allowed of stock of
             // an item
             if (i.getStockAmount(day) > i.getMaxAllowedInStock()) {
-                System.out.println(i.getStockAmount(day) + " " + i.getMaxAllowedInStock());
                 return false;
             }
 
@@ -476,7 +475,7 @@ public class FeasibiltyChecker {
         return true;
     }
 
-    public ErrorCounting getEc() {
+    public Counting getEc() {
         return ec;
     }
 }

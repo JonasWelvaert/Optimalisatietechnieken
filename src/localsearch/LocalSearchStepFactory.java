@@ -1,6 +1,6 @@
 package localsearch;
 
-import localsearch.add.AddProductionForShipping;
+import localsearch.add.AddProductionAfterPlannedProduction;
 import localsearch.add.AddShippingDay;
 import localsearch.add.AddSingleProduction;
 import localsearch.change.ChangeProduction;
@@ -25,8 +25,8 @@ public class LocalSearchStepFactory {
 
         //ADD
         localSearchSteps.put(ADD_SINGLE_PRODUCTION, new AddSingleProduction(maxTries));
-        localSearchSteps.put(ADD_PRODUCTION_FOR_SHIPPING, new AddProductionForShipping(maxTries));
         localSearchSteps.put(ADD_SHIPPING_DAY, new AddShippingDay(maxTries));
+        localSearchSteps.put(ADD_PRODUCTION_AFTER_PLANNED_PRODUCTION, new AddProductionAfterPlannedProduction(maxTries));
 
         //CHANGE
         localSearchSteps.put(CHANGE_PRODUCTION, new ChangeProduction(maxTries));

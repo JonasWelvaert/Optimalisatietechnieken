@@ -1,6 +1,6 @@
 package feasibilitychecker;
 
-public class ErrorCounting {
+public class Counting {
     int isConsecutiveInNightShiftsPast = 0;
     int checkNighShiftBlocksConstraints = 0;
     int checkOvertimeConstraints = 0;
@@ -12,8 +12,10 @@ public class ErrorCounting {
     int checkChangeOverAndMaintenanceBoundaryConstraints = 0;
     int checkMaintenanceConstraints = 0;
 
+    public static int JoinSingleNeighbouringSetup =0;
 
-    public ErrorCounting() {
+
+    public Counting() {
 
     }
 
