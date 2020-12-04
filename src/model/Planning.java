@@ -35,7 +35,7 @@ public class Planning {
     private final List<String> graphingOutput = new ArrayList<>();
 
     public Planning(String instanceName, int nrOfMachines) {
-//        logger.setLevel(Level.OFF);
+        logger.setLevel(Level.OFF);
         this.instanceName = instanceName;
         machines = new ArrayList<>(nrOfMachines);
         days = new ArrayList<>(numberOfDays);

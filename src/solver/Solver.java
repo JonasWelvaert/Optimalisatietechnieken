@@ -31,6 +31,7 @@ public abstract class Solver {
     public static Planning localSearch(Planning p) throws IOException {
         LocalSearchStepFactory lssf = new LocalSearchStepFactory();
 
+
         int randomInt = random.nextInt(localSearchUpperBound);
         int switcher = 0;
 
@@ -38,6 +39,8 @@ public abstract class Solver {
             lssf.getLocalSearchStep(ADD_SINGLE_PRODUCTION).execute(p);
         } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(MOVE_MAINTENANCE).execute(p);
+        } else if (randomInt < (switcher += 10)) {
+            System.out.println();
         } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(ADD_PRODUCTION_FOR_SHIPPING).execute(p);
         } else if (randomInt < (switcher += 0)) {

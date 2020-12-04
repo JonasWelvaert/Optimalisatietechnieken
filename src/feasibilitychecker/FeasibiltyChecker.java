@@ -71,7 +71,7 @@ public class FeasibiltyChecker {
                     if (state instanceof LargeSetup || state instanceof Maintenance) {
                         parallelTeller++;
                         if (parallelTeller > 1) {
-                            System.out.println("niet parallel largesetup maintenance");
+                            System.out.println("Parallel planned !!!");
                             return false;
                         }
                     }
@@ -87,7 +87,7 @@ public class FeasibiltyChecker {
             }
             if (!checkStockConstraints(planning.getDay(d), planning)) {
                 ec.increaseCheckStockConstraints();
-                System.out.println("checkStockConstraints");
+                System.out.print("checkStockConstraints \t\t");
                 return false;
             }
 
@@ -119,7 +119,6 @@ public class FeasibiltyChecker {
                     ec.increaseCheckChangeOverAndMaintenanceBoundaryConstraints();
                     return false;
                 }
-
                 if (!checkMaintenanceConstraints(d, m, planning)) {
                     System.out.println("checkMaintenanceConstraints");
                     ec.increaseCheckMaintenanceConstraints();
@@ -367,8 +366,7 @@ public class FeasibiltyChecker {
                     Setup setup = (Setup) planning.getDay(d).getBlock(j).getMachineState(m);
 
                     // check if the setup is still the same (S1_2 -> S2_3)
-                    if (i1 == null
-                            || !(i1.getId() == (setup.getFrom().getId()) || !(i2.getId() == setup.getFrom().getId()))) {
+                    if (i1 == null || !(i1.getId() == (setup.getFrom().getId()) || !(i2.getId() == setup.getFrom().getId()))) {
 
                         if (setupTeller > 0 && setupTeller <= setupTime) {
                             return false;

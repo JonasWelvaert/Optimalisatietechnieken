@@ -34,42 +34,45 @@ public class AddSingleProduction extends LocalSearchStep {
                 Item pItem = machine.getPreviousItem(p, day, block);
                 Item nItem = p.getStock().getItem(randomItem);
 
-                boolean productionCanBePlanned;
+                int machineEfficiency = machine.getEfficiency(nItem);
+                if (machineEfficiency != 0) {
+                    boolean productionCanBePlanned;
 
-                // STARTING FROM FEASIBLE STATE, SO IF NO BEFORE NEEDED, ALSO NO AFTER IS NEEDED
-                if (!pItem.equals(nItem)) {
-                    Setup setupBefore = pItem.getSetupTo(nItem);
-                    Setup setupAfter = nItem.getSetupTo(pItem);
-                    List<Block> beforeBlocks;
-                    List<Block> afterBlocks;
+                    // STARTING FROM FEASIBLE STATE, SO IF NO BEFORE NEEDED, ALSO NO AFTER IS NEEDED
+                    if (!pItem.equals(nItem)) {
+                        Setup setupBefore = pItem.getSetupTo(nItem);
+                        Setup setupAfter = nItem.getSetupTo(pItem); //TODO niet altijd nodig !!!
+                        List<Block> beforeBlocks = getSetupBlockBeforeProduction(setupBefore, day, block, machine, p);
+                        List<Block> afterBlocks = getSetupBlocksAfterProduction(setupAfter, day, block, machine, p);
 
-                    beforeBlocks = getSetupBlockBeforeProduction(setupBefore, day, block, machine, p);
-                    afterBlocks = getSetupBlocksAfterProduction(setupAfter, day, block, machine, p);
-                    //PLAN THE SETUPS IF NOT NULL
-                    if (beforeBlocks != null && afterBlocks != null) {
-                        for (Block b : beforeBlocks) {
-                            b.setMachineState(machine, setupBefore);
+                        //PLAN THE SETUPS IF NOT NULL
+                        if (beforeBlocks != null && afterBlocks != null) {
+                            for (Block b : beforeBlocks) {
+                                b.setMachineState(machine, setupBefore);
+                            }
+                            for (Block b : afterBlocks) {
+                                b.setMachineState(machine, setupAfter);
+                            }
+                            productionCanBePlanned = true;
+                        } else {
+                            productionCanBePlanned = false;
                         }
-                        for (Block b : afterBlocks) {
-                            b.setMachineState(machine, setupAfter);
-                        }
+                    }
+                    //ITEM ARE THE SAME SO NO SETUP NEEDED
+                    else {
                         productionCanBePlanned = true;
-                    } else {
-                        productionCanBePlanned = false;
+                    }
+                    //PLAN PRODUCTION
+                    if (productionCanBePlanned) {
+                        block.setMachineState(machine, new Production(nItem));
+                        p.updateStockLevels(day, nItem, machineEfficiency);
+
+                        return true;
                     }
                 }
-                //ITEM ARE THE SAME SO NO SETUP NEEDED
-                else {
-                    productionCanBePlanned = true;
-                }
-                //PLAN PRODUCTION
-                if (productionCanBePlanned) {
-                    block.setMachineState(machine, new Production(nItem));
-                    p.updateStockLevels(day, nItem, machine.getEfficiency(nItem));
-                }
+                count++;
             }
-            count++;
         }
-        return true;
+        return false;
     }
 }

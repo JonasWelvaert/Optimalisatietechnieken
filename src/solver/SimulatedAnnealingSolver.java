@@ -1,6 +1,7 @@
 package solver;
 
 import feasibilitychecker.FeasibiltyChecker;
+import main.Main;
 import model.Planning;
 
 import java.io.IOException;
@@ -25,9 +26,13 @@ public class SimulatedAnnealingSolver extends Solver {
         int stockRiseLevel = 0;
 
         for (double t = temperature; t > 1; t *= coolingFactor) {
+            logger.info( "\t \t \t \t \t \t Temperature = "+t);
             do {
                 neighbor = new Planning(current);
                 localSearch(neighbor);
+
+//                Main.printOutputToFile("testing.txt",neighbor);
+
             } while (!feasibiltyChecker.checkFeasible(neighbor));
 
             double neighborCost = neighbor.getTotalCost();
@@ -43,13 +48,13 @@ public class SimulatedAnnealingSolver extends Solver {
             if (Math.random() < probability) {
                 current = new Planning(neighbor);
             }
-/*            // ALSO ACCEPT SOLUTION IF STOKE ROSE MORE THAN stockRiseLevel
-            else if (neighbor.getStockAmount() - stockRiseLevel > current.getStockAmount()) {
-                current = new Planning(neighbor);
-            }*/
             // OVERWRITE BEST IF COST IS IMPROVED
             if (current.getTotalCost() < best.getTotalCost()) {
                 best = new Planning(current);
+            } else if (current.getTotalCost() == best.getTotalCost()) {
+                if (current.getStockAmount() > best.getStockAmount()) {
+                    best = new Planning(current);
+                }
             }
         }
         System.out.println(feasibiltyChecker.getEc().toString());

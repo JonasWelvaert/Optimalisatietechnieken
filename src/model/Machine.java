@@ -21,7 +21,7 @@ public class Machine {
     private static final Logger logger = Logger.getLogger(Machine.class.getName());
 
     public Machine(int id, Item item, int daysPastWithoutMaintenance, int maxDaysWithoutMaintenance, int maintenanceDurationInBlocks) {
-//        logger.setLevel(Level.OFF);
+        logger.setLevel(Level.OFF);
         this.id = id;
         this.initialSetup = item;
         this.initialDaysPastWithoutMaintenance = daysPastWithoutMaintenance;
