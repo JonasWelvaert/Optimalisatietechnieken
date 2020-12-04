@@ -7,7 +7,6 @@ import model.Planning;
 
 import java.io.IOException;
 import java.util.Random;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static localsearch.EnumLocalSearchStep.*;
@@ -17,7 +16,7 @@ public abstract class Solver {
     protected static final Logger logger = Logger.getLogger(Solver.class.getName());
     protected final FeasibiltyChecker feasibiltyChecker;
     private static final Random random = new Random();
-    private static int localSearchUpperBound = 100;
+    private static int localSearchUpperBound = 999999999;
 
     public Solver(FeasibiltyChecker feasibiltyChecker) {
 //        logger.setLevel(Level.OFF);
@@ -35,7 +34,9 @@ public abstract class Solver {
         int randomInt = random.nextInt(localSearchUpperBound);
         int switcher = 0;
 
-        if (randomInt < (switcher += 50)) {
+        int param1 = 50;
+
+        if (randomInt < (switcher += param1)) {
             lssf.getLocalSearchStep(ADD_SINGLE_PRODUCTION).execute(p);
         } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(MOVE_MAINTENANCE).execute(p);
@@ -49,8 +50,10 @@ public abstract class Solver {
             lssf.getLocalSearchStep(MOVE_PRODUCTION).execute(p);
         } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(MOVE_SHIPPING_DAY).execute(p);
-        } else if (randomInt < (switcher += 5)) {
+        } else if (randomInt < (switcher += param1 / 2)) {
             lssf.getLocalSearchStep(ADD_SHIPPING_DAY).execute(p);
+        } else if (randomInt < (switcher += param1 / 2)) { //TODO MOET EEN BIJZONDER HOGE WAARDE HEBBEN !!!!
+            lssf.getLocalSearchStep(JOIN_SINGLE_NEIGHBOURING_SETUPS).execute(p);
         } else {
             localSearchUpperBound = switcher;
         }
