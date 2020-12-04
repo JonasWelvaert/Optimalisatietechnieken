@@ -43,10 +43,10 @@ public class SimulatedAnnealingSolver extends Solver {
             if (Math.random() < probability) {
                 current = new Planning(neighbor);
             }
-            // ALSO ACCEPT SOLUTION IF STOKE ROSE MORE THAN stockRiseLevel
+/*            // ALSO ACCEPT SOLUTION IF STOKE ROSE MORE THAN stockRiseLevel
             else if (neighbor.getStockAmount() - stockRiseLevel > current.getStockAmount()) {
                 current = new Planning(neighbor);
-            }
+            }*/
             // OVERWRITE BEST IF COST IS IMPROVED
             if (current.getTotalCost() < best.getTotalCost()) {
                 best = new Planning(current);
