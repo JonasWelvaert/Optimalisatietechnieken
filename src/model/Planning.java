@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static main.Main.*;
+import static graphing.OptimalisationGraphing.*;
 
 public class Planning {
     private static final Logger logger = Logger.getLogger(Planning.class.getName());
@@ -217,7 +218,7 @@ public class Planning {
      * @param efficiency can be negative
      */
     public void updateStockLevels(Day day, Item nItem, int efficiency) {
-        for (int i = day.getId(); i < numberOfDays; i++) {
+        for (int i = day.getId(); i < numberOfDays; i++) { //TODO
             Day dayTemp = days.get(i);
             int newAmount = nItem.getStockAmount(dayTemp) + efficiency;
             nItem.setStockAmount(dayTemp, newAmount);
@@ -237,13 +238,21 @@ public class Planning {
 
     //dns × pn (=COST_OF_NIGHTSHIFT)
     public void calculateNS() {
-        int dns = 0;
+        int costCounter = 0;
+        int cns= pastConsecutiveDaysWithNightShift;
+
         for (Day d : days) {
             if (d.hasNightShift()) {
-                dns++;
+                cns++;
+                costCounter++;
+            }else{
+                cns=0;
             }
         }
-        setCostNightShift(dns * COST_OF_NIGHT_SHIFT);
+        if(cns>0 && cns<minConsecutiveDaysWithNightShift){
+            costCounter+=minConsecutiveDaysWithNightShift-cns;
+        }
+        setCostNightShift(costCounter * COST_OF_NIGHT_SHIFT);
     }
 
     public double getCostOverTime() {
@@ -260,8 +269,7 @@ public class Planning {
         for (Day d : days) {
             to += d.getNumberOfOvertimeBlock(machines);
         }
-
-        setCostOverTime(to * COST_OF_NIGHT_SHIFT);
+        setCostOverTime(to * COST_OF_OVERTIME);
     }
 
     public double getCostUnscheduledRequests() {
@@ -301,8 +309,10 @@ public class Planning {
     public void calculateSL() {
         double totalUD = 0;
         int i1, i2;
-        for (Item item : stock) {
-            for (Day d : days) {
+
+        for (Day d : days) {
+
+            for (Item item : stock) {
                 i1 = item.getStockAmount(d);
                 i2 = item.getMinAllowedInStock();
                 int ud = i2 - i1;
@@ -310,6 +320,7 @@ public class Planning {
                     totalUD += ud;
                 }
             }
+
         }
         setCostStockLevel(totalUD * COST_PER_ITEM_UNDER_MINIMUM_LEVEL);
     }
@@ -326,7 +337,7 @@ public class Planning {
     public void calculateDP() {
         int dp = 0;
         for (Day d : days) {
-            if (d.getParallel(machines)) dp++;
+            if (d.getParallelDuringDay(machines)) dp++;
         }
         setCostParallelDays(dp * COST_OF_PARALLEL_TASK);
 
@@ -338,18 +349,25 @@ public class Planning {
         calculateOT();
         calculateSL();
         calculateUR();
-        logAllCosts();
     }
 
     public double getTotalCost() {
         return costParallelDays + costNightShift + costOverTime + costStockLevel + costUnscheduledRequests;
     }
 
-    public void logAllCosts() {
-        String msg = "(NS: " + costNightShift + "\t | OT: " + costOverTime + "\t | UR: " + costUnscheduledRequests + "\t | SL: " + costStockLevel + "\t | DP: " + costParallelDays + ")" + "\t [TOTAL: " + getTotalCost() + "]";
-        logger.log(Level.INFO, msg);
+    public String getCostString() {
+        return "(NS: " + costNightShift + "\t | OT: " + costOverTime + "\t | UR: " + costUnscheduledRequests + "\t | SL: " + costStockLevel + "\t | DP: " + costParallelDays + ")" + "\t [TOTAL: " + getTotalCost() + "]";
+    }
 
-        String line = getTotalCost() + "," + costNightShift + "," + costOverTime + "," + costUnscheduledRequests + "," + costStockLevel + "," + costParallelDays;
-        graphingOutput.add(line);
+    public void logCostsToCSV(double t) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(t).append(CSV_SEP);
+        sb.append(getTotalCost()).append(CSV_SEP);
+        sb.append(costNightShift).append(CSV_SEP);
+        sb.append(costOverTime).append(CSV_SEP);
+        sb.append(costUnscheduledRequests).append(CSV_SEP);
+        sb.append(costStockLevel).append(CSV_SEP);
+        sb.append(costParallelDays);
+        graphingOutput.add(sb.toString());
     }
 }

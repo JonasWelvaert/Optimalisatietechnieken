@@ -1,7 +1,6 @@
 package solver;
 
 import feasibilitychecker.FeasibiltyChecker;
-import main.Main;
 import model.Planning;
 
 import java.io.IOException;
@@ -27,10 +26,11 @@ public class SimulatedAnnealingSolver extends Solver {
 
         for (double t = temperature; t > 1; t *= coolingFactor) {
             logger.info("\t \t \t \t \t \t Temperature = " + t);
+            current.calculateAllCosts();
+            current.logCostsToCSV(t);
             do {
                 neighbor = new Planning(current);
                 localSearch(neighbor);
-
 //                Main.printOutputToFile("testing.txt",neighbor);
 
             } while (!feasibiltyChecker.checkFeasible(neighbor));

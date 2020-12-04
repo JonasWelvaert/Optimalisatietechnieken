@@ -44,8 +44,20 @@ public class Day implements Iterable<Block> {
 
     public List<Block> getBlocksBetweenInclusive(int t1, int t2) {
         List<Block> temp = new ArrayList<>();
+
         for (Block b : blocks) {
-            if (t1 <= b.getId() && b.getId() <= t2) temp.add(b);
+            if (t1 <= b.getId() && b.getId() <= t2) {
+                // NO NIGHT SHIFT MEANS ONLY PLANNING IN DAY AND OVERTIME
+                if (!hasNightShift) {
+                    if (b.getId() <= Day.getIndexOfBlockO()) {
+                        temp.add(b);
+                    }
+                }
+                //OTHERWISE ALL BLOCKS ARE POSSIBLE
+                else {
+                    temp.add(b);
+                }
+            }
         }
         return temp;
     }
@@ -96,6 +108,7 @@ public class Day implements Iterable<Block> {
                 for (Machine m : machinesList) {
                     if (!(b.getMachineState(m) instanceof Idle)) {
                         working = true;
+                        break;
                     }
                 }
                 if (working) {
@@ -106,12 +119,12 @@ public class Day implements Iterable<Block> {
         return counter;
     }
 
-    public boolean getParallel(List<Machine> machinesList) {
+    public boolean getParallelDuringDay(List<Machine> machines) {
         boolean bool;
-        for (int i = 1; i <= indexOfBlockS; i++) { //[b1;bs]  // @indexOutOfBounds
+        for (int i = 0; i < indexOfBlockS; i++) { //[b1;bs]  // @indexOutOfBounds
             Block b = blocks.get(i);
             bool = false;
-            for (Machine m : machinesList) {
+            for (Machine m : machines) {
                 if (!(b.getMachineState(m) instanceof Idle)) {
                     if (bool) {
                         return true;

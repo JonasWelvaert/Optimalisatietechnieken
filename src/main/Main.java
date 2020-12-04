@@ -66,11 +66,11 @@ public class Main {
 
         // 5. VALIDATE SOLUTION
         logger.info(titlePrefix + "5. Validate Solution");
+        optimizedPlanning.calculateAllCosts();
         validator.validate("instances/" + inputFileName.toString(), outputPrefix + "/" + outputPrefix + "_" + inputFileName);
 
         // 6. print out csv
         logger.info(titlePrefix + "6. Writing optimisation points to csv:");
-        optimizedPlanning.logAllCosts();
         writingOptimisationPointsToCSV(optimizedPlanning);
 
         // 7. RESUME
@@ -88,6 +88,7 @@ public class Main {
      */
     private static void writingOptimisationPointsToCSV(Planning p) throws IOException {
         FileWriter fw = new FileWriter(csvFile);
+        //TODO Romeo
         PrintWriter out = new PrintWriter(fw);
         for (String s : p.getGraphingOutput()) {
             out.println(s);

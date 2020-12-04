@@ -15,6 +15,7 @@ import java.util.Scanner;
 
 public class OptimalisationGraphing extends Application {
     public static File csvFile = new File(System.getProperty("user.dir") + "/graphing");
+    public static final String CSV_SEP = ",";
 
 
 
@@ -40,7 +41,7 @@ public class OptimalisationGraphing extends Application {
         final LineChart<Number, Number> lineChart = new LineChart<>(xAxis, yAxis);
         String yAxisLabel = "Cost";
         yAxis.setLabel(yAxisLabel);
-        String xAxisLabel = "Step";
+        String xAxisLabel = "Temperature";
         xAxis.setLabel(xAxisLabel);
         String lineChartTitle = "Cost in function of steps taken";
         lineChart.setTitle(lineChartTitle);
@@ -49,7 +50,7 @@ public class OptimalisationGraphing extends Application {
 
         int step = 0;
         while (sc.hasNextLine()) {
-            String[] nextLine = sc.nextLine().split(",");
+            String[] nextLine = sc.nextLine().split(CSV_SEP);
             for (int i = 0; i < 6; i++) {
                 double value = Double.parseDouble(nextLine[i]);
                 series.get(i).getData().add(new Data(step, value));
