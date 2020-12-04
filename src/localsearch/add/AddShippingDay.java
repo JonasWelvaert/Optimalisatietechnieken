@@ -24,7 +24,7 @@ public class AddShippingDay extends LocalSearchStep {
             for (Day sd : request.getPossibleShippingDays()) {
 
                 for (Day d : p.getSuccessorDaysInclusive(sd)) {
-                    for (Item i : request.getItems()) {
+                    for (Item i : request.getItemsKeySet()) {
                         if (i.getStockAmount(d) - request.getAmountOfItem(i) < 0) {
                             isPossible = false;
                         }
@@ -34,7 +34,7 @@ public class AddShippingDay extends LocalSearchStep {
                 if (isPossible) {
                     //plan shipping day in
                     request.setShippingDay(sd);
-                    for (Item i : request.getItems()) {
+                    for (Item i : request.getItemsKeySet()) {
                         int delta = -1 * request.getAmountOfItem(i);
                         p.updateStockLevels(sd, i, delta);
                     }

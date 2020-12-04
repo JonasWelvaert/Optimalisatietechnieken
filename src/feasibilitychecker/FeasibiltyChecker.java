@@ -442,7 +442,7 @@ public class FeasibiltyChecker {
                     }
 
                     // check if the amount for each item in the request is fulfilled
-                    for (Item i : request.getItems()) {
+                    for (Item i : request.getItemsKeySet()) {
                         int amount = 0;
 
                         // amount in the stock

@@ -27,9 +27,6 @@ public class JoinSingleNeighbouringSetups extends LocalSearchStep {
 
     @Override
     public boolean execute(Planning p) {
-
-
-
         int iteration = 0;
         int randomDay, randomBlock, randomMachine;
 
@@ -41,7 +38,6 @@ public class JoinSingleNeighbouringSetups extends LocalSearchStep {
         Machine machine = p.getMachines().get(randomMachine);
 
         int numberOfSuccesorDays = Planning.getNumberOfDays() - day.getId();   // @indexOutOfBounds
-
 
         // SET TIME WINDOWS IN WHICH SETUPS CAN HAPPEN
         int t0 = 0;
@@ -57,10 +53,7 @@ public class JoinSingleNeighbouringSetups extends LocalSearchStep {
 
         while (iteration < numberOfSuccesorDays) {
             Day dayTemp = p.getDay(day.getId() + iteration);
-
             List<Block> possibleBlocks = dayTemp.getBlocksBetweenInclusive(t1, t2);
-
-
             for (Block b : possibleBlocks) {
                 //FIND NEXT SETUP BLOCK
                 MachineState ms = b.getMachineState(machine);
@@ -81,7 +74,6 @@ public class JoinSingleNeighbouringSetups extends LocalSearchStep {
                 } else if (ms instanceof Production && foundBlocks.size() != 0) {
                     return false;
                 }
-
                 if (secondSetupFound && foundBlocks.size() == setupDuration) {
                     // FOUND BLOCKS CONTAINS ALL BLOCKS OF 2 SETUPS
                     // S12   S23     // from =1    // to = 3
@@ -96,11 +88,8 @@ public class JoinSingleNeighbouringSetups extends LocalSearchStep {
                         Counting.JoinSingleNeighbouringSetup++;
                         return true;
                     }
-
-
                     int newSetupTime = from.getSetupTimeTo(to);
                     int previousSetupTime = foundBlocks.size();
-
                     if (newSetupTime <= previousSetupTime) {
                         Collections.reverse(foundBlocks);
 
@@ -119,8 +108,6 @@ public class JoinSingleNeighbouringSetups extends LocalSearchStep {
                     Counting.JoinSingleNeighbouringSetup++;
                     return true; // EOF function
                 }
-
-
             }
             t1 = t0;
             iteration++;

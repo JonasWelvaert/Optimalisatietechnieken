@@ -48,7 +48,7 @@ public class Request {
         return possibleShippingDays;
     }
 
-    public Set<Item> getItems() {
+    public Set<Item> getItemsKeySet() {
         return amountOfItem.keySet();
     }
 

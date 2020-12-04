@@ -94,7 +94,7 @@ public class Planning {
             for (Day d : r.getPossibleShippingDays()) {
                 request.addPossibleShippingDay(days.get(d.getId()));
             }
-            for (Item i : r.getItems()) {
+            for (Item i : r.getItemsKeySet()) {
                 request.addItem(stock.getItem(i.getId()), r.getAmountOfItem(i));
             }
             this.requests.add(request);
@@ -155,6 +155,34 @@ public class Planning {
             }
         }
         return temp;
+    }
+
+    public Day getLastPlannedShippingDayForItem(Item item) { // TODO remove production after
+        Day day = null;
+        for (Request r : requests) {
+            if (r.getItemsKeySet().contains(item)) {
+                //TODO constraint on production after last shipping day
+                if (r.hasShippingDay()) {
+                    int dayId = r.getPossibleShippingDays().stream().mapToInt(Day::getId).max().getAsInt();
+                    day = days.get(dayId);
+                }
+            }
+        }
+        return day;
+    }
+
+    public Day getLastNOTPlannedShippingDayForItem(Item item) { //TODO voor production constraint
+        Day day = null;
+        for (Request r : requests) {
+            if (r.getItemsKeySet().contains(item)) {
+                //TODO constraint on production after last shipping day
+                if (!r.hasShippingDay()) {
+                    int dayId = r.getPossibleShippingDays().stream().mapToInt(Day::getId).max().getAsInt();
+                    day = days.get(dayId);
+                }
+            }
+        }
+        return day;
     }
 
     public List<Machine> getMachines() {
@@ -238,18 +266,18 @@ public class Planning {
     //dns × pn (=COST_OF_NIGHTSHIFT)
     public void calculateNS() {
         int costCounter = 0;
-        int cns= pastConsecutiveDaysWithNightShift;
+        int cns = pastConsecutiveDaysWithNightShift;
 
         for (Day d : days) {
             if (d.hasNightShift()) {
                 cns++;
                 costCounter++;
-            }else{
-                cns=0;
+            } else {
+                cns = 0;
             }
         }
-        if(cns>0 && cns<minConsecutiveDaysWithNightShift){
-            costCounter+=minConsecutiveDaysWithNightShift-cns;
+        if (cns > 0 && cns < minConsecutiveDaysWithNightShift) {
+            costCounter += minConsecutiveDaysWithNightShift - cns;
         }
         setCostNightShift(costCounter * COST_OF_NIGHT_SHIFT);
     }
