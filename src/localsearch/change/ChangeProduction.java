@@ -13,7 +13,7 @@ public class ChangeProduction extends LocalSearchStep {
 
     @Override
     public boolean execute(Planning p) {
-        // nieuwe productie op machine starten
+/*        // nieuwe productie op machine starten
         int count = 0;
         int randomDay, randomBlock, randomMachine;
 
@@ -48,7 +48,9 @@ public class ChangeProduction extends LocalSearchStep {
                 }
             }
             count++;
-        }
+        }*/
+        System.out.println("MoveProduction is in maintenance");
+
         return false;
     }
 }

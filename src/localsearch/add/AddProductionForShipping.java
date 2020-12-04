@@ -17,7 +17,7 @@ public class AddProductionForShipping extends LocalSearchStep {
 
     @Override
     public boolean execute(Planning p) {
-        // alle requesten met shipping day
+     /*   // alle requesten met shipping day
         List<Request> requests = p.getRequests().getRequests();
         List<Request> requestsWithShippingDay = new ArrayList<>();
         for (Request r : requests) {
@@ -118,7 +118,8 @@ public class AddProductionForShipping extends LocalSearchStep {
 
                 }
             }
-        }
+        }*/
+        System.out.println("AddProductionForShipping is in maintenance");
         return false;
     }
 }

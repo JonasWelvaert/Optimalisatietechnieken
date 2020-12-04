@@ -33,17 +33,16 @@ public class AddSingleProduction extends LocalSearchStep {
             if (machineState instanceof Idle) {
                 Item pItem = machine.getPreviousItem(p, day, block);
                 Item nItem = p.getStock().getItem(randomItem);
-                Setup setupBefore = pItem.getSetupTo(nItem);
-                Setup setupAfter = nItem.getSetupTo(pItem);
 
-
-                // 1 I I S12 2 I I S21 1
-                List<Block> beforeBlocks;
-                List<Block> afterBlocks;
                 boolean productionCanBePlanned;
 
                 // STARTING FROM FEASIBLE STATE, SO IF NO BEFORE NEEDED, ALSO NO AFTER IS NEEDED
                 if (!pItem.equals(nItem)) {
+                    Setup setupBefore = pItem.getSetupTo(nItem);
+                    Setup setupAfter = nItem.getSetupTo(pItem);
+                    List<Block> beforeBlocks;
+                    List<Block> afterBlocks;
+
                     beforeBlocks = getSetupBlockBeforeProduction(setupBefore, day, block, machine, p);
                     afterBlocks = getSetupBlocksAfterProduction(setupAfter, day, block, machine, p);
                     //PLAN THE SETUPS IF NOT NULL

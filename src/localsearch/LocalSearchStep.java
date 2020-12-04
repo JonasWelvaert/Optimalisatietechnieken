@@ -112,7 +112,7 @@ public abstract class LocalSearchStep {
                 if (b.getMachineState(machine) instanceof Production || b.getMachineState(machine) instanceof Setup) {
                     if (solution.size() >= setupNeeded.getSetupTime()) {
                         Collections.reverse(solution);
-                        return solution.subList(0, setupNeeded.getSetupTime() + 1);
+                        return solution.subList(0, setupNeeded.getSetupTime() );  //@IndexOutOfBounds
                     } else {
                         return null;
                     }
@@ -126,7 +126,7 @@ public abstract class LocalSearchStep {
         }
         if (solution.size() >= setupNeeded.getSetupTime()) {
             Collections.reverse(solution);
-            return solution.subList(0, setupNeeded.getSetupTime() + 1);
+            return solution.subList(0, setupNeeded.getSetupTime() );  //@IndexOutOfBounds
         } else {
             return null;
         }

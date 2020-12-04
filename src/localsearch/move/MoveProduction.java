@@ -17,7 +17,7 @@ public class MoveProduction extends LocalSearchStep {
     @Override
     public boolean execute(Planning p) {
 
-        Item removedItem = removeProduction(p);
+       /* Item removedItem = removeProduction(p);
         if (removedItem == null) {
             return false;
         }
@@ -51,7 +51,8 @@ public class MoveProduction extends LocalSearchStep {
                 }
             }
             count++;
-        }
+        }*/
+        System.out.println("MoveProduction is in maintenance");
 
         return false;
     }

@@ -34,21 +34,21 @@ public abstract class Solver {
         int randomInt = random.nextInt(localSearchUpperBound);
         int switcher = 0;
 
-        if (randomInt < (switcher += 1)) {
+        if (randomInt < (switcher += 50)) {
             lssf.getLocalSearchStep(ADD_SINGLE_PRODUCTION).execute(p);
-        } else if (randomInt < (switcher += 50)) {
+        } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(MOVE_MAINTENANCE).execute(p);
-        } else if (randomInt < (switcher += 1)) {
+        } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(ADD_PRODUCTION_FOR_SHIPPING).execute(p);
-        } else if (randomInt < (switcher += 1)) {
+        } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(CHANGE_PRODUCTION).execute(p);
-        } else if (randomInt < (switcher += 1)) {
+        } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(REMOVE_PRODUCTION).execute(p);
-        } else if (randomInt < (switcher += 1)) {
+        } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(MOVE_PRODUCTION).execute(p);
-        } else if (randomInt < (switcher += 1)) {
+        } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(MOVE_SHIPPING_DAY).execute(p);
-        } else if (randomInt < (switcher += 1)) {
+        } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(ADD_SHIPPING_DAY).execute(p);
         } else {
             localSearchUpperBound = switcher;
