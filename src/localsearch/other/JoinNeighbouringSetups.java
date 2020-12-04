@@ -10,7 +10,6 @@ import model.Planning;
  */
 public class JoinNeighbouringSetups extends LocalSearchStep {
 
-
     public JoinNeighbouringSetups(int maxTries) {
         super(maxTries);
     }
