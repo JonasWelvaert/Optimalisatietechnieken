@@ -36,7 +36,7 @@ public class Main {
 
         // 2. BUILD INITIAL SOLUTION //TODO misschien initial een beetje slimmer maken ?
         logger.info(titlePrefix + "2. Build initial solution");
-        initialPlanning = makeInitialPlanning(initialPlanning); //TODO aanpassen ?
+        makeInitialPlanning(initialPlanning);
 
         if (!feasibiltyChecker.checkFeasible(initialPlanning)) {
             logger.severe("2. Initial planning is not feasible!");
@@ -60,7 +60,7 @@ public class Main {
         // 4B. PRINT TO  FILE
         logger.info(titlePrefix + "4B. Printing result to file");
         File file = new File(outputPrefix);
-        file.mkdir(); //TODO
+        file.mkdir();
         printOutputToFile(outputPrefix + "/" + outputPrefix + "_" + inputFileName, optimizedPlanning);
 
         // 5. VALIDATE SOLUTION
@@ -97,36 +97,36 @@ public class Main {
     }
 
     /**
-     * Makes all machines IDLE and no requests fullfilled except for the maintenance //TODO is dit fullfilled ?
+     * Makes all machines IDLE and no requests fullfilled except for the maintenance
      * and nightshifts to ensure a feasible planning.
      *
-     * @param planning The planning returned by the main.Main.readFileIn method
+     * @param p The planning returned by the main.Main.readFileIn method
      * @return A initial feasible planning
      */
-    private static Planning makeInitialPlanning(Planning planning) throws IOException {
-        for (Day d : planning.getDays()) {
+    private static Planning makeInitialPlanning(Planning p) throws IOException {
+        for (Day d : p.getDays()) {
             // putting all machines all the time in idle.
-            for (Machine m : planning.getMachines()) {
+            for (Machine m : p.getMachines()) {
                 for (Block b : d.getBlocks()) {
                     b.setMachineState(m, new Idle());
                 }
             }
             // then stock will always be the initial stock.
-            for (Item i : planning.getStock().getItems()) {
+            for (Item i : p.getStock().getItems()) {
                 i.setStockAmount(d, i.getInitialQuantityInStock());
             }
         }
 
         // now we need to make sure all nightshifts are fullfilled.
-        if (planning.getPastConsecutiveDaysWithNightShift() != 0) {
-            for (int i = 0; i < Planning.getMinConsecutiveDaysWithNightShift()
-                    - planning.getPastConsecutiveDaysWithNightShift(); i++) {
-                planning.getDay(i).setNightShift(true);
+        if (p.getPastConsecutiveDaysWithNightShift() != 0) {
+            for (int i = 0; i < p.getMinConsecutiveDaysWithNightShift()
+                    - p.getPastConsecutiveDaysWithNightShift(); i++) {
+                p.getDay(i).setNightShift(true);
             }
         }
 
         // now we need to make sure all needed maintenances are planned
-        for (Machine m : planning.getMachines()) {
+        for (Machine m : p.getMachines()) {
             int init = m.getInitialDaysPastWithoutMaintenance();
             int max = m.getMaxDaysWithoutMaintenance();
             for (int i = 0; i < Planning.getNumberOfDays(); i++) {
@@ -135,8 +135,8 @@ public class Main {
                     // onderhouden worden.
                     int teller = 0;
                     for (int j = Day.indexOfBlockE; j <= Day.indexOfBlockL; j++) {
-                        if (!planning.getDay(i).getBlock(j).isInMaintenance()) {
-                            planning.getDay(i).getBlock(j).setMachineState(m, new Maintenance());
+                        if (!p.getDay(i).getBlock(j).isInMaintenance()) {
+                            p.getDay(i).getBlock(j).setMachineState(m, new Maintenance());
                             teller++;
                             if (teller == m.getMaintenanceDurationInBlocks()) {
                                 break;
@@ -146,9 +146,9 @@ public class Main {
                 }
             }
         }
-        planning.calculateAllCosts();
-        initialCost = planning.getTotalCost();
-        return planning;
+        p.calculateAllCosts();
+        initialCost = p.getTotalCost();
+        return p;
     }
 
     /**
@@ -160,7 +160,7 @@ public class Main {
     private static void printOutputToFile(String filename, Planning planning) {
         try {
             File file = new File(filename);
-            file.createNewFile(); //TODO
+            file.createNewFile();
             BufferedWriter bw = new BufferedWriter(new FileWriter(file));
             bw.write("Instance_name: " + planning.getInstanceName() + System.lineSeparator());
             bw.write("Cost: " + String.format("%.2f", planning.getTotalCost()) + System.lineSeparator());
@@ -268,7 +268,7 @@ public class Main {
 
         String instanceName = "";
         int nrOfMachines = 0;
-        Planning planning = null;
+        Planning p = null;
         Stock stock = null;
         Requests requests = null;
 
@@ -291,9 +291,9 @@ public class Main {
                 }
             } else if (inputDelen[0].equals("Number_of_blocks_per_day:")) {
                 Day.setNumberOfBlocksPerDay(Integer.parseInt(inputDelen[1]));
-                planning = new Planning(instanceName, nrOfMachines);
-                planning.setStock(stock);
-                planning.setRequests(requests);
+                p = new Planning(instanceName, nrOfMachines);
+                p.setStock(stock);
+                p.setRequests(requests);
             } else if (inputDelen[0].equals("Index_of_block_e:")) {
                 Day.indexOfBlockE = Integer.parseInt(inputDelen[1]);
             } else if (inputDelen[0].equals("Index_of_block_l:")) {
@@ -303,10 +303,10 @@ public class Main {
             } else if (inputDelen[0].equals("Index_of_block_o:")) {
                 Day.indexOfBlockO = Integer.parseInt(inputDelen[1]);
             } else if (inputDelen[0].equals("Min_consecutive_days_with_night_shifts:")) {
-                Planning.setMinConsecutiveDaysWithNightShift(Integer.parseInt(inputDelen[1]));
+                p.setMinConsecutiveDaysWithNightShift(Integer.parseInt(inputDelen[1]));
             } else if (inputDelen[0].equals("Past_consecutive_days_with_night_shifts:")) {
-                assert planning != null;
-                planning.setPastConsecutiveDaysWithNightShift(Integer.parseInt(inputDelen[1]));
+                assert p != null;
+                p.setPastConsecutiveDaysWithNightShift(Integer.parseInt(inputDelen[1]));
             } else if (inputDelen[0].equals("Cost_of_overtime_p_o:")) {
                 COST_OF_OVERTIME = Double.parseDouble(inputDelen[1]);
             } else if (inputDelen[0].equals("Cost_of_nightShift_p_n:")) {
@@ -342,7 +342,7 @@ public class Main {
                 int daysPastWithoutMaintenance = Integer.parseInt(inputDelen[2]);
                 int maxDaysWithoutMaintenance = Integer.parseInt(inputDelen[3]);
                 int maintenanceDurationInBlocks = Integer.parseInt(inputDelen[4]);
-                planning.addMachine(new Machine(id, stock.getItem(lastItemIdProduced), daysPastWithoutMaintenance,
+                p.addMachine(new Machine(id, stock.getItem(lastItemIdProduced), daysPastWithoutMaintenance,
                         maxDaysWithoutMaintenance, maintenanceDurationInBlocks));
                 i++;
             } else if (input_block == 2) {
@@ -360,7 +360,7 @@ public class Main {
             } else if (input_block == 3) {
                 int id = Integer.parseInt(inputDelen[0]);
                 for (int j = 1; j < nrOfMachines + 1; j++) {
-                    planning.getMachines().get(j - 1).addEfficiency(stock.getItem(id), Integer.parseInt(inputDelen[j]));
+                    p.getMachines().get(j - 1).addEfficiency(stock.getItem(id), Integer.parseInt(inputDelen[j]));
                 }
             } else if (input_block == 4) {
                 Item item = stock.getItem(i);
@@ -382,7 +382,7 @@ public class Main {
                 Request request = requests.get(i);
                 for (int j = 0; j < Planning.getNumberOfDays(); j++) {
                     if (inputDelen[j].equals("1")) {
-                        request.addPossibleShippingDay(planning.getDay(j));
+                        request.addPossibleShippingDay(p.getDay(j));
                     }
                 }
                 i++;
@@ -401,6 +401,6 @@ public class Main {
             }
         }
         scanner.close();
-        return planning;
+        return p;
     }
 }

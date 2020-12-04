@@ -133,11 +133,11 @@ public class FeasibiltyChecker {
 
     // check if the minimum amount of consecutive night shifts is fulfilled when
     // their are past consecutive days
-    private boolean isConsecutiveInNightShiftsPast(Planning planning) {
-        if (planning.getPastConsecutiveDaysWithNightShift() > 0) {
-            for (int i = 0; i < (Planning.getMinConsecutiveDaysWithNightShift()
-                    - planning.getPastConsecutiveDaysWithNightShift()); i++) {
-                if (!planning.getDay(i).hasNightShift()) {
+    private boolean isConsecutiveInNightShiftsPast(Planning p) {
+        if (p.getPastConsecutiveDaysWithNightShift() > 0) {
+            for (int i = 0; i < (p.getMinConsecutiveDaysWithNightShift()
+                    - p.getPastConsecutiveDaysWithNightShift()); i++) {
+                if (!p.getDay(i).hasNightShift()) {
                     return false;
                 }
             }
@@ -158,19 +158,19 @@ public class FeasibiltyChecker {
         return true;
     }
 
-    private boolean checkOvertimeConstraints(int teller, int b, int d, Planning planning) {
+    private boolean checkOvertimeConstraints(int teller, int b, int d, Planning p) {
 
-        if (planning.getDay(d).hasNightShift()) {
+        if (p.getDay(d).hasNightShift()) {
 
             teller++; // TODO teller opgehoogd, maar niet meer gebruikt ?
             // check that the minimum amount of consecutive days with night shift is
             // fulfilled
-            if (d > (Planning.getMinConsecutiveDaysWithNightShift()
-                    - planning.getPastConsecutiveDaysWithNightShift())) {
+            if (d > (p.getMinConsecutiveDaysWithNightShift()
+                    - p.getPastConsecutiveDaysWithNightShift())) {
                 // for (int l = d; l < (d + Planning.getMinConsecutiveDaysWithNightShift());
                 // l++) {
                 for (int l = d; l < Planning.getNumberOfDays(); l++) {
-                    if (!planning.getDay(l).hasNightShift()) {
+                    if (!p.getDay(l).hasNightShift()) {
                         return false;
                     }
                 }
@@ -178,21 +178,21 @@ public class FeasibiltyChecker {
         } else {
 
             // check that the night shift days are consecutive
-            if (teller > 0 && teller < Planning.getMinConsecutiveDaysWithNightShift()) {
+            if (teller > 0 && teller < p.getMinConsecutiveDaysWithNightShift()) {
                 return false;
             } else {
                 teller = 0; // TODO teller op null gezet maar niet meer gebruikt ?
             }
 
             // check that the overtime blocks are consecutive
-            if (b > Day.indexOfBlockS && b < Day.indexOfBlockO && !isConsecutiveInOvertime(b, d, planning)) {
+            if (b > Day.indexOfBlockS && b < Day.indexOfBlockO && !isConsecutiveInOvertime(b, d, p)) {
                 return false;
             }
 
             // check that their is no overtime after block b_o for all machines
             if (b > Day.indexOfBlockO) {
-                for (Machine m : planning.getMachines())
-                    if (!(planning.getDay(d).getBlock(b).getMachineState(m) instanceof Idle)) {
+                for (Machine m : p.getMachines())
+                    if (!(p.getDay(d).getBlock(b).getMachineState(m) instanceof Idle)) {
                         return false;
                     }
             }

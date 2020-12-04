@@ -51,7 +51,7 @@ public abstract class Solver {
         } else if (randomInt < (switcher += 1)) {
             lssf.getLocalSearchStep(ADD_SHIPPING_DAY).execute(p);
         } else {
-            localSearchUpperBound = switcher; //TODO dees is nog fout peisk
+            localSearchUpperBound = switcher;
         }
 
         p.calculateAllCosts();
@@ -106,7 +106,7 @@ public abstract class Solver {
                         }
                     } else {
                         // nieuwe nightshift reeks
-                        int amountOfNightShifts = Planning.getMinConsecutiveDaysWithNightShift();
+                        int amountOfNightShifts = p.getMinConsecutiveDaysWithNightShift();
                         for (int i = randomDay; i < p.getDays().size(); i++) {
                             if (amountOfNightShifts == 0) {
                                 break;
@@ -124,7 +124,7 @@ public abstract class Solver {
                         }
                     } else {
                         // nieuwe nightshift reeks
-                        int amountOfNightShifts = Planning.getMinConsecutiveDaysWithNightShift();
+                        int amountOfNightShifts = p.getMinConsecutiveDaysWithNightShift();
                         for (int i = randomDay; i < p.getDays().size(); i++) {
                             if (amountOfNightShifts == 0) {
                                 break;

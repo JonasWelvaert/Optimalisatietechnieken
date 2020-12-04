@@ -20,7 +20,7 @@ import static main.Main.*;
 public class Planning {
     private static final Logger logger = Logger.getLogger(Planning.class.getName());
     private static int numberOfDays;
-    private static int minConsecutiveDaysWithNightShift;
+    private int minConsecutiveDaysWithNightShift;
     private int pastConsecutiveDaysWithNightShift;
     private final String instanceName;
     private final List<Machine> machines;
@@ -49,7 +49,7 @@ public class Planning {
      *
      * @param p planning to copy
      */
-    public Planning(Planning p) { //TODO hier wordt iets niet gekopieerd !!!!
+    public Planning(Planning p) {
         this.instanceName = p.instanceName;
         this.days = new ArrayList<>(p.days.size());
         for (Day d : p.days) {
@@ -104,6 +104,8 @@ public class Planning {
         this.costOverTime = p.costOverTime;
         this.costParallelDays = p.costParallelDays;
         this.costNightShift = p.costNightShift;
+        this.pastConsecutiveDaysWithNightShift = p.pastConsecutiveDaysWithNightShift;
+        this.minConsecutiveDaysWithNightShift = p.minConsecutiveDaysWithNightShift;
 
         for (Machine m : this.getMachines()) {
             Machine otherMachine = p.getMachines().get(m.getId());
@@ -129,12 +131,12 @@ public class Planning {
         Planning.numberOfDays = nrOfDays;
     }
 
-    public static int getMinConsecutiveDaysWithNightShift() {
+    public int getMinConsecutiveDaysWithNightShift() {
         return minConsecutiveDaysWithNightShift;
     }
 
-    public static void setMinConsecutiveDaysWithNightShift(int minConsecutiveDaysWithNightShift) {
-        Planning.minConsecutiveDaysWithNightShift = minConsecutiveDaysWithNightShift;
+    public void setMinConsecutiveDaysWithNightShift(int minConsecutiveDaysWithNightShift) {
+        this.minConsecutiveDaysWithNightShift = minConsecutiveDaysWithNightShift;
     }
 
     public int getPastConsecutiveDaysWithNightShift() {

@@ -53,12 +53,12 @@ public abstract class LocalSearchStep {
                 t1 = t2;
             }
         }
+        List<Block> solution = new ArrayList<>();
+
         while (iteration <= numberOfPredecessorDays) {
             Day dayTemp = p.getDay(day.getId() - iteration);
-
             List<Block> possibleBlocks = dayTemp.getBlocksBetweenInclusive(t0, t1);
             Collections.reverse(possibleBlocks);
-            List<Block> solution = new ArrayList<>();
             for (Block b : possibleBlocks) {
                 if (b.getMachineState(machine) instanceof Production || b.getMachineState(machine) instanceof Setup) {
                     return null;
@@ -103,11 +103,11 @@ public abstract class LocalSearchStep {
                 t1 = t2;
             }
         }
+        List<Block> solution = new ArrayList<>();
         while (iteration < numberOfSuccesorDays) {
             Day dayTemp = p.getDay(day.getId() + iteration);
 
             List<Block> possibleBlocks = dayTemp.getBlocksBetweenInclusive(t1, t2);
-            List<Block> solution = new ArrayList<>();
             for (Block b : possibleBlocks) {
                 if (b.getMachineState(machine) instanceof Production || b.getMachineState(machine) instanceof Setup) {
                     if (solution.size() >= setupNeeded.getSetupTime()) {
@@ -119,12 +119,16 @@ public abstract class LocalSearchStep {
                 }
                 if (!(b.getMachineState(machine) instanceof Maintenance)) {
                     solution.add(b);
-
                 }
             }
             t1 = t0;
             iteration++;
         }
-        return null;
+        if (solution.size() >= setupNeeded.getSetupTime()) {
+            Collections.reverse(solution);
+            return solution.subList(0, setupNeeded.getSetupTime() + 1);
+        } else {
+            return null;
+        }
     }
 }
