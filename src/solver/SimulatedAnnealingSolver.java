@@ -26,7 +26,7 @@ public class SimulatedAnnealingSolver extends Solver {
         int stockRiseLevel = 0;
 
         for (double t = temperature; t > 1; t *= coolingFactor) {
-            logger.info( "\t \t \t \t \t \t Temperature = "+t);
+            logger.info("\t \t \t \t \t \t Temperature = " + t);
             do {
                 neighbor = new Planning(current);
                 localSearch(neighbor);
@@ -51,6 +51,9 @@ public class SimulatedAnnealingSolver extends Solver {
             // OVERWRITE BEST IF COST IS IMPROVED
             if (current.getTotalCost() < best.getTotalCost()) {
                 best = new Planning(current);
+                if (best.getTotalCost() == 0) {
+                    return best;
+                }
             } else if (current.getTotalCost() == best.getTotalCost()) {
                 if (current.getStockAmount() > best.getStockAmount()) {
                     best = new Planning(current);

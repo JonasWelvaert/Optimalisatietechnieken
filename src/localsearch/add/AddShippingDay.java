@@ -14,31 +14,31 @@ public class AddShippingDay extends LocalSearchStep {
 
     @Override
     public boolean execute(Planning p) {
-        for (Request request : p.getRequests().getRequests()) {
-            if (request.getShippingDay() == null) {
-                boolean containsAllItems = true;
+        int randomRequest = random.nextInt(p.getRequests().getRequests().size());
+        Request request = p.getRequests().get(randomRequest);
 
-                // CHECK FOR ALL POSSIBLE SHIPPING DAYS
-                for (Day sd : request.getPossibleShippingDays()) {
+
+        if (request.getShippingDay() == null) {
+            boolean isPossible = true;
+            // CHECK FOR ALL POSSIBLE SHIPPING DAYS
+            for (Day sd : request.getPossibleShippingDays()) {
+
+                for (Day d : p.getSuccessorDaysInclusive(sd)) {
                     for (Item i : request.getItems()) {
-                        if (i.getStockAmount(sd) - request.getAmountOfItem(i) < 0) {
-                            containsAllItems = false;
+                        if (i.getStockAmount(d) - request.getAmountOfItem(i) < 0) {
+                            isPossible = false;
                         }
                     }
-                    if (containsAllItems) {
-                        //plan shipping day in
-                        request.setShippingDay(sd);
-                        for (Item i : request.getItems()) {
+                }
 
-                            for (int d = sd.getId(); d < Planning.getNumberOfDays(); d++) {
-                                Day day = p.getDay(d);
-                                int newStockAmount = i.getStockAmount(day) - request.getAmountOfItem(i);
-                                i.setStockAmount(day, newStockAmount);
-                            }
-                        }
-                        return false;
-                        //break; //TODO also possible
+                if (isPossible) {
+                    //plan shipping day in
+                    request.setShippingDay(sd);
+                    for (Item i : request.getItems()) {
+                        int delta = -1 * request.getAmountOfItem(i);
+                        p.updateStockLevels(sd, i, delta);
                     }
+                    return true;
                 }
             }
         }

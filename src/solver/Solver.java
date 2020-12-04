@@ -39,7 +39,7 @@ public abstract class Solver {
             lssf.getLocalSearchStep(ADD_SINGLE_PRODUCTION).execute(p);
         } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(MOVE_MAINTENANCE).execute(p);
-        } else if (randomInt < (switcher += 10)) {
+        } else if (randomInt < (switcher += 0)) {
             System.out.println();
         } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(ADD_PRODUCTION_FOR_SHIPPING).execute(p);
@@ -51,7 +51,7 @@ public abstract class Solver {
             lssf.getLocalSearchStep(MOVE_PRODUCTION).execute(p);
         } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(MOVE_SHIPPING_DAY).execute(p);
-        } else if (randomInt < (switcher += 0)) {
+        } else if (randomInt < (switcher += 5)) {
             lssf.getLocalSearchStep(ADD_SHIPPING_DAY).execute(p);
         } else {
             localSearchUpperBound = switcher;

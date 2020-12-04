@@ -147,6 +147,16 @@ public class Planning {
         this.pastConsecutiveDaysWithNightShift = pastConsecutiveDaysWithNightShift;
     }
 
+    public List<Day> getSuccessorDaysInclusive(Day day) {
+        List<Day> temp = new ArrayList<>();
+        for (Day d : days) {
+            if (d.getId() >= day.getId()) {
+                temp.add(d);
+            }
+        }
+        return temp;
+    }
+
     public List<Machine> getMachines() {
         return machines;
     }
