@@ -21,7 +21,7 @@ public class LocalSearchStepFactory {
 
     public LocalSearchStepFactory() {
         localSearchSteps = new HashMap<>();
-        int maxTries = 100;
+        int maxTries = 20;
 
         //ADD
         localSearchSteps.put(ADD_SINGLE_PRODUCTION, new AddSingleProduction(maxTries));

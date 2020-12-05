@@ -17,9 +17,9 @@ public class AddShippingDay extends LocalSearchStep {
         int randomRequest = random.nextInt(p.getRequests().getRequests().size());
         Request request = p.getRequests().get(randomRequest);
 
+        boolean isPossible = true;
 
         if (request.getShippingDay() == null) {
-            boolean isPossible = true;
             // CHECK FOR ALL POSSIBLE SHIPPING DAYS
             for (Day sd : request.getPossibleShippingDays()) {
 
@@ -34,10 +34,12 @@ public class AddShippingDay extends LocalSearchStep {
                 if (isPossible) {
                     //plan shipping day in
                     request.setShippingDay(sd);
+                    
                     for (Item i : request.getItemsKeySet()) {
                         int delta = -1 * request.getAmountOfItem(i);
                         p.updateStockLevels(sd, i, delta);
                     }
+                    
                     return true;
                 }
             }

@@ -28,11 +28,15 @@ public class AddSingleProduction extends LocalSearchStep {
             randomMachine = random.nextInt(p.getMachines().size());
             Machine machine = p.getMachines().get(randomMachine);
             randomItem = random.nextInt(Stock.getNrOfDifferentItems());
-
+            Item nItem = p.getStock().getItem(randomItem);
+            
+            if(p.getLastNOTPlannedShippingDayForItem(nItem).getId()<randomDay) {
+            	continue;
+            }
+            
             MachineState machineState = block.getMachineState(machine);
             if (machineState instanceof Idle) {
                 Item pItem = machine.getPreviousItem(p, day, block);
-                Item nItem = p.getStock().getItem(randomItem);
 
                 int machineEfficiency = machine.getEfficiency(nItem);
                 if (machineEfficiency != 0) {
