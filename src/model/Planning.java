@@ -247,9 +247,12 @@ public class Planning {
     public void updateStockLevels(Day day, Item nItem, int efficiency) {
         for (int i = day.getId(); i < numberOfDays; i++) { //TODO
             Day dayTemp = days.get(i);
-            int newAmount = nItem.getStockAmount(dayTemp) + efficiency;
+            int temp = nItem.getStockAmount(dayTemp);
+            int newAmount = temp + efficiency;
             nItem.setStockAmount(dayTemp, newAmount);
-
+            if(newAmount < 0){
+                System.out.println();
+            }
         }
     }
 

@@ -1,5 +1,6 @@
 package localsearch;
 
+import main.Main;
 import model.Block;
 import model.Day;
 import model.Machine;
@@ -13,12 +14,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Logger;
 
 
 // USES FACTORY METHOD PATTERN
 public abstract class LocalSearchStep {
     protected Random random;
     protected final int maxTries;
+    private static final Logger logger = Logger.getLogger(LocalSearchStep.class.getName());
+
 
     public LocalSearchStep(int maxTries) {
         this.random = new Random();

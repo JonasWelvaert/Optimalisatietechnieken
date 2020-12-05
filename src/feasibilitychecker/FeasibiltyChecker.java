@@ -1,5 +1,6 @@
 package feasibilitychecker;
 
+import localsearch.LocalSearchStep;
 import model.*;
 import model.machinestate.Idle;
 import model.machinestate.MachineState;
@@ -13,12 +14,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class FeasibiltyChecker {
+    private static final Logger logger = Logger.getLogger(FeasibiltyChecker.class.getName());
 
     private Counting ec;
 
     public FeasibiltyChecker() {
+        logger.setLevel(Level.OFF);
         ec = new Counting();
     }
 
@@ -27,7 +32,8 @@ public class FeasibiltyChecker {
         int teller1 = 0;
 
         if (!isConsecutiveInNightShiftsPast(planning)) {
-            System.out.println("isConsecutiveInNightShiftsPast");
+
+            logger.warning("isConsecutiveInNightShiftsPast");
             ec.increaseIsConsecutiveInNightShiftsPast();
             return false;
         }
@@ -41,12 +47,12 @@ public class FeasibiltyChecker {
 
                 if (!checkNighShiftBlocksConstraints(b, d, planning)) {
                     ec.increaseCheckNighShiftBlocksConstraints();
-                    System.out.println("checkNighShiftBlocksConstraints");
+                    logger.warning("checkNighShiftBlocksConstraints");
                     return false;
                 }
 
                 if (!checkOvertimeConstraints(teller1, b, d, planning)) {
-                    System.out.println("checkOvertimeConstraints");
+                    logger.warning("checkOvertimeConstraints");
                     ec.increaseCheckOvertimeConstraints();
                     return false;
                 }
@@ -71,7 +77,7 @@ public class FeasibiltyChecker {
                     if (state instanceof LargeSetup || state instanceof Maintenance) {
                         parallelTeller++;
                         if (parallelTeller > 1) {
-                            System.out.println("Parallel planned !!!");
+                            logger.warning("Parallel planned !!!");
                             return false;
                         }
                     }
@@ -79,7 +85,7 @@ public class FeasibiltyChecker {
                     if (d < Planning.getNumberOfDays() && b < Day.getNumberOfBlocksPerDay() - 1) {
                         if (!checkProductionConstraints(m, b, d, planning)) {
                             ec.increaseCheckProductionConstraints();
-                            System.out.println("checkProductionConstraints");
+                            logger.warning("checkProductionConstraints");
                             return false;
                         }
                     }
@@ -87,18 +93,18 @@ public class FeasibiltyChecker {
             }
             if (!checkStockConstraints(planning.getDay(d), planning)) {
                 ec.increaseCheckStockConstraints();
-                System.out.println("checkStockConstraints \t\t");
+                logger.warning("checkStockConstraints \t\t");
                 return false;
             }
 
             if (!checkSetupTypeConstraint(setupTypes, setupMap)) {
-                System.out.println("checkSetupTypeConstraint");
+                logger.warning("checkSetupTypeConstraint");
                 ec.increaseCheckSetupTypeConstraint();
                 return false;
             }
 
 /*if (!checkShippingDayConstraints(d, planning)) {
-                System.out.println("checkShippingDayConstraints");
+                logger.warning("checkShippingDayConstraints");
                 ec.checkShippingDayConstraints++;
                 return false;
             }
@@ -109,24 +115,27 @@ public class FeasibiltyChecker {
         for (Machine m : planning.getMachines()) {
 
             if (!checkSetupConstraint(m, planning)) {
-                System.out.println("checkSetupConstraint");
+                logger.warning("checkSetupConstraint");
                 return false;
             }
 
             for (int d = 0; d < Planning.getNumberOfDays(); d++) {
                 if (!checkChangeOverAndMaintenanceBoundaryConstraints(d, m, planning)) {
-                    System.out.println("checkChangeOverAndMaintenanceBoundaryConstraints");
+                    logger.warning("checkChangeOverAndMaintenanceBoundaryConstraints");
                     ec.increaseCheckChangeOverAndMaintenanceBoundaryConstraints();
                     return false;
                 }
                 if (!checkMaintenanceConstraints(d, m, planning)) {
-                    System.out.println("checkMaintenanceConstraints");
+                    logger.warning("checkMaintenanceConstraints");
                     ec.increaseCheckMaintenanceConstraints();
                     return false;
                 }
             }
         }
 
+        for (Item i : planning.getStock().getItems()) {
+            i.checkStock();
+        }
         return true;
     }
 
@@ -289,12 +298,13 @@ public class FeasibiltyChecker {
     }
 
     private boolean checkStockConstraints(Day day, Planning planning) {
-
+        int stockAmount = 0, maxStockAmount = 0;
         for (Item i : planning.getStock().getItems()) {
-            int stockAmount = i.getStockAmount(day);
+            stockAmount = i.getStockAmount(day);
+            maxStockAmount = i.getMaxAllowedInStock();
             // check that the stock level on day d is less than the max allowed of stock of
             // an item
-            if (i.getStockAmount(day) > i.getMaxAllowedInStock()) {
+            if (stockAmount > maxStockAmount) {
                 return false;
             }
 
@@ -305,7 +315,7 @@ public class FeasibiltyChecker {
              * != 0) { return false; }
              */
 
-            if (i.getStockAmount(day) < 0) {
+            if (stockAmount < 0) {
                 return false;
             }
 

@@ -29,11 +29,13 @@ public class AddSingleProduction extends LocalSearchStep {
             Machine machine = p.getMachines().get(randomMachine);
             randomItem = random.nextInt(Stock.getNrOfDifferentItems());
             Item nItem = p.getStock().getItem(randomItem);
-            
-            if(p.getLastNOTPlannedShippingDayForItem(nItem).getId()<randomDay) {
-            	continue;
+
+            Day temp = p.getLastNOTPlannedShippingDayForItem(nItem);
+            if (temp != null || temp.getId() < randomDay) { //TODO hier
+                count++;
+                continue;
             }
-            
+
             MachineState machineState = block.getMachineState(machine);
             if (machineState instanceof Idle) {
                 Item pItem = machine.getPreviousItem(p, day, block);

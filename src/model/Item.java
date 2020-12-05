@@ -25,11 +25,11 @@ public class Item {
         stockAmount = new HashMap<>();
     }
 
-    public void updateItem(Day d, Machine m) {
+    public void updateItem(Day d, Machine m, int factor) {
         int amount = stockAmount.get(d);
         int efficiency = m.getEfficiency(this);
         //int efficiency = 123;
-        int newAmount = amount + efficiency;
+        int newAmount = amount + (factor * efficiency);
         stockAmount.replace(d, newAmount);
     }
 
@@ -77,6 +77,10 @@ public class Item {
 
     public void setStockAmount(Day d, int amount) {
         stockAmount.put(d, amount);
+
+        if (stockAmount.get(d) < 0) {
+            System.out.println("Fout");
+        }
     }
 
     public int getInitialQuantityInStock() {
@@ -133,5 +137,25 @@ public class Item {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        for (Map.Entry<Day, Integer> entry : stockAmount.entrySet()) {
+            sb.append("Day "+entry.getKey().getId() + "\t :\t" + entry.getValue() + "\n");
+        }
+
+        return sb.toString();
+    }
+
+    public int checkStock(){
+        for (Map.Entry<Day, Integer> entry : stockAmount.entrySet()) {
+           if( entry.getValue()<0){
+               return entry.getKey().getId();
+           }
+        }
+        return -1;
     }
 }
