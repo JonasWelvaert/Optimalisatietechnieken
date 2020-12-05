@@ -15,7 +15,6 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static graphing.OptimalisationGraphing.csvFile;
 import static main.EnumInputFile.*;
 
 public class Main {
@@ -31,15 +30,18 @@ public class Main {
     private static final String titlePrefix = "\t \t \t ****************************";
 
     public static final List<String> graphingOutput = new ArrayList<>();
-   private static final FeasibiltyChecker feasibiltyChecker = new FeasibiltyChecker();
+    private static final FeasibiltyChecker feasibiltyChecker = new FeasibiltyChecker();
 
     public static void main(String[] args) throws IOException {
         logger.setLevel(Level.OFF);
+        String input = inputFileName.toString();
 
-
+        if (args[0] != null) {
+            input = args[0];
+        }
         // 1. READ IN
-        logger.info(titlePrefix + "1. Reading file " + inputFileName);
-        Planning initialPlanning = readFileIn("instances/" + inputFileName.toString());
+        logger.info(titlePrefix + "1. Reading file " + input);
+        Planning initialPlanning = readFileIn("instances/" + input.toString());
 
         // 2. BUILD INITIAL SOLUTION //TODO misschien initial een beetje slimmer maken ?
         logger.info(titlePrefix + "2. Build initial solution");
@@ -68,12 +70,12 @@ public class Main {
         logger.info(titlePrefix + "4B. Printing result to file");
         File file = new File(outputPrefix);
         file.mkdir();
-        printOutputToFile(outputPrefix + "/" + outputPrefix + "_" + inputFileName, optimizedPlanning);
+        printOutputToFile(outputPrefix + "/" + outputPrefix + "_" + input, optimizedPlanning);
 
         // 5. VALIDATE SOLUTION
         logger.info(titlePrefix + "5. Validate Solution");
         optimizedPlanning.calculateAllCosts();
-        validator.validate("instances/" + inputFileName.toString(), outputPrefix + "/" + outputPrefix + "_" + inputFileName);
+        validator.validate("instances/" + input.toString(), outputPrefix + "/" + outputPrefix + "_" + input);
 
         // 6. print out csv
         logger.info(titlePrefix + "6. Writing optimisation points to csv:");
@@ -257,7 +259,7 @@ public class Main {
             System.out.println(d.hasNightShift() ? 1 : 0);
         }
         System.out.println("#JoinSingleNeighbouringSetup actually done: " + Counting.JoinSingleNeighbouringSetup);
-        System.out.println( "Error counting"+feasibiltyChecker.getEc() );
+        System.out.println("Error counting" + feasibiltyChecker.getEc());
     }
 
     /**
