@@ -55,7 +55,7 @@ public class Main {
 
         // 3. OPTIMIZE
         logger.info(titlePrefix + "3. Optimize");
-        Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 10, 0.9);
+        Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 100000, 0.9999);
 
         Planning optimizedPlanning = solver.optimize(initialPlanning);
         if (!feasibiltyChecker.checkFeasible(optimizedPlanning)) {
@@ -181,8 +181,7 @@ public class Main {
             FileWriter fw = new FileWriter(fileCost, true);
 
             LocalDateTime now = LocalDateTime.now();
-
-            //TODO Romeo
+            
             PrintWriter out = new PrintWriter(fw);
             out.println(now + "\t;" + planning.getInstanceName() + ";" + planning.getTotalCost());
             out.flush();
