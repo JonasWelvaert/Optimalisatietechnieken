@@ -9,6 +9,7 @@ import solver.SimulatedAnnealingSolver;
 import solver.Solver;
 
 import java.io.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -54,7 +55,7 @@ public class Main {
 
         // 3. OPTIMIZE
         logger.info(titlePrefix + "3. Optimize");
-        Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 10000, 0.9999);
+        Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 10, 0.9);
 
         Planning optimizedPlanning = solver.optimize(initialPlanning);
         if (!feasibiltyChecker.checkFeasible(optimizedPlanning)) {
@@ -174,6 +175,21 @@ public class Main {
      */
     public static void printOutputToFile(String filename, Planning planning) {
         try {
+            File fileCost = new File(System.getProperty("user.dir") + "/costs.csv");
+            System.out.println(fileCost);
+
+            FileWriter fw = new FileWriter(fileCost, true);
+
+            LocalDateTime now = LocalDateTime.now();
+
+            //TODO Romeo
+            PrintWriter out = new PrintWriter(fw);
+            out.println(now + "\t;" + planning.getInstanceName() + ";" + planning.getTotalCost());
+            out.flush();
+            out.close();
+            fw.close();
+
+
             File file = new File(filename);
             file.createNewFile();
             BufferedWriter bw = new BufferedWriter(new FileWriter(file));
