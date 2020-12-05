@@ -4,6 +4,7 @@ import feasibilitychecker.FeasibiltyChecker;
 import model.Planning;
 
 import java.io.IOException;
+import java.util.logging.Level;
 
 public class SimulatedAnnealingSolver extends Solver {
     private final double temperature;
@@ -12,6 +13,7 @@ public class SimulatedAnnealingSolver extends Solver {
 
     public SimulatedAnnealingSolver(FeasibiltyChecker feasibiltyChecker, double temperature, double coolingFactor) {
         super(feasibiltyChecker);
+        logger.setLevel(Level.OFF);
         logger.info("Simulated Anealing solver made");
         this.temperature = temperature;
         this.coolingFactor = coolingFactor;

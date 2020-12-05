@@ -1,5 +1,5 @@
 Instance_name: A_10_15_60.txt
-Cost: 295227,65
+Cost: 274352,26
 #Day 0
 0;IDLE;IDLE
 1;IDLE;IDLE
@@ -26,7 +26,7 @@ Cost: 295227,65
 22;IDLE;IDLE
 23;IDLE;IDLE
 #Shipped request ids
--1
+11
 #Night shift
 0
 #Day 1
