@@ -78,9 +78,6 @@ public class Item {
     public void setStockAmount(Day d, int amount) {
         stockAmount.put(d, amount);
 
-        if (stockAmount.get(d) < 0) {
-            System.out.println("Fout");
-        }
     }
 
     public int getInitialQuantityInStock() {

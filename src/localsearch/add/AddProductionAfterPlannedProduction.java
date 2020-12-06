@@ -66,7 +66,7 @@ public class AddProductionAfterPlannedProduction extends LocalSearchStep {
                 	 Day temp = p.getLastNOTPlannedShippingDayForItem(prodItem);
                 	 if (temp == null) { //TODO hier
                          return false;
-                     }else if(temp.getId()<randomDay) {
+                     }else if(temp.getId()<dayTemp.getId()) {
                      	return false;
                      }
                 	
