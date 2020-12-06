@@ -33,12 +33,10 @@ public class AddProductionAfterPlannedProduction extends LocalSearchStep {
         Machine machine = p.getMachines().get(randomMachine);
 
         int numberOfSuccesorDays = Planning.getNumberOfDays() - day.getId();   // @indexOutOfBounds
-
-
+        
         int t0 = 0;
         int t1 = block.getId();
         int t2 = Day.getNumberOfBlocksPerDay() - 1;  // @indexOutOfBounds
-
 
         while (iteration < numberOfSuccesorDays) {
             Day dayTemp = p.getDay(day.getId() + iteration);
@@ -65,6 +63,13 @@ public class AddProductionAfterPlannedProduction extends LocalSearchStep {
                 } else if(productionBlock!= null && ms instanceof Idle) {
                 	// we hebben al gecontroleert als productie mogelijk is
                 	Item prodItem = ((Production) productionBlock.getMachineState(machine)).getItem();
+                	 Day temp = p.getLastNOTPlannedShippingDayForItem(prodItem);
+                	 if (temp == null) { //TODO hier
+                         return false;
+                     }else if(temp.getId()<randomDay) {
+                     	return false;
+                     }
+                	
                 	block.setMachineState(machine, new Production(prodItem));
                     p.updateStockLevels(day, prodItem, machine.getEfficiency(prodItem));
                     return true;

@@ -31,9 +31,12 @@ public class AddSingleProduction extends LocalSearchStep {
             Item nItem = p.getStock().getItem(randomItem);
 
             Day temp = p.getLastNOTPlannedShippingDayForItem(nItem);
-            if (temp != null || temp.getId() < randomDay) { //TODO hier
+            if (temp == null) { //TODO hier
                 count++;
                 continue;
+            }else if(temp.getId()<randomDay) {
+            	count++;
+            	continue;
             }
 
             MachineState machineState = block.getMachineState(machine);

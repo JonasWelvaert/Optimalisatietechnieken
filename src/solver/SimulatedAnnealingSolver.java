@@ -27,7 +27,7 @@ public class SimulatedAnnealingSolver extends Solver {
         int stockRiseLevel = 0;
 
         for (double t = temperature; t > 1; t *= coolingFactor) {
-            logger.info("\t \t \t \t \t \t Temperature = " + t);
+            logger.info("\t Temperature = " + t + "\tCost: "+ best.getTotalCost());
             current.calculateAllCosts();
             current.logCostsToCSV(t);
             do {
