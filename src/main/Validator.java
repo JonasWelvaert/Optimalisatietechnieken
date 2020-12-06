@@ -20,8 +20,8 @@ private boolean isValid;
             InputStream in = proc.getInputStream();
             InputStream err = proc.getErrorStream();
             Scanner scanner = new Scanner(in);
-            String line =  scanner.nextLine();
             while (scanner.hasNextLine()) {
+                String line =  scanner.nextLine();
             	teller++;
                 System.out.println(line);
                 if(teller==0) {
