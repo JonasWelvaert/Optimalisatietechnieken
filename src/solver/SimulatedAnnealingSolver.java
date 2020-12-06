@@ -8,8 +8,8 @@ import java.util.logging.Level;
 
 public class SimulatedAnnealingSolver extends Solver {
     private final double temperature;
-    private final double coolingFactor;
 
+    private double coolingFactor;
 
     public SimulatedAnnealingSolver(FeasibiltyChecker feasibiltyChecker, double temperature, double coolingFactor) {
         super(feasibiltyChecker);
@@ -26,8 +26,8 @@ public class SimulatedAnnealingSolver extends Solver {
         Planning neighbor;
 
         for (double t = temperature; t > 1; t *= coolingFactor) {
-            logger.info("\t Temperature = " + t + "\tCost: "+ best.getTotalCost());
-//          current.calculateAllCosts();
+            double delta = best.getTotalCost() - initialPlanning.getTotalCost();
+            logger.info("\t Temperature = " + t + "\t Cooling = " + coolingFactor + "\tCost: " + best.getTotalCost() + "\t delta: " + delta);
             current.logCostsToCSV(t);
             do {
                 neighbor = new Planning(current);
@@ -42,8 +42,9 @@ public class SimulatedAnnealingSolver extends Solver {
             if (neighborCost < currentCost) {
                 probability = 1;
             } else {
-                probability = Math.exp((currentCost - neighborCost)/(100*t));
-            }
+            	double temp = t * exponentialRegulator;
+                probability = Math.exp((currentCost - neighborCost) / temp);
+             }
             // ACCEPT SOMETIMES EVEN IF COST IS WORSE
             if (Math.random() < probability) {
                 current = new Planning(neighbor);
@@ -51,15 +52,20 @@ public class SimulatedAnnealingSolver extends Solver {
             // OVERWRITE BEST IF COST IS IMPROVED
             if (current.getTotalCost() < best.getTotalCost()) {
                 best = new Planning(current);
-                t = temperature;
+                if (tempReset) {
+                    t = temperature / 2;                              //TODO RESTART IF BETTER SOLUTION FOUND
+                }
+                if (changeCooling) {
+                    coolingFactor += 0.0000009;
+                }
                 if (best.getTotalCost() == 0) {
                     return best;
                 }
-            } else if (current.getTotalCost() == best.getTotalCost()) {
+            }/* else if (current.getTotalCost() == best.getTotalCost()) {
                 if (current.getStockAmount() > best.getStockAmount()) {
                     best = new Planning(current);
                 }
-            }
+            }*/
         }
         System.out.println(feasibiltyChecker.getEc().toString());
         return best;

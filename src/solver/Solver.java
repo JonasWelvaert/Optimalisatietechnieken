@@ -34,25 +34,41 @@ public abstract class Solver {
         int randomInt = random.nextInt(localSearchUpperBound);
         int switcher = 0;
 
+<<<<<<< HEAD
         if (randomInt < (switcher += 10)) {
+=======
+        if (randomInt < (switcher += 10)) {                                                 //10
+>>>>>>> branch 'master' of https://github.com/JonasWelvaert/Optimalisatietechnieken.git
             lssf.getLocalSearchStep(ADD_SINGLE_PRODUCTION).execute(p);
+<<<<<<< HEAD
         } else if (randomInt < (switcher += 10)) {
+=======
+        } else if (randomInt < (switcher += 10)) {                                          //10
+>>>>>>> branch 'master' of https://github.com/JonasWelvaert/Optimalisatietechnieken.git
             lssf.getLocalSearchStep(ADD_PRODUCTION_AFTER_PLANNED_PRODUCTION).execute(p);
-        } else if (randomInt < (switcher += 0)) {
+        } else if (randomInt < (switcher += 0)) {                                           //0
             lssf.getLocalSearchStep(ADD_PARALLELL_PRODUCTION).execute(p);
-        } else if (randomInt < (switcher += 0)) {
+        } else if (randomInt < (switcher += 0)) {                                           //0
             lssf.getLocalSearchStep(MOVE_MAINTENANCE).execute(p);
-        } else if (randomInt < (switcher += 0)) {
+        } else if (randomInt < (switcher += 0)) {                                           //0
             lssf.getLocalSearchStep(CHANGE_PRODUCTION).execute(p);
+<<<<<<< HEAD
         } else if (randomInt < (switcher += 5)) {
+=======
+        } else if (randomInt < (switcher += 10)) {                                          //10
+>>>>>>> branch 'master' of https://github.com/JonasWelvaert/Optimalisatietechnieken.git
             lssf.getLocalSearchStep(REMOVE_PRODUCTION).execute(p);
-        } else if (randomInt < (switcher += 0)) {
+        } else if (randomInt < (switcher += 0)) {                                           //0
             lssf.getLocalSearchStep(MOVE_PRODUCTION).execute(p);
-        } else if (randomInt < (switcher += 0)) {
+        } else if (randomInt < (switcher += 0)) {                                           //0
             lssf.getLocalSearchStep(MOVE_SHIPPING_DAY).execute(p);
+<<<<<<< HEAD
         } else if (randomInt < (switcher += 15)) {
+=======
+        } else if (randomInt < (switcher += 15)) {                                          //15
+>>>>>>> branch 'master' of https://github.com/JonasWelvaert/Optimalisatietechnieken.git
             lssf.getLocalSearchStep(ADD_SHIPPING_DAY).execute(p);
-        } else if (randomInt < (switcher += 5)) {
+        } else if (randomInt < (switcher += 5)) {                                           //5
             lssf.getLocalSearchStep(JOIN_SINGLE_NEIGHBOURING_SETUPS).execute(p);
         } else {
             localSearchUpperBound = switcher;

@@ -21,25 +21,32 @@ import java.util.logging.Logger;
 import static main.EnumInputFile.*;
 
 public class Main {
-	private static final EnumInputFile inputFileName = D10_R10_B30;
-	private static final String outputPrefix = "SA2";
-	private static final Logger logger = Logger.getLogger(Main.class.getName());
-	private static final Validator validator = new Validator();
-	public static double COST_OF_OVERTIME;
-	public static double COST_OF_NIGHT_SHIFT;
-	public static double COST_OF_PARALLEL_TASK;
-	public static double COST_PER_ITEM_UNDER_MINIMUM_LEVEL;
-	public static double initialCost;
-	private static final String titlePrefix = "\t \t \t ****************************";
+    private static final EnumInputFile inputFileName = D10_R10_B30;
+    private static final String outputPrefix = "SA3";
+    private static final Logger logger = Logger.getLogger(Main.class.getName());
+    private static final Validator validator = new Validator();
+    public static double COST_OF_OVERTIME;
+    public static double COST_OF_NIGHT_SHIFT;
+    public static double COST_OF_PARALLEL_TASK;
+    public static double COST_PER_ITEM_UNDER_MINIMUM_LEVEL;
+    public static double initialCost;
+    private static final String titlePrefix = "\t \t \t ****************************";
+    public static final List<String> graphingOutput = new ArrayList<>();
+    private static final FeasibiltyChecker feasibiltyChecker = new FeasibiltyChecker();
 
-	public static String graphingFolder = "GraphingOutput/";
-	public static String costFolder = "Costs/";
-	public static final String SAx_FOLDER = outputPrefix + "/";
-	public static final String INSTANCE_FOLDER = "instances/";
-	public static final String CSV_SEP = ",";
-
-	public static final List<String> graphingOutput = new ArrayList<>();
-	private static final FeasibiltyChecker feasibiltyChecker = new FeasibiltyChecker();
+    /* -------------------------------- FOLDERS -------------------------------- */
+    public static String graphingFolder = "GraphingOutput/";
+    public static String costFolder = "Costs/";
+    public static final String SAx_FOLDER = outputPrefix + "/";
+    public static final String INSTANCE_FOLDER = "instances/";
+    public static final String CSV_SEP = ",";
+    
+    /* -------------------------------- PARAMETERS -------------------------------- */
+    public static final int temperature = 1000;                  //1000
+    public static final double cooling = 0.9999;                //0.9999
+    public static final boolean tempReset = true;               //true
+    public static final boolean changeCooling = true;           //false
+    public static final double exponentialRegulator = 15;       //10            (>1 will accept more worse solutions)
 
 	public static void main(String[] args) throws IOException {
 		// logger.setLevel(Level.OFF);
@@ -251,53 +258,6 @@ public class Main {
 
 		try {
 
-			File file = new File(SAx_FOLDER + outputPrefix + "_" + filename);
-			file.createNewFile();
-			BufferedWriter bw = new BufferedWriter(new FileWriter(file));
-			bw.write("Instance_name: " + planning.getInstanceName() + System.lineSeparator());
-			bw.write("Cost: " + String.format("%.2f", planning.getTotalCost()) + System.lineSeparator());
-			for (Day d : planning.getDays()) {
-				bw.write("#Day " + d.getId() + System.lineSeparator());
-				for (Block b : d) {
-					bw.write(String.valueOf(b.getId()));
-					for (Machine m : planning.getMachines()) {
-						bw.write(";" + b.getMachineState(m).toString());
-					}
-					bw.write(System.lineSeparator());
-				}
-				bw.write("#Shipped request ids" + System.lineSeparator());
-				int teller = 0;
-				for (Request r : planning.getRequests()) {
-					if (r.getShippingDay() != null && r.getShippingDay().equals(d)) {
-						if (teller != 0) {
-							bw.write(";");
-						}
-						bw.write(Integer.toString(r.getId()));
-						teller++;
-					}
-				}
-				if (teller == 0) {
-					bw.write("-1");
-				}
-				bw.write(System.lineSeparator());
-				bw.write("#Night shift" + System.lineSeparator());
-				bw.write((d.hasNightShift() ? 1 : 0) + System.lineSeparator());
-			}
-			bw.flush();
-			bw.close();
-		} catch (IOException e) {
-			System.err.println("4. IOException");
-			e.printStackTrace();
-			System.exit(4);
-		}
-	}
-
-	/**
-	 * This function writes the wished output of a planning to the console
-	 *
-	 * @param planning The planning which has to be written to the console.
-	 */
-	public static void printOutputToConsole(Planning planning) {
 
 		System.out.println("Instance_name: " + planning.getInstanceName());
 		System.out.println("Cost: " + String.format("%.2f", planning.getTotalCost()));
