@@ -9,6 +9,7 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
 import javafx.scene.image.WritableImage;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import javax.imageio.ImageIO;
@@ -18,21 +19,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import static main.Main.*;
+
 public class OptimalisationGraphing extends Application {
-    public static File csvFile = new File(System.getProperty("user.dir") + "/graphing/optimisation.csv");
-    public static final String CSV_SEP = ",";
 
     @Override
     public void start(Stage stage) throws Exception {
-      /*  FileChooser fileChooser = new FileChooser();
-        fileChooser.setInitialDirectory(new File(System.getProperty("user.dir")+"/src/graphing" ));
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setInitialDirectory(new File(graphingFolder));
         fileChooser.setTitle("Open Resource File");
         fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Input files", "*.csv"));
         File selectedFile = fileChooser.showOpenDialog(stage);
         if (selectedFile == null) {
             return;
-        }*/
-        Scanner sc = new Scanner(csvFile);
+        }
+        Scanner sc = new Scanner(selectedFile);
 
         List<Series> series = generateSeriesList();
         String stageTitle = "Cost in function of temperature";

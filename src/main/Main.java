@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 import static main.EnumInputFile.*;
 
 public class Main {
-    private static final EnumInputFile inputFileName = D40_R100_B30;
+    private static final EnumInputFile inputFileName = Toy;
     private static final String outputPrefix = "SA4";
     private static final Logger logger = Logger.getLogger(Main.class.getName());
     private static final Validator validator = new Validator();
@@ -29,10 +29,12 @@ public class Main {
     public static double initialCost;
     private static final String titlePrefix = "\t \t \t ****************************";
 
+
     public static String graphingFolder = System.getProperty("user.dir") + "/GraphingOutput/";
     public static String costFolder = System.getProperty("user.dir") + "/Costs/";
     public static final String SAx_FOLDER = System.getProperty("user.dir") + "/" + outputPrefix + "/";
     public static final String INSTANCE_FOLDER = System.getProperty("user.dir") + "/instances/";
+    public static final String CSV_SEP = ",";
 
 
     public static final List<String> graphingOutput = new ArrayList<>();
@@ -57,7 +59,7 @@ public class Main {
 
         // 3. OPTIMIZE
         logger.info(titlePrefix + "3. Optimize");
-        Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 10, 0.9);
+        Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 10000, 0.999);
 
         Planning optimizedPlanning = solver.optimize(initialPlanning);
         if (!feasibiltyChecker.checkFeasible(optimizedPlanning)) {
