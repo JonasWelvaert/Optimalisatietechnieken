@@ -19,7 +19,7 @@ import static main.EnumInputFile.*;
 
 public class Main {
     private static final EnumInputFile inputFileName = Toy;
-    private static final String outputPrefix = "SA4";
+    private static final String outputPrefix = "SA2";
     private static final Logger logger = Logger.getLogger(Main.class.getName());
     private static final Validator validator = new Validator();
     public static double COST_OF_OVERTIME;
