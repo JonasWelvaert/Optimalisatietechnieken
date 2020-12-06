@@ -38,7 +38,7 @@ public abstract class Solver {
             lssf.getLocalSearchStep(ADD_SINGLE_PRODUCTION).execute(p);
         } else if (randomInt < (switcher += 100)) {
             lssf.getLocalSearchStep(ADD_PRODUCTION_AFTER_PLANNED_PRODUCTION).execute(p);
-        } else if (randomInt < (switcher += 200)) {
+        } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(ADD_PARALLELL_PRODUCTION).execute(p);
         } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(MOVE_MAINTENANCE).execute(p);

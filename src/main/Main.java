@@ -59,7 +59,7 @@ public class Main {
 
         // 3. OPTIMIZE
         logger.info(titlePrefix + "3. Optimize");
-        Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 10000, 0.999);
+        Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 10, 0.9);
 
         Planning optimizedPlanning = solver.optimize(initialPlanning);
         if (!feasibiltyChecker.checkFeasible(optimizedPlanning)) {
@@ -141,7 +141,7 @@ public class Main {
             valid= "IN-VALID";
         }
 
-        out.println(now + "\t;" + p.getInstanceName() + ";" + p.getTotalCost()+"\t;"+valid);
+        out.println(now + "\t;" + p.getInstanceName() + "\t\t\t ;" + p.getTotalCost()+"\t;"+valid+"\t ;"+validator.getShipments());
 
 
         out.flush();
