@@ -38,7 +38,7 @@ public class Main {
 
     /* -------------------------------- PARAMETERS -------------------------------- */
     public static final int temperature =1000;                  //1000
-    public static final double cooling = 0.99999;                //0.9999
+    public static final double cooling = 0.9999;                //0.9999
     public static final double tempReset = 1.5;                   //2             (>1 wil reset temperature after finding best solution newTemp=maxTemp/tempReset
     public static final double exponentialRegulator = 10;       //10            (>1 will accept more worse solutions)
 
@@ -307,6 +307,7 @@ public class Main {
         }
         System.out.println("#JoinSingleNeighbouringSetup actually done: " + Counting.JoinSingleNeighbouringSetup);
         System.out.println("Error counting" + feasibiltyChecker.getEc());
+        System.out.println("t="+temperature+" c="+cooling+" tr="+tempReset+" expR="+exponentialRegulator);
     }
 
     /**
