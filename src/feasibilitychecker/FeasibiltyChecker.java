@@ -22,7 +22,7 @@ public class FeasibiltyChecker {
     private Counting ec;
 
     public FeasibiltyChecker() {
-        logger.setLevel(Level.OFF);
+        //logger.setLevel(Level.OFF);
         ec = new Counting();
     }
 
@@ -127,7 +127,7 @@ public class FeasibiltyChecker {
                 if (!checkChangeOverAndMaintenanceBoundaryConstraints(d, m, planning)) {
                     logger.warning("checkChangeOverAndMaintenanceBoundaryConstraints");
                     ec.increaseCheckChangeOverAndMaintenanceBoundaryConstraints();
-                    return false;
+                    //TODO Jonas: DEZE UITGEZET!!!! return false;
                 }
                 if (!checkMaintenanceConstraints(d, m, planning)) {
                     logger.warning("checkMaintenanceConstraints");
@@ -475,7 +475,9 @@ public class FeasibiltyChecker {
             } else if ((setupTeller > 0 && setupTeller <= setupTime)
                     || (maintenanceTeller > 0 && maintenanceTeller <= maintenanceTime)) {
                 return false;
-
+            	
+            	
+            	
                 // restart
             } else {
                 setupTeller = 0;

@@ -7,46 +7,52 @@ import model.machinestate.Idle;
 import model.machinestate.MachineState;
 import model.machinestate.Maintenance;
 import model.machinestate.Production;
+import model.machinestate.setup.LargeSetup;
 import model.machinestate.setup.Setup;
+import model.machinestate.setup.SmallSetup;
 import solver.SimulatedAnnealingSolver;
 import solver.Solver;
 
 import java.io.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import static main.EnumInputFile.*;
 
 public class Main {
-    private static final EnumInputFile inputFileName = D10_R10_B30;
-    private static final String outputPrefix = "SA3";
-    private static final Logger logger = Logger.getLogger(Main.class.getName());
-    private static final Validator validator = new Validator();
-    public static double COST_OF_OVERTIME;
-    public static double COST_OF_NIGHT_SHIFT;
-    public static double COST_OF_PARALLEL_TASK;
-    public static double COST_PER_ITEM_UNDER_MINIMUM_LEVEL;
-    public static double initialCost;
-    private static final String titlePrefix = "\t \t \t ****************************";
-    public static final List<String> graphingOutput = new ArrayList<>();
-    private static final FeasibiltyChecker feasibiltyChecker = new FeasibiltyChecker();
+	private static final EnumInputFile inputFileName = D10_R10_B30;
+	private static final String outputPrefix = "SA3";
+	private static final Logger logger = Logger.getLogger(Main.class.getName());
+	private static final Validator validator = new Validator();
+	public static double COST_OF_OVERTIME;
+	public static double COST_OF_NIGHT_SHIFT;
+	public static double COST_OF_PARALLEL_TASK;
+	public static double COST_PER_ITEM_UNDER_MINIMUM_LEVEL;
+	public static double initialCost;
+	private static final String titlePrefix = "\t \t \t ****************************";
+	public static final List<String> graphingOutput = new ArrayList<>();
+	private static final FeasibiltyChecker feasibiltyChecker = new FeasibiltyChecker();
 
-    /* -------------------------------- FOLDERS -------------------------------- */
-    public static String graphingFolder = "GraphingOutput/";
-    public static String costFolder = "Costs/";
-    public static final String SAx_FOLDER = outputPrefix + "/";
-    public static final String INSTANCE_FOLDER = "instances/";
-    public static final String CSV_SEP = ",";
+	/* -------------------------------- FOLDERS -------------------------------- */
+	public static String graphingFolder = "GraphingOutput/";
+	public static String costFolder = "Costs/";
+	public static final String SAx_FOLDER = outputPrefix + "/";
+	public static final String INSTANCE_FOLDER = "instances/";
+	public static final String CSV_SEP = ",";
 
-    /* -------------------------------- PARAMETERS -------------------------------- */
-    public static final int temperature = 1000;                  //1000
-    public static final double cooling = 0.9999;                //0.9999
-    public static final boolean tempReset = true;               //true
-    public static final boolean changeCooling = true;           //false
-    public static final double exponentialRegulator = 15;       //10            (>1 will accept more worse solutions)
+	/*
+	 * -------------------------------- PARAMETERS --------------------------------
+	 */
+	public static final int temperature = 1000; // 1000
+	public static final double cooling = 0.9999; // 0.9999
+	public static final boolean tempReset = true; // true
+	public static final boolean changeCooling = false; // false
+	public static final double exponentialRegulator = 150; // 10 (>1 will accept more worse solutions)
 
 	public static void main(String[] args) throws IOException {
 		// logger.setLevel(Level.OFF);
@@ -62,19 +68,20 @@ public class Main {
 
 		if (!feasibiltyChecker.checkFeasible(initialPlanning)) {
 			logger.severe("2. Initial planning is not feasible!");
-			System.exit(2);
+			// System.exit(2);
 		}
 
 		// 3. OPTIMIZE
-		logger.info(titlePrefix + "3. Optimize");
-		Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 1000, 0.999);
+		
+		  logger.info(titlePrefix + "3. Optimize"); Solver solver = new
+		  SimulatedAnnealingSolver(feasibiltyChecker, 1000, 0.9999);
+		  
+		  Planning optimizedPlanning = solver.optimize(initialPlanning); if
+		  (!feasibiltyChecker.checkFeasible(optimizedPlanning)) {
+		  logger.severe("3. optimalized planning is not feasible!"); System.exit(5); }
+		 
 
-		Planning optimizedPlanning = solver.optimize(initialPlanning);
-		if (!feasibiltyChecker.checkFeasible(optimizedPlanning)) {
-			logger.severe("3. optimalized planning is not feasible!");
-			System.exit(5);
-		}
-
+	//	Planning optimizedPlanning = initialPlanning;
 		// 4A. PRINT TO CONSOLE
 		logger.info(titlePrefix + "4A. Printing result to console");
 		printOutputToConsole(optimizedPlanning);
@@ -208,35 +215,158 @@ public class Main {
 		}
 
 		// alle 2 machines produceren
-		Day day0 = p.getDay(0);
+		Set<Item> checkedItems = new HashSet<>();
 		machine: for (Machine m : p.getMachines()) {
-			Item initItem = m.getInitialSetup();
-			int teller = 0;
-			
-			int efficiency = m.getEfficiency(initItem);
-			if(efficiency == 0) {
-				continue machine;
-			}
-			int nrOfBlocks = (int) ((initItem.getMaxAllowedInStock() - initItem.getStockAmount(day0)) / m.getEfficiency(initItem));
+			Item item = m.getInitialSetup();
+			checkedItems.add(item);
 
-			if(nrOfBlocks == 0 ) {
-				continue machine;
-			}
+			boolean changeItem = false;
+			int nrOfBlocks = 0;
+
 			int iteration = 0;
-			
+
 			int t1 = 0;
 			int t2 = Day.getNumberOfBlocksPerDay() - 1; // @indexOutOfBounds
 
 			while (iteration < Planning.getNumberOfDays()) {
 				Day day = p.getDay(iteration);
-				List<Block> possibleBlocks = day.getBlocksBetweenInclusive(t1, t2);
-				for (Block b : possibleBlocks) {
+				List<Block> possibleBlocks = day.getIdleBlocksWithoutOvertimeButWithNighshiftBetweenInclusive(t1, t2,
+						m);
+				block: for (Block b : possibleBlocks) {
 					if (b.getMachineState(m) instanceof Idle) {
-						b.setMachineState(m, new Production(initItem));
-						p.updateStockLevels(day, initItem, m.getEfficiency(initItem));
-						teller++;
-						if (teller >= nrOfBlocks) {
-							continue machine;
+
+						int efficiency = m.getEfficiency(item);
+						if (efficiency == 0) {
+							changeItem = true;
+						} else {
+							int maxStock = item.getMaxAllowedInStock();
+							int maxNeeded = p.getRequests().amountOfItemNeeded(item);
+							int inStock = item.getStockAmount(p.getDay(Planning.getNumberOfDays()-1));
+							if (maxNeeded > inStock) {
+								if (inStock + efficiency <= maxStock) {
+									changeItem = false;
+								} else {
+									changeItem = true;
+								}
+							} else {
+								changeItem = true;
+							}
+						}
+						if (!changeItem) {
+							b.setMachineState(m, new Production(item));
+							p.updateStockLevels(day, item, m.getEfficiency(item));
+							continue block;
+						} else {
+							// change item
+							boolean isLargePossible = true;
+							if (Day.indexOfBlockE <= b.getId() && b.getId() <= Day.indexOfBlockL) {
+								nrOfBlocks = Day.indexOfBlockL - b.getId() + 1;
+							} else {
+								isLargePossible = false;
+							}
+							if (isLargePossible) {
+								// LARGE SETUP, nrOfBlocks al berekend
+								int teller = 0;
+								largecheck: for (Machine m1 : p.getMachines()) {
+									if(m1==m) {
+										continue largecheck;
+									}
+									for (int i = 0; i < nrOfBlocks; i++) {
+										Block b0 = day.getBlock(b.getId() + i);
+										if (b0.getMachineState(m1) instanceof Maintenance
+												|| b0.getMachineState(m1) instanceof LargeSetup) {
+											break largecheck;
+										} else {
+											teller++;
+										}
+									}
+								}
+								if (teller <= 0) {
+									isLargePossible = false;
+								} else {
+									// large setup met teller blokken
+									for (Item i0 : p.getStock().getItems()) {
+										if (!checkedItems.contains(i0)) {
+											if (m.getEfficiency(i0) != 0) {
+												boolean gaVerder = true;
+												int efficiency0 = m.getEfficiency(i0);
+												int maxStock = i0.getMaxAllowedInStock();
+												int maxNeeded = p.getRequests().amountOfItemNeeded(i0);
+												int inStock = i0.getStockAmount(p.getDay(Planning.getNumberOfDays()-1));
+												if (maxNeeded > inStock) {
+													if (inStock + efficiency0 <= maxStock) {
+														gaVerder = true;
+													} else {
+														gaVerder = false;
+													}
+												} else {
+													gaVerder = false;
+												}
+												if (gaVerder) {
+													if (item.isLargeSetup(i0)) {
+														if (item.getSetupTimeTo(i0) <= teller) {
+															for (int i = 0; i < item.getSetupTimeTo(i0); i++) {
+																Block b0 = day.getBlock(b.getId() + i);
+																b0.setMachineState(m, new LargeSetup(item, i0));
+															}
+															checkedItems.add(i0);
+															item = i0;
+															continue block;
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+							// DO SMALL SETUP
+							for (Item i0 : p.getStock().getItems()) {
+								if (!checkedItems.contains(i0)) {
+									if (m.getEfficiency(i0) != 0) {
+										boolean gaVerder = true;
+										int efficiency0 = m.getEfficiency(i0);
+										int maxStock = i0.getMaxAllowedInStock();
+										int maxNeeded = p.getRequests().amountOfItemNeeded(i0);
+										int inStock = i0.getStockAmount(p.getDay(Planning.getNumberOfDays()-1));
+										if (maxNeeded > inStock) {
+											if (inStock + efficiency0 <= maxStock) {
+												gaVerder = true;
+											} else {
+												gaVerder = false;
+											}
+										} else {
+											gaVerder = false;
+										}
+										if (gaVerder) {
+											if (!item.isLargeSetup(i0)) {
+												int blockId = b.getId();
+												List<Block> blocks = day
+														.getIdleBlocksWithoutOvertimeButWithNighshiftBetweenInclusive(
+																blockId, Day.getNumberOfBlocksPerDay() - 1, m);
+												if (blocks.size() < item.getSetupTimeTo(i0)) {
+													if (day.getId() + 1 < Planning.getNumberOfDays()) {
+														int amount = item.getSetupTimeTo(i0) - blocks.size();
+														blocks.addAll(p.getDay(day.getId() + 1)
+																.getIdleBlocksWithoutOvertimeButWithNighshiftBetweenInclusive(
+																		0, amount - 1, m));
+													} else {
+														continue machine;
+													}
+												}
+												for (int i = 0; i < item.getSetupTimeTo(i0); i++) {
+													Block b0 = blocks.get(i);
+													b0.setMachineState(m, new SmallSetup(item, i0));
+												}
+												item = i0;
+												checkedItems.add(i0);
+												continue block;
+											}
+										}
+									}
+								}
+							}
+
 						}
 					}
 				}

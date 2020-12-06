@@ -33,6 +33,16 @@ public class Requests implements Iterable<Request> {
 		}
 		throw new RuntimeException("Request id not found.");
     }
+    
+    public int amountOfItemNeeded(Item item) {
+    	int ret = 0;
+    	for(Request r: requests) {
+    		if(!r.hasShippingDay() && r.containsItem(item)) {
+    			ret += r.getAmountOfItem(item);
+    		}
+    	}
+    	return ret;
+    }
 
     @Override
     public Iterator<Request> iterator() {

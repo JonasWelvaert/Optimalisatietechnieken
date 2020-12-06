@@ -31,7 +31,7 @@ public class Validator {
                     isValid = line.split(" ")[1].equals("VALID");
 
                 }
-                if (teller == 4 && !isValid) {
+                if (teller == 4 && isValid) {
                     shipments = Integer.parseInt(line.split(" ")[3]);
                 }
             }
