@@ -24,7 +24,7 @@ private boolean isValid;
                 String line =  scanner.nextLine();
             	teller++;
                 System.out.println(line);
-                if(teller==0) {
+                if(teller==1) {
                 	isValid = line.split(" ")[1].equals("VALID");
                 }
             }

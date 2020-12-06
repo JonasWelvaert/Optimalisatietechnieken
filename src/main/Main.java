@@ -30,10 +30,10 @@ public class Main {
     private static final String titlePrefix = "\t \t \t ****************************";
 
 
-    public static String graphingFolder = System.getProperty("user.dir") + "/GraphingOutput/";
-    public static String costFolder = System.getProperty("user.dir") + "/Costs/";
-    public static final String SAx_FOLDER = System.getProperty("user.dir") + "/" + outputPrefix + "/";
-    public static final String INSTANCE_FOLDER = System.getProperty("user.dir") + "/instances/";
+    public static String graphingFolder ="GraphingOutput/";
+    public static String costFolder = "Costs/";
+    public static final String SAx_FOLDER =  outputPrefix + "/";
+    public static final String INSTANCE_FOLDER = "instances/";
     public static final String CSV_SEP = ",";
 
 
