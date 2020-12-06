@@ -134,8 +134,14 @@ public class Main {
         PrintWriter out = new PrintWriter(fw);
 
         LocalDateTime now = LocalDateTime.now();
+        String valid;
+        if (validator.isValid()){
+            valid= "VALID";
+        }else {
+            valid= "IN-VALID";
+        }
 
-        out.println(now + "\t;" + p.getInstanceName() + ";" + p.getTotalCost());
+        out.println(now + "\t;" + p.getInstanceName() + ";" + p.getTotalCost()+"\t;"+valid);
 
 
         out.flush();
