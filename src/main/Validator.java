@@ -6,6 +6,7 @@ import java.util.Scanner;
 
 public class Validator {
     private boolean isValid;
+    private int shipments;
 
     public Validator() {
 
@@ -28,6 +29,10 @@ public class Validator {
 
                 if (teller == 1) {
                     isValid = line.split(" ")[1].equals("VALID");
+
+                }
+                if (teller == 4) {
+                    shipments = Integer.parseInt(line.split(" ")[3]);
                 }
             }
             scanner.close();
@@ -45,5 +50,7 @@ public class Validator {
         return isValid;
     }
 
-
+    public int getShipments() {
+        return shipments;
+    }
 }
