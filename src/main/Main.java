@@ -28,6 +28,8 @@ public class Main {
     public static double COST_PER_ITEM_UNDER_MINIMUM_LEVEL;
     public static double initialCost;
     private static final String titlePrefix = "\t \t \t ****************************";
+    public static final List<String> graphingOutput = new ArrayList<>();
+    private static final FeasibiltyChecker feasibiltyChecker = new FeasibiltyChecker();
 
     /* -------------------------------- FOLDERS -------------------------------- */
     public static String graphingFolder ="GraphingOutput/";
@@ -41,10 +43,6 @@ public class Main {
     public static final double cooling = 0.9999;                //0.9999
     public static final double tempReset = 1.5;                   //2             (>1 wil reset temperature after finding best solution newTemp=maxTemp/tempReset
     public static final double exponentialRegulator = 10;       //10            (>1 will accept more worse solutions)
-
-
-    public static final List<String> graphingOutput = new ArrayList<>();
-    private static final FeasibiltyChecker feasibiltyChecker = new FeasibiltyChecker();
 
     public static void main(String[] args) throws IOException {
         //logger.setLevel(Level.OFF);
