@@ -55,7 +55,7 @@ public class Main {
 
 		// 3. OPTIMIZE
 		logger.info(titlePrefix + "3. Optimize");
-		Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 100000, 0.9999);
+		Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 10000, 0.999);
 
 		Planning optimizedPlanning = solver.optimize(initialPlanning);
 		if (!feasibiltyChecker.checkFeasible(optimizedPlanning)) {

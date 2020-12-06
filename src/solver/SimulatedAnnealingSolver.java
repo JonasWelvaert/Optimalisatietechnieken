@@ -24,7 +24,6 @@ public class SimulatedAnnealingSolver extends Solver {
         Planning current = new Planning(initialPlanning);
         Planning best = initialPlanning;
         Planning neighbor;
-        int stockRiseLevel = 0;
 
         for (double t = temperature; t > 1; t *= coolingFactor) {
             logger.info("\t Temperature = " + t + "\tCost: "+ best.getTotalCost());
@@ -33,7 +32,6 @@ public class SimulatedAnnealingSolver extends Solver {
             do {
                 neighbor = new Planning(current);
                 localSearch(neighbor);
-//                Main.printOutputToFile("testing.txt",neighbor);
 
             } while (!feasibiltyChecker.checkFeasible(neighbor));
 
