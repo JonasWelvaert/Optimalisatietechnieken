@@ -1,33 +1,39 @@
 package graphing;
 
 import javafx.application.Application;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
+import javafx.scene.image.WritableImage;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import javax.imageio.ImageIO;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import static main.Main.*;
+
 public class OptimalisationGraphing extends Application {
-    public static File csvFile = new File(System.getProperty("user.dir") + "/optimisation.csv");
-    public static final String CSV_SEP = ",";
 
     @Override
     public void start(Stage stage) throws Exception {
-      /*  FileChooser fileChooser = new FileChooser();
-        fileChooser.setInitialDirectory(new File(System.getProperty("user.dir")+"/src/graphing" ));
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setInitialDirectory(new File(graphingFolder));
         fileChooser.setTitle("Open Resource File");
         fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Input files", "*.csv"));
         File selectedFile = fileChooser.showOpenDialog(stage);
         if (selectedFile == null) {
             return;
-        }*/
-        Scanner sc = new Scanner(csvFile);
+        }
+        Scanner sc = new Scanner(selectedFile);
 
         List<Series> series = generateSeriesList();
         String stageTitle = "Cost in function of temperature";
@@ -44,7 +50,6 @@ public class OptimalisationGraphing extends Application {
         lineChart.setTitle(lineChartTitle);
 
 
-
         while (sc.hasNextLine()) {
             String[] nextLine = sc.nextLine().split(CSV_SEP);
             double t = Double.parseDouble(nextLine[0]);
@@ -55,6 +60,8 @@ public class OptimalisationGraphing extends Application {
         }
         lineChart.getData().add(series.get(1));
 
+
+
         /* for (Series s : series) {
             lineChart.getData().addAll(s);
         }*/
@@ -63,6 +70,16 @@ public class OptimalisationGraphing extends Application {
         stage.setScene(scene);
         stage.setMaximized(true);
         stage.show();
+    }
+
+    public void saveAsPng(LineChart lineChart, String path) {
+        WritableImage image = lineChart.snapshot(new SnapshotParameters(), null);
+        File file = new File(path);
+        try {
+            ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private List<Series> generateSeriesList() {

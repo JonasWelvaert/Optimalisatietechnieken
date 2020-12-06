@@ -7,7 +7,10 @@
 #INTELIJ PART
 /.idea/
 /Optimalisatietechnieken.iml
-/output_*.txt
-/initial_*.txt
-/graphing
-optimisation.csv
+
+/Costs
+/GraphingOutput
+
+/initial
+/instances
+/SA*
