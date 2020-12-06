@@ -26,11 +26,11 @@ public class AddShippingDay extends LocalSearchStep {
 
                 boolean isPossible=true;
                 // FOR SD CHECK IF IN FUTURE STOCK IS NOT VIOLATED
-                for (Day d : p.getSuccessorDaysInclusive(sd)) {
+                successorDays: for (Day d : p.getSuccessorDaysInclusive(sd)) {
                     for (Item i : request.getItemsKeySet()) {
                         if (i.getStockAmount(d) - request.getAmountOfItem(i) < 0) {
                             isPossible = false;
-                            break;
+                            break successorDays;
                         }
                     }
                 }
