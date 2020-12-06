@@ -71,7 +71,7 @@ public class AddProductionAfterPlannedProduction extends LocalSearchStep {
                      }
                 	
                 	block.setMachineState(machine, new Production(prodItem));
-                    p.updateStockLevels(day, prodItem, machine.getEfficiency(prodItem));
+                    p.updateStockLevels(dayTemp, prodItem, machine.getEfficiency(prodItem));
                     return true;
                 }
 
