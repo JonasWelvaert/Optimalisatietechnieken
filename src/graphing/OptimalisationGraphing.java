@@ -55,11 +55,17 @@ public class OptimalisationGraphing extends Application {
             double t = Double.parseDouble(nextLine[0]);
             for (int i = 1; i < 6; i++) {
                 double value = Double.parseDouble(nextLine[i]);
-                series.get(i).getData().add(new Data(t, value));
+                Data data = new Data(t, value);
+                series.get(i).getData().add(data);
+                System.out.println(data);
             }
         }
-        lineChart.getData().add(series.get(1));
-
+//        lineChart.getData().add(series.get(1)); //TOTAL
+        lineChart.getData().add(series.get(2));  //costNightShift
+        lineChart.getData().add(series.get(3)); //costOverTime
+        lineChart.getData().add(series.get(4)); //costUnscheduledRequests
+        lineChart.getData().add(series.get(5)); //costStockLevel
+        lineChart.getData().add(series.get(6)); //costParallelDays
 
 
         /* for (Series s : series) {

@@ -19,7 +19,7 @@ import static main.EnumInputFile.*;
 
 public class Main {
     private static final EnumInputFile inputFileName = D10_R10_B30;
-    private static final String outputPrefix = "SA2";
+    private static final String outputPrefix = "SA3";
     private static final Logger logger = Logger.getLogger(Main.class.getName());
     private static final Validator validator = new Validator();
     public static double COST_OF_OVERTIME;
@@ -29,12 +29,18 @@ public class Main {
     public static double initialCost;
     private static final String titlePrefix = "\t \t \t ****************************";
 
-
+    /* -------------------------------- FOLDERS -------------------------------- */
     public static String graphingFolder ="GraphingOutput/";
     public static String costFolder = "Costs/";
     public static final String SAx_FOLDER =  outputPrefix + "/";
     public static final String INSTANCE_FOLDER = "instances/";
     public static final String CSV_SEP = ",";
+
+    /* -------------------------------- PARAMETERS -------------------------------- */
+    public static final int temperature =1000;                  //1000
+    public static final double cooling = 0.99999;                //0.9999
+    public static final double tempReset = 1.5;                   //2             (>1 wil reset temperature after finding best solution newTemp=maxTemp/tempReset
+    public static final double exponentialRegulator = 10;       //10            (>1 will accept more worse solutions)
 
 
     public static final List<String> graphingOutput = new ArrayList<>();
@@ -59,7 +65,7 @@ public class Main {
 
         // 3. OPTIMIZE
         logger.info(titlePrefix + "3. Optimize");
-        Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 10000, 0.999);
+        Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, temperature, cooling);
 
         Planning optimizedPlanning = solver.optimize(initialPlanning);
         if (!feasibiltyChecker.checkFeasible(optimizedPlanning)) {

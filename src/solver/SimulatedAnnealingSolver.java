@@ -4,14 +4,12 @@ import feasibilitychecker.FeasibiltyChecker;
 import model.Planning;
 
 import java.io.IOException;
-import java.util.logging.Level;
+
+import static main.Main.*;
 
 public class SimulatedAnnealingSolver extends Solver {
     private final double temperature;
     private final double coolingFactor;
-    int maxNumberOfWorseAcceptings = 50;
-    int counter = 0;
-
 
     public SimulatedAnnealingSolver(FeasibiltyChecker feasibiltyChecker, double temperature, double coolingFactor) {
         super(feasibiltyChecker);
@@ -29,7 +27,6 @@ public class SimulatedAnnealingSolver extends Solver {
 
         for (double t = temperature; t > 1; t *= coolingFactor) {
             logger.info("\t Temperature = " + t + "\tCost: " + best.getTotalCost());
-//          current.calculateAllCosts();
             current.logCostsToCSV(t);
             do {
                 neighbor = new Planning(current);
@@ -45,9 +42,7 @@ public class SimulatedAnnealingSolver extends Solver {
                 probability = 1;
             } else {
                 // save solution temp
-                counter++;
-
-                double temp = t * 100;
+                double temp = t * exponentialRegulator;
                 probability = Math.exp((currentCost - neighborCost) / temp);
             }
             // ACCEPT SOMETIMES EVEN IF COST IS WORSE
@@ -57,6 +52,7 @@ public class SimulatedAnnealingSolver extends Solver {
             // OVERWRITE BEST IF COST IS IMPROVED
             if (current.getTotalCost() < best.getTotalCost()) {
                 best = new Planning(current);
+                t = temperature / tempReset;                              //TODO RESTART IF BETTER SOLUTION FOUND
                 if (best.getTotalCost() == 0) {
                     return best;
                 }
