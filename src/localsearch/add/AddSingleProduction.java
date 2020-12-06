@@ -28,8 +28,9 @@ public class AddSingleProduction extends LocalSearchStep {
 			Block block = day.getBlock(randomBlock);
 			randomMachine = random.nextInt(p.getMachines().size());
 			Machine machine = p.getMachines().get(randomMachine);
-			randomItem = random.nextInt(Stock.getNrOfDifferentItems());
-			Item nItem = p.getStock().getItem(randomItem);
+			List<Item> possibleRandomItems = p.getStock().getPossibleItemsForMachine(machine);
+			randomItem = random.nextInt(possibleRandomItems.size());
+			Item nItem = possibleRandomItems.get(randomItem);
 
 			Day temp = p.getLastNOTPlannedShippingDayForItem(nItem);
 			if (temp == null) {
