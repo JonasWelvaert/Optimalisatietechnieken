@@ -5,14 +5,15 @@ import java.io.InputStream;
 import java.util.Scanner;
 
 public class Validator {
-private boolean isValid;
+    private boolean isValid;
+
     public Validator() {
-    	
+
     }
 
     public void validate(String inputFileName, String outputFileName) {
         try {
-        	int teller = 0;
+            int teller = 0;
             // Run a java app in a separate system process
             Process proc;
             proc = Runtime.getRuntime().exec("java -jar AspValidator.jar -i " + inputFileName + " -s " + outputFileName);
@@ -21,11 +22,12 @@ private boolean isValid;
             InputStream err = proc.getErrorStream();
             Scanner scanner = new Scanner(in);
             while (scanner.hasNextLine()) {
-                String line =  scanner.nextLine();
-            	teller++;
+                String line = scanner.nextLine();
+                teller++;
                 System.out.println(line);
-                if(teller==1) {
-                	isValid = line.split(" ")[1].equals("VALID");
+
+                if (teller == 1) {
+                    isValid = line.split(" ")[1].equals("VALID");
                 }
             }
             scanner.close();
@@ -38,9 +40,10 @@ private boolean isValid;
             System.out.println("Verplaats de jar file naar de correcte map: de root map waarin onderandere src/ en en alle instancefiles zitten.");
         }
     }
+
     public boolean isValid() {
-		return isValid;
-	}
-    
-    
+        return isValid;
+    }
+
+
 }
