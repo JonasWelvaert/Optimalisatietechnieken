@@ -32,17 +32,18 @@ public class Main {
     private static final FeasibiltyChecker feasibiltyChecker = new FeasibiltyChecker();
 
     /* -------------------------------- FOLDERS -------------------------------- */
-    public static String graphingFolder ="GraphingOutput/";
+    public static String graphingFolder = "GraphingOutput/";
     public static String costFolder = "Costs/";
-    public static final String SAx_FOLDER =  outputPrefix + "/";
+    public static final String SAx_FOLDER = outputPrefix + "/";
     public static final String INSTANCE_FOLDER = "instances/";
     public static final String CSV_SEP = ",";
 
     /* -------------------------------- PARAMETERS -------------------------------- */
-    public static final int temperature =1000;                  //1000
+    public static final int temperature = 1000;                  //1000
     public static final double cooling = 0.9999;                //0.9999
-    public static final double tempReset = 1.5;                   //2             (>1 wil reset temperature after finding best solution newTemp=maxTemp/tempReset
-    public static final double exponentialRegulator = 10;       //10            (>1 will accept more worse solutions)
+    public static final boolean tempReset = true;               //true
+    public static final boolean changeCooling = true;           //false
+    public static final double exponentialRegulator = 15;       //10            (>1 will accept more worse solutions)
 
     public static void main(String[] args) throws IOException {
         //logger.setLevel(Level.OFF);
@@ -139,13 +140,13 @@ public class Main {
 
         LocalDateTime now = LocalDateTime.now();
         String valid;
-        if (validator.isValid()){
-            valid= "VALID";
-        }else {
-            valid= "IN-VALID";
+        if (validator.isValid()) {
+            valid = "VALID";
+        } else {
+            valid = "IN-VALID";
         }
 
-        out.println(now + "\t;" + p.getInstanceName() + "\t\t\t ;" + p.getTotalCost()+"\t;"+valid+"\t ;"+validator.getShipments());
+        out.println(now + "\t;" + p.getInstanceName() + "\t\t\t ;" + p.getTotalCost() + "\t;" + valid + "\t ;" + validator.getShipments());
 
 
         out.flush();
@@ -305,7 +306,7 @@ public class Main {
         }
         System.out.println("#JoinSingleNeighbouringSetup actually done: " + Counting.JoinSingleNeighbouringSetup);
         System.out.println("Error counting" + feasibiltyChecker.getEc());
-        System.out.println("t="+temperature+" c="+cooling+" tr="+tempReset+" expR="+exponentialRegulator);
+        System.out.println("t=" + temperature + " c=" + cooling + " tr=" + tempReset + " cc=" + changeCooling + " expR=" + exponentialRegulator);
     }
 
     /**

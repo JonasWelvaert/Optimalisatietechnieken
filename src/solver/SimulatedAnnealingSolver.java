@@ -9,7 +9,7 @@ import static main.Main.*;
 
 public class SimulatedAnnealingSolver extends Solver {
     private final double temperature;
-    private final double coolingFactor;
+    private double coolingFactor;
 
     public SimulatedAnnealingSolver(FeasibiltyChecker feasibiltyChecker, double temperature, double coolingFactor) {
         super(feasibiltyChecker);
@@ -26,7 +26,7 @@ public class SimulatedAnnealingSolver extends Solver {
         Planning neighbor;
 
         for (double t = temperature; t > 1; t *= coolingFactor) {
-            logger.info("\t Temperature = " + t + "\tCost: " + best.getTotalCost());
+            logger.info("\t Temperature = " + t + "\t Cooling = " + coolingFactor + "\tCost: " + best.getTotalCost());
             current.logCostsToCSV(t);
             do {
                 neighbor = new Planning(current);
@@ -52,15 +52,22 @@ public class SimulatedAnnealingSolver extends Solver {
             // OVERWRITE BEST IF COST IS IMPROVED
             if (current.getTotalCost() < best.getTotalCost()) {
                 best = new Planning(current);
-                t = temperature / tempReset;                              //TODO RESTART IF BETTER SOLUTION FOUND
+
+                if (tempReset) {
+                    t = temperature / 2;                              //TODO RESTART IF BETTER SOLUTION FOUND
+                }
+                if (changeCooling) {
+                    coolingFactor += 0.0000009;
+                }
+
                 if (best.getTotalCost() == 0) {
                     return best;
                 }
-            } else if (current.getTotalCost() == best.getTotalCost()) {
+            } /*else if (current.getTotalCost() == best.getTotalCost()) {
                 if (current.getStockAmount() > best.getStockAmount()) {
                     best = new Planning(current);
                 }
-            }
+            }*/
         }
         System.out.println(feasibiltyChecker.getEc().toString());
         return best;
