@@ -10,4 +10,6 @@
 /output_*.txt
 /initial_*.txt
 /graphing
+/SA*.txt
+costs.csv
 optimisation.csv
