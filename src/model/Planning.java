@@ -190,7 +190,13 @@ public class Planning {
     }
 
     public Day getDay(int id) {
-        return days.get(id);
+
+		for (Day d: days) {
+			if (d.getId() == id) {
+				return d;
+			}
+		}
+		throw new RuntimeException("Day id not found.");
     }
 
     public List<Day> getDays() {

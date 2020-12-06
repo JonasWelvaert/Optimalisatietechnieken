@@ -25,8 +25,13 @@ public class Requests implements Iterable<Request> {
         return requests;
     }
 
-    public Request get(int i) {
-        return requests.get(i);
+    public Request get(int id) {
+		for (Request r: requests) {
+			if (r.getId() == id) {
+				return r;
+			}
+		}
+		throw new RuntimeException("Request id not found.");
     }
 
     @Override
