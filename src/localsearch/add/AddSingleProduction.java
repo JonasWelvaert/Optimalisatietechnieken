@@ -11,77 +11,83 @@ import java.util.List;
 
 public class AddSingleProduction extends LocalSearchStep {
 
-    public AddSingleProduction(int maxTries) {
-        super(maxTries);
-    }
+	public AddSingleProduction(int maxTries) {
+		super(maxTries);
+	}
 
-    @Override
-    public boolean execute(Planning p) {
-        int count = 0;
-        int randomDay, randomBlock, randomMachine, randomItem;
+	@Override
+	public boolean execute(Planning p) {
+		int count = 0;
+		int randomDay, randomBlock, randomMachine, randomItem;
 
-        while (count < maxTries) {
-            randomDay = random.nextInt(Planning.getNumberOfDays());
-            Day day = p.getDay(randomDay);
-            randomBlock = random.nextInt(Day.getNumberOfBlocksPerDay());
-            Block block = day.getBlock(randomBlock);
-            randomMachine = random.nextInt(p.getMachines().size());
-            Machine machine = p.getMachines().get(randomMachine);
-            randomItem = random.nextInt(Stock.getNrOfDifferentItems());
-            Item nItem = p.getStock().getItem(randomItem);
+		tries: while (count < maxTries) {
+			count++;
+			randomDay = random.nextInt(Planning.getNumberOfDays());
+			Day day = p.getDay(randomDay);
+			randomBlock = random.nextInt(Day.getNumberOfBlocksPerDay());
+			Block block = day.getBlock(randomBlock);
+			randomMachine = random.nextInt(p.getMachines().size());
+			Machine machine = p.getMachines().get(randomMachine);
+			randomItem = random.nextInt(Stock.getNrOfDifferentItems());
+			Item nItem = p.getStock().getItem(randomItem);
 
-            Day temp = p.getLastNOTPlannedShippingDayForItem(nItem);
-            if (temp == null) { //TODO hier
-                count++;
-                continue;
-            }else if(temp.getId()<randomDay) {
-            	count++;
-            	continue;
-            }
+			Day temp = p.getLastNOTPlannedShippingDayForItem(nItem);
+			if (temp == null) {
+				continue tries;
+			} else if (temp.getId() < randomDay) {
+				continue tries;
+			}
 
-            MachineState machineState = block.getMachineState(machine);
-            if (machineState instanceof Idle) {
-                Item pItem = machine.getPreviousItem(p, day, block);
+			MachineState machineState = block.getMachineState(machine);
+			if (machineState instanceof Idle) {
+				Item pItem = machine.getPreviousItem(p, day, block);
 
-                int machineEfficiency = machine.getEfficiency(nItem);
-                if (machineEfficiency != 0) {
-                    boolean productionCanBePlanned;
+				int machineEfficiency = machine.getEfficiency(nItem);
+				if (machineEfficiency != 0) {
+					boolean productionCanBePlanned;
 
-                    // STARTING FROM FEASIBLE STATE, SO IF NO BEFORE NEEDED, ALSO NO AFTER IS NEEDED
-                    if (!pItem.equals(nItem)) {
-                        Setup setupBefore = pItem.getSetupTo(nItem);
-                        Setup setupAfter = nItem.getSetupTo(pItem); //TODO niet altijd nodig !!!
-                        List<Block> beforeBlocks = getSetupBlockBeforeProduction(setupBefore, day, block, machine, p);
-                        List<Block> afterBlocks = getSetupBlocksAfterProduction(setupAfter, day, block, machine, p);
+					// STARTING FROM FEASIBLE STATE, SO IF NO BEFORE NEEDED, ALSO NO AFTER IS NEEDED
+					if (!pItem.equals(nItem)) {
+						Setup setupBefore = pItem.getSetupTo(nItem);
+						Setup setupAfter = nItem.getSetupTo(pItem); // TODO niet altijd nodig !!!
+						List<Block> beforeBlocks = getSetupBlockBeforeProduction(setupBefore, day, block, machine, p);
+						List<Block> afterBlocks = getSetupBlocksAfterProduction(setupAfter, day, block, machine, p);
 
-                        //PLAN THE SETUPS IF NOT NULL
-                        if (beforeBlocks != null && afterBlocks != null) {
-                            for (Block b : beforeBlocks) {
-                                b.setMachineState(machine, setupBefore);
-                            }
-                            for (Block b : afterBlocks) {
-                                b.setMachineState(machine, setupAfter);
-                            }
-                            productionCanBePlanned = true;
-                        } else {
-                            productionCanBePlanned = false;
-                        }
-                    }
-                    //ITEM ARE THE SAME SO NO SETUP NEEDED
-                    else {
-                        productionCanBePlanned = true;
-                    }
-                    //PLAN PRODUCTION
-                    if (productionCanBePlanned) {
-                        block.setMachineState(machine, new Production(nItem));
-                        p.updateStockLevels(day, nItem, machineEfficiency);
+						// PLAN THE SETUPS IF NOT NULL
+						if (beforeBlocks != null && afterBlocks != null) {
+							for (Block b : beforeBlocks) {
+								b.setMachineState(machine, setupBefore);
+							}
+							for (Block b : afterBlocks) {
+								b.setMachineState(machine, setupAfter);
+							}
+							productionCanBePlanned = true;
+						} else {
+							continue tries;
+						}
+					}
+					// ITEM ARE THE SAME SO NO SETUP NEEDED
+					else {
+						productionCanBePlanned = true;
+					}
+					// PLAN PRODUCTION
+					if (productionCanBePlanned) {
+						boolean isPossible = true;
+						for (Day d : p.getSuccessorDaysInclusive(day)) {
+							if (nItem.getStockAmount(d) + machine.getEfficiency(nItem) > nItem.getMaxAllowedInStock()) {
+								continue tries;
+							}
+						}
+						if (isPossible) {
+							block.setMachineState(machine, new Production(nItem));
+							p.updateStockLevels(day, nItem, machineEfficiency);
 
-                        return true;
-                    }
-                }
-                count++;
-            }
-        }
-        return false;
-    }
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
 }

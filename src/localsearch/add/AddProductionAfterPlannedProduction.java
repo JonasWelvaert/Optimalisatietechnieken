@@ -16,69 +16,77 @@ import model.machinestate.setup.Setup;
 
 public class AddProductionAfterPlannedProduction extends LocalSearchStep {
 
-    public AddProductionAfterPlannedProduction(int maxTries) {
-        super(maxTries);
-    }
+	public AddProductionAfterPlannedProduction(int maxTries) {
+		super(maxTries);
+	}
 
-    @Override
-    public boolean execute(Planning p) {
-        int iteration = 0;
-        int randomDay, randomBlock, randomMachine;
-        
-        randomDay = random.nextInt(Planning.getNumberOfDays());
-        Day day = p.getDay(randomDay);
-        randomBlock = random.nextInt(Day.getNumberOfBlocksPerDay());
-        Block block = day.getBlock(randomBlock);
-        randomMachine = random.nextInt(p.getMachines().size());
-        Machine machine = p.getMachines().get(randomMachine);
+	@Override
+	public boolean execute(Planning p) {
+		int iteration = 0;
+		int randomDay, randomBlock, randomMachine;
 
-        int numberOfSuccesorDays = Planning.getNumberOfDays() - day.getId();   // @indexOutOfBounds
-        
-        int t0 = 0;
-        int t1 = block.getId();
-        int t2 = Day.getNumberOfBlocksPerDay() - 1;  // @indexOutOfBounds
+		randomDay = random.nextInt(Planning.getNumberOfDays());
+		Day day = p.getDay(randomDay);
+		randomBlock = random.nextInt(Day.getNumberOfBlocksPerDay());
+		Block block = day.getBlock(randomBlock);
+		randomMachine = random.nextInt(p.getMachines().size());
+		Machine machine = p.getMachines().get(randomMachine);
 
-        while (iteration < numberOfSuccesorDays) {
-            Day dayTemp = p.getDay(day.getId() + iteration);
+		int numberOfSuccesorDays = Planning.getNumberOfDays() - day.getId(); // @indexOutOfBounds
 
-            List<Block> possibleBlocks = dayTemp.getBlocksBetweenInclusive(t1, t2);
+		int t0 = 0;
+		int t1 = block.getId();
+		int t2 = Day.getNumberOfBlocksPerDay() - 1; // @indexOutOfBounds
 
-            Block productionBlock = null;
-            
-            for (Block b : possibleBlocks) {
-                //FIND NEXT PRODUCTION BLOCK
-                MachineState ms = b.getMachineState(machine);
-                if (ms instanceof Production) {
-                    if (productionBlock == null) {
-                        productionBlock = b;
-                        //TODO check if possible to produce more of item i
-                        // else infeasible?!?
-                    }else {
-                    	//do nothing.
-                    }
+		while (iteration < numberOfSuccesorDays) {
+			Day dayTemp = p.getDay(day.getId() + iteration);
 
-                } else if (productionBlock != null && ms instanceof Setup) {
-                	//We konden geen productie plannen achter vorige productie
-                    return false;
-                } else if(productionBlock!= null && ms instanceof Idle) {
-                	// we hebben al gecontroleert als productie mogelijk is
-                	Item prodItem = ((Production) productionBlock.getMachineState(machine)).getItem();
-                	 Day temp = p.getLastNOTPlannedShippingDayForItem(prodItem);
-                	 if (temp == null) { //TODO hier
-                         return false;
-                     }else if(temp.getId()<dayTemp.getId()) {
-                     	return false;
-                     }
-                	
-                	block.setMachineState(machine, new Production(prodItem));
-                    p.updateStockLevels(dayTemp, prodItem, machine.getEfficiency(prodItem));
-                    return true;
-                }
+			List<Block> possibleBlocks = dayTemp.getBlocksBetweenInclusive(t1, t2);
 
-            }
-            t1 = t0;
-            iteration++;
-        }
-        return false;
-    }
+			Block productionBlock = null;
+
+			for (Block b : possibleBlocks) {
+				// FIND NEXT PRODUCTION BLOCK
+				MachineState ms = b.getMachineState(machine);
+				if (ms instanceof Production) {
+					if (productionBlock == null) {
+						productionBlock = b;
+						// TODO check if possible to produce more of item i
+						// else infeasible?!?
+					} else {
+						// do nothing.
+					}
+
+				} else if (productionBlock != null && ms instanceof Setup) {
+					// We konden geen productie plannen achter vorige productie
+					return false;
+				} else if (productionBlock != null && ms instanceof Idle) {
+					// we hebben al gecontroleert als productie mogelijk is
+					Item prodItem = ((Production) productionBlock.getMachineState(machine)).getItem();
+					Day temp = p.getLastNOTPlannedShippingDayForItem(prodItem);
+					if (temp == null) { // TODO hier
+						return false;
+					} else if (temp.getId() < dayTemp.getId()) {
+						return false;
+					}
+					boolean isPossible = true;
+					for (Day d : p.getSuccessorDaysInclusive(dayTemp)) {
+						if (prodItem.getStockAmount(d) + machine.getEfficiency(prodItem) > prodItem
+								.getMaxAllowedInStock()) {
+							return false;
+						}
+					}
+					if (isPossible) {
+						block.setMachineState(machine, new Production(prodItem));
+						p.updateStockLevels(dayTemp, prodItem, machine.getEfficiency(prodItem));
+						return true;
+					}
+				}
+
+			}
+			t1 = t0;
+			iteration++;
+		}
+		return false;
+	}
 }

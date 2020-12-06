@@ -456,7 +456,7 @@ public class FeasibiltyChecker {
 
 						// amount in the stock
 						amount = planning.getStock().getItem(i.getId()).getStockAmount(planning.getDay(d));
-
+/*
 						for (Machine m : planning.getMachines()) {
 							// check the amount produced on the last block in the day for every machine
 							int lastBlockOfProduction = 0;
@@ -473,7 +473,7 @@ public class FeasibiltyChecker {
 									amount += production.getItem().getStockAmount(planning.getDay(d));
 								}
 							}
-						}
+						}*/
 						if (amount < request.getAmountOfItem(i)) {
 							return false;
 						}
