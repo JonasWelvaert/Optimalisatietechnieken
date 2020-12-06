@@ -40,7 +40,7 @@ public class Main {
     public static final String SAx_FOLDER = outputPrefix + "/";
     public static final String INSTANCE_FOLDER = "instances/";
     public static final String CSV_SEP = ",";
-    
+
     /* -------------------------------- PARAMETERS -------------------------------- */
     public static final int temperature = 1000;                  //1000
     public static final double cooling = 0.9999;                //0.9999
@@ -208,15 +208,16 @@ public class Main {
 		}
 
 		// alle 2 machines produceren
+		Day day0 = p.getDay(0);
 		machine: for (Machine m : p.getMachines()) {
-			Item item = m.getInitialSetup();
-			Day day0 = p.getDay(0);
+			Item initItem = m.getInitialSetup();
 			int teller = 0;
-			int efficiency = m.getEfficiency(item);
+			
+			int efficiency = m.getEfficiency(initItem);
 			if(efficiency == 0) {
 				continue machine;
 			}
-			int nrOfBlocks = (int) ((item.getMaxAllowedInStock() - item.getStockAmount(day0)) / m.getEfficiency(item));
+			int nrOfBlocks = (int) ((initItem.getMaxAllowedInStock() - initItem.getStockAmount(day0)) / m.getEfficiency(initItem));
 
 			if(nrOfBlocks == 0 ) {
 				continue machine;
@@ -231,8 +232,8 @@ public class Main {
 				List<Block> possibleBlocks = day.getBlocksBetweenInclusive(t1, t2);
 				for (Block b : possibleBlocks) {
 					if (b.getMachineState(m) instanceof Idle) {
-						b.setMachineState(m, new Production(item));
-						p.updateStockLevels(day, item, m.getEfficiency(item));
+						b.setMachineState(m, new Production(initItem));
+						p.updateStockLevels(day, initItem, m.getEfficiency(initItem));
 						teller++;
 						if (teller >= nrOfBlocks) {
 							continue machine;
@@ -258,6 +259,53 @@ public class Main {
 
 		try {
 
+			File file = new File(SAx_FOLDER + outputPrefix + "_" + filename);
+			file.createNewFile();
+			BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+			bw.write("Instance_name: " + planning.getInstanceName() + System.lineSeparator());
+			bw.write("Cost: " + String.format("%.2f", planning.getTotalCost()) + System.lineSeparator());
+			for (Day d : planning.getDays()) {
+				bw.write("#Day " + d.getId() + System.lineSeparator());
+				for (Block b : d) {
+					bw.write(String.valueOf(b.getId()));
+					for (Machine m : planning.getMachines()) {
+						bw.write(";" + b.getMachineState(m).toString());
+					}
+					bw.write(System.lineSeparator());
+				}
+				bw.write("#Shipped request ids" + System.lineSeparator());
+				int teller = 0;
+				for (Request r : planning.getRequests()) {
+					if (r.getShippingDay() != null && r.getShippingDay().equals(d)) {
+						if (teller != 0) {
+							bw.write(";");
+						}
+						bw.write(Integer.toString(r.getId()));
+						teller++;
+					}
+				}
+				if (teller == 0) {
+					bw.write("-1");
+				}
+				bw.write(System.lineSeparator());
+				bw.write("#Night shift" + System.lineSeparator());
+				bw.write((d.hasNightShift() ? 1 : 0) + System.lineSeparator());
+			}
+			bw.flush();
+			bw.close();
+		} catch (IOException e) {
+			System.err.println("4. IOException");
+			e.printStackTrace();
+			System.exit(4);
+		}
+	}
+
+	/**
+	 * This function writes the wished output of a planning to the console
+	 *
+	 * @param planning The planning which has to be written to the console.
+	 */
+	public static void printOutputToConsole(Planning planning) {
 
 		System.out.println("Instance_name: " + planning.getInstanceName());
 		System.out.println("Cost: " + String.format("%.2f", planning.getTotalCost()));

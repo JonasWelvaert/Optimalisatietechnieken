@@ -6,9 +6,10 @@ import model.Planning;
 import java.io.IOException;
 import java.util.logging.Level;
 
+import static main.Main.*;
+
 public class SimulatedAnnealingSolver extends Solver {
     private final double temperature;
-
     private double coolingFactor;
 
     public SimulatedAnnealingSolver(FeasibiltyChecker feasibiltyChecker, double temperature, double coolingFactor) {
