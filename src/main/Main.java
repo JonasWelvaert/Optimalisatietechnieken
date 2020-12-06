@@ -141,7 +141,7 @@ public class Main {
             valid= "IN-VALID";
         }
 
-        out.println(now + "\t;" + p.getInstanceName() + ";" + p.getTotalCost()+"\t;"+valid+"\t ;"+validator.getShipments());
+        out.println(now + "\t;" + p.getInstanceName() + "\t\t\t ;" + p.getTotalCost()+"\t;"+valid+"\t ;"+validator.getShipments());
 
 
         out.flush();
