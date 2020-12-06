@@ -53,6 +53,16 @@ public class Stock implements Iterable<Item> {
 	public static int getNrOfDifferentItems() {
 		return nrOfDifferentItems;
 	}
+	
+	public List<Item> getPossibleItemsForMachine(Machine m){
+		List<Item> ret = new ArrayList<>();
+		for (Item i: items) {
+			if(m.getEfficiency(i)>0) {
+				ret.add(i);
+			}
+		}
+		return ret;
+	}
 
 	public List<Item> getItems() {
 		return items;

@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 import static main.EnumInputFile.*;
 
 public class Main {
-    private static final EnumInputFile inputFileName = Toy;
+    private static final EnumInputFile inputFileName = D40_R100_B60;
     private static final String outputPrefix = "SA2";
     private static final Logger logger = Logger.getLogger(Main.class.getName());
     private static final Validator validator = new Validator();
@@ -59,7 +59,7 @@ public class Main {
 
         // 3. OPTIMIZE
         logger.info(titlePrefix + "3. Optimize");
-        Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 10000, 0.999);
+        Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 100000, 0.9999);
 
         Planning optimizedPlanning = solver.optimize(initialPlanning);
         if (!feasibiltyChecker.checkFeasible(optimizedPlanning)) {
