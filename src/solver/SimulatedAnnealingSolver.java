@@ -26,7 +26,8 @@ public class SimulatedAnnealingSolver extends Solver {
         Planning neighbor;
 
         for (double t = temperature; t > 1; t *= coolingFactor) {
-            logger.info("\t Temperature = " + t + "\t Cooling = " + coolingFactor + "\tCost: " + best.getTotalCost());
+            double delta = best.getTotalCost() - initialPlanning.getTotalCost();
+            logger.info("\t Temperature = " + t + "\t Cooling = " + coolingFactor + "\tCost: " + best.getTotalCost() + "\t delta: " + delta);
             current.logCostsToCSV(t);
             do {
                 neighbor = new Planning(current);
