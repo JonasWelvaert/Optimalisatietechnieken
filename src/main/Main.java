@@ -91,6 +91,7 @@ public class Main {
         logger.info(titlePrefix + "7. Resume:");
         logger.info("Initial cost: \t" + initialCost);
         logger.info("Total cost: \t" + optimizedPlanning.getTotalCost());
+        logger.info("Validator valid: " + validator.isValid());
 
     }
 
