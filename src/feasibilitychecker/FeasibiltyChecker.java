@@ -98,7 +98,7 @@ public class FeasibiltyChecker {
             if (!checkStockConstraintsExtra(d, planning)) {
                 ec.increaseCheckStockConstraints();
                 logger.warning("checkStockConstraintsExtra \t\t");
-                //return false;
+                return false;
             }
 
             if (!checkSetupTypeConstraint(setupTypes, setupMap)) {
@@ -111,7 +111,7 @@ public class FeasibiltyChecker {
             if (!checkShippingDayConstraints(d, planning)) {
                 logger.warning("checkShippingDayConstraints");
                 ec.checkShippingDayConstraints++;
-                //return false;
+                return false;
             }
 
         }

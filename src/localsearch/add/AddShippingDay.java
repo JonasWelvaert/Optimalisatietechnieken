@@ -23,6 +23,9 @@ public class AddShippingDay extends LocalSearchStep {
             for (Day sd : request.getPossibleShippingDays()) {
 
                 boolean isPossible=true;
+
+                // isPossible = checkFeasibilityChecker...
+
                 // FOR SD CHECK IF IN FUTURE STOCK IS NOT VIOLATED
                 successorDays: for (Day d : p.getSuccessorDaysInclusive(sd)) {
                     for (Item i : request.getItemsKeySet()) {
@@ -44,6 +47,11 @@ public class AddShippingDay extends LocalSearchStep {
                         p.updateStockLevels(sd, i, delta);
                     }
                     return true;
+                } else {
+                    // addProduction van items zodat het wel mogelijk wordt
+                    // isPossibele ?
+                    // true: schedule shipping day
+                    // false: return
                 }
 
             }
