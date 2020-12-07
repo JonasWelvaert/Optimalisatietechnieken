@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 import static main.EnumInputFile.*;
 
 public class Main {
-	private static final EnumInputFile inputFileName = D10_R10_B30;
+	private static final EnumInputFile inputFileName = D40_R100_B30;
 	private static final String outputPrefix = "SA3";
 	private static final Logger logger = Logger.getLogger(Main.class.getName());
 	private static final Validator validator = new Validator();
@@ -71,15 +71,15 @@ public class Main {
 			// System.exit(2);
 		}
 
-		// 3. OPTIMIZE
-		
-		  logger.info(titlePrefix + "3. Optimize"); Solver solver = new
-		  SimulatedAnnealingSolver(feasibiltyChecker, 1000, 0.9999);
-		  
-		  Planning optimizedPlanning = solver.optimize(initialPlanning); if
-		  (!feasibiltyChecker.checkFeasible(optimizedPlanning)) {
-		  logger.severe("3. optimalized planning is not feasible!"); System.exit(5); }
-		 
+        // 3. OPTIMIZE
+        logger.info(titlePrefix + "3. Optimize");
+        Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 100000000, 0.999);
+
+        Planning optimizedPlanning = solver.optimize(initialPlanning);
+        if (!feasibiltyChecker.checkFeasible(optimizedPlanning)) {
+            logger.severe("3. optimalized planning is not feasible!");
+            System.exit(5);
+        }
 
 	//	Planning optimizedPlanning = initialPlanning;
 		// 4A. PRINT TO CONSOLE
@@ -135,10 +135,11 @@ public class Main {
 			out.println(s);
 		}
 
-		out.flush();
-		out.close();
-		fw.close();
-	}
+
+        out.flush();
+        out.close();
+        fw.close();
+    }
 
 	private static void logCostToCSV(Planning p) throws IOException {
 		File fileCost = new File(costFolder + "costs.csv");
@@ -387,48 +388,49 @@ public class Main {
 	 */
 	public static void printOutputToFile(String filename, Planning planning) {
 
-		try {
+        try {
 
-			File file = new File(SAx_FOLDER + outputPrefix + "_" + filename);
-			file.createNewFile();
-			BufferedWriter bw = new BufferedWriter(new FileWriter(file));
-			bw.write("Instance_name: " + planning.getInstanceName() + System.lineSeparator());
-			bw.write("Cost: " + String.format("%.2f", planning.getTotalCost()) + System.lineSeparator());
-			for (Day d : planning.getDays()) {
-				bw.write("#Day " + d.getId() + System.lineSeparator());
-				for (Block b : d) {
-					bw.write(String.valueOf(b.getId()));
-					for (Machine m : planning.getMachines()) {
-						bw.write(";" + b.getMachineState(m).toString());
-					}
-					bw.write(System.lineSeparator());
-				}
-				bw.write("#Shipped request ids" + System.lineSeparator());
-				int teller = 0;
-				for (Request r : planning.getRequests()) {
-					if (r.getShippingDay() != null && r.getShippingDay().equals(d)) {
-						if (teller != 0) {
-							bw.write(";");
-						}
-						bw.write(Integer.toString(r.getId()));
-						teller++;
-					}
-				}
-				if (teller == 0) {
-					bw.write("-1");
-				}
-				bw.write(System.lineSeparator());
-				bw.write("#Night shift" + System.lineSeparator());
-				bw.write((d.hasNightShift() ? 1 : 0) + System.lineSeparator());
-			}
-			bw.flush();
-			bw.close();
-		} catch (IOException e) {
-			System.err.println("4. IOException");
-			e.printStackTrace();
-			System.exit(4);
-		}
-	}
+
+            File file = new File(SAx_FOLDER + outputPrefix + "_" + filename);
+            file.createNewFile();
+            BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+            bw.write("Instance_name: " + planning.getInstanceName() + System.lineSeparator());
+            bw.write("Cost: " + String.format("%.2f", planning.getTotalCost()) + System.lineSeparator());
+            for (Day d : planning.getDays()) {
+                bw.write("#Day " + d.getId() + System.lineSeparator());
+                for (Block b : d) {
+                    bw.write(String.valueOf(b.getId()));
+                    for (Machine m : planning.getMachines()) {
+                        bw.write(";" + b.getMachineState(m).toString());
+                    }
+                    bw.write(System.lineSeparator());
+                }
+                bw.write("#Shipped request ids" + System.lineSeparator());
+                int teller = 0;
+                for (Request r : planning.getRequests()) {
+                    if (r.getShippingDay() != null && r.getShippingDay().equals(d)) {
+                        if (teller != 0) {
+                            bw.write(";");
+                        }
+                        bw.write(Integer.toString(r.getId()));
+                        teller++;
+                    }
+                }
+                if (teller == 0) {
+                    bw.write("-1");
+                }
+                bw.write(System.lineSeparator());
+                bw.write("#Night shift" + System.lineSeparator());
+                bw.write((d.hasNightShift() ? 1 : 0) + System.lineSeparator());
+            }
+            bw.flush();
+            bw.close();
+        } catch (IOException e) {
+            System.err.println("4. IOException");
+            e.printStackTrace();
+            System.exit(4);
+        }
+    }
 
 	/**
 	 * This function writes the wished output of a planning to the console

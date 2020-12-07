@@ -6,11 +6,12 @@ import model.Planning;
 import java.io.IOException;
 import java.util.logging.Level;
 
-import static main.Main.*;
-
 public class SimulatedAnnealingSolver extends Solver {
     private final double temperature;
-    private double coolingFactor;
+    private final double coolingFactor;
+    int maxNumberOfWorseAcceptings = 50;
+    int counter = 0;
+
 
     public SimulatedAnnealingSolver(FeasibiltyChecker feasibiltyChecker, double temperature, double coolingFactor) {
         super(feasibiltyChecker);
@@ -27,8 +28,8 @@ public class SimulatedAnnealingSolver extends Solver {
         Planning neighbor;
 
         for (double t = temperature; t > 1; t *= coolingFactor) {
-            double delta = best.getTotalCost() - initialPlanning.getTotalCost();
-            logger.info("\t Temperature = " + t + "\t Cooling = " + coolingFactor + "\tCost: " + best.getTotalCost() + "\t delta: " + delta);
+            logger.info("\t Temperature = " + t + "\tCost: " + best.getTotalCost());
+//          current.calculateAllCosts();
             current.logCostsToCSV(t);
             do {
                 neighbor = new Planning(current);
@@ -43,9 +44,12 @@ public class SimulatedAnnealingSolver extends Solver {
             if (neighborCost < currentCost) {
                 probability = 1;
             } else {
-            	double temp = t * exponentialRegulator;
+                // save solution temp
+                counter++;
+
+                double temp = t * 100;
                 probability = Math.exp((currentCost - neighborCost) / temp);
-             }
+            }
             // ACCEPT SOMETIMES EVEN IF COST IS WORSE
             if (Math.random() < probability) {
                 current = new Planning(neighbor);
@@ -53,20 +57,14 @@ public class SimulatedAnnealingSolver extends Solver {
             // OVERWRITE BEST IF COST IS IMPROVED
             if (current.getTotalCost() < best.getTotalCost()) {
                 best = new Planning(current);
-                if (tempReset) {
-                    t = temperature / 2;                              //TODO RESTART IF BETTER SOLUTION FOUND
-                }
-                if (changeCooling) {
-                    coolingFactor += 0.0000009;
-                }
                 if (best.getTotalCost() == 0) {
                     return best;
                 }
-            }/* else if (current.getTotalCost() == best.getTotalCost()) {
+            } else if (current.getTotalCost() == best.getTotalCost()) {
                 if (current.getStockAmount() > best.getStockAmount()) {
                     best = new Planning(current);
                 }
-            }*/
+            }
         }
         System.out.println(feasibiltyChecker.getEc().toString());
         return best;

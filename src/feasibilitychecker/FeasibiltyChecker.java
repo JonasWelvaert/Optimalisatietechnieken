@@ -31,7 +31,6 @@ public class FeasibiltyChecker {
         int teller1 = 0;
 
         if (!isConsecutiveInNightShiftsPast(planning)) {
-
             logger.warning("isConsecutiveInNightShiftsPast");
             ec.increaseIsConsecutiveInNightShiftsPast();
             return false;
@@ -108,6 +107,7 @@ public class FeasibiltyChecker {
                 return false;
             }
 
+            // TODO take a look
             if (!checkShippingDayConstraints(d, planning)) {
                 logger.warning("checkShippingDayConstraints");
                 ec.checkShippingDayConstraints++;
@@ -127,7 +127,7 @@ public class FeasibiltyChecker {
                 if (!checkChangeOverAndMaintenanceBoundaryConstraints(d, m, planning)) {
                     logger.warning("checkChangeOverAndMaintenanceBoundaryConstraints");
                     ec.increaseCheckChangeOverAndMaintenanceBoundaryConstraints();
-                    //TODO Jonas: DEZE UITGEZET!!!! return false;
+                    return false;
                 }
                 if (!checkMaintenanceConstraints(d, m, planning)) {
                     logger.warning("checkMaintenanceConstraints");
@@ -426,8 +426,7 @@ public class FeasibiltyChecker {
                     Setup setup = (Setup) planning.getDay(d).getBlock(j).getMachineState(m);
 
                     // check if the setup is still the same (S1_2 -> S2_3)
-                    if (i1 == null
-                            || !(i1.getId() == (setup.getFrom().getId()) || !(i2.getId() == setup.getFrom().getId()))) {
+                    if (i1 == null || !(i1.getId() == (setup.getFrom().getId()) || !(i2.getId() == setup.getFrom().getId()))) {
 
                         if (setupTeller > 0 && setupTeller <= setupTime) {
                             return false;
@@ -472,12 +471,9 @@ public class FeasibiltyChecker {
 
                 // block is in production -> check if the block is not between setup's or
                 // maintenance's
-            } else if ((setupTeller > 0 && setupTeller <= setupTime)
-                    || (maintenanceTeller > 0 && maintenanceTeller <= maintenanceTime)) {
+            } else if ((setupTeller > 1 && setupTeller <= setupTime) || (maintenanceTeller > 1 && maintenanceTeller <= maintenanceTime)) {
                 return false;
-            	
-            	
-            	
+
                 // restart
             } else {
                 setupTeller = 0;
@@ -492,6 +488,7 @@ public class FeasibiltyChecker {
 
     }
 
+    //TODO take a look
     private boolean checkShippingDayConstraints(int d, Planning planning) {
         // check every request whether the amount produced/in-stock is sufficient
         for (Request request : planning.getRequests()) {
@@ -501,9 +498,9 @@ public class FeasibiltyChecker {
                 if (request.getShippingDay().getId() == planning.getDay(d).getId()) {
 
                     // if day d not in possible shipping days
-                    if (!request.getPossibleShippingDays().contains(planning.getDay(d))) {
-                        return false;
-                    }
+                    //if (!request.getPossibleShippingDays().contains(planning.getDay(d))) {
+                    //    return false;
+                    //}
 
                     // check if the amount for each item in the request is fulfilled
                     for (Item i : request.getItemsKeySet()) {
