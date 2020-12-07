@@ -72,18 +72,18 @@ public class Main {
 			// System.exit(2);
 		}
 
-        // 3. OPTIMIZE
-        logger.info(titlePrefix + "3. Optimize");
-        Solver solver = new SteepestDescentSolver(10000, feasibiltyChecker);
-       // Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 10000000, 0.99);
+		// 3. OPTIMIZE
+		logger.info(titlePrefix + "3. Optimize");
+		Solver solver = new SteepestDescentSolver(10000, feasibiltyChecker);
+		// Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 10000000,
+		// 0.99);
 
-        Planning optimizedPlanning = solver.optimize(initialPlanning);
-        if (!feasibiltyChecker.checkFeasible(optimizedPlanning)) {
-            logger.severe("3. optimalized planning is not feasible!");
-            System.exit(5);
-        }
-
-	//	Planning optimizedPlanning = initialPlanning;
+		/*
+		 * Planning optimizedPlanning = solver.optimize(initialPlanning); if
+		 * (!feasibiltyChecker.checkFeasible(optimizedPlanning)) {
+		 * logger.severe("3. optimalized planning is not feasible!"); System.exit(5); }
+		 */
+		Planning optimizedPlanning = initialPlanning;
 		// 4A. PRINT TO CONSOLE
 		logger.info(titlePrefix + "4A. Printing result to console");
 		printOutputToConsole(optimizedPlanning);
@@ -137,11 +137,10 @@ public class Main {
 			out.println(s);
 		}
 
-
-        out.flush();
-        out.close();
-        fw.close();
-    }
+		out.flush();
+		out.close();
+		fw.close();
+	}
 
 	private static void logCostToCSV(Planning p) throws IOException {
 		File fileCost = new File(costFolder + "costs.csv");
@@ -244,15 +243,19 @@ public class Main {
 						} else {
 							int maxStock = item.getMaxAllowedInStock();
 							int maxNeeded = p.getRequests().amountOfItemNeeded(item);
-							int inStock = item.getStockAmount(p.getDay(Planning.getNumberOfDays()-1));
-							if (maxNeeded > inStock) {
-								if (inStock + efficiency <= maxStock) {
-									changeItem = false;
+							checkstock: for (Day d : p.getSuccessorDaysInclusive(day)) {
+								int inStock = item.getStockAmount(d);
+								if (maxNeeded > inStock) {
+									if (inStock + efficiency <= maxStock) {
+										changeItem = false;
+									} else {
+										changeItem = true;
+										break checkstock;
+									}
 								} else {
 									changeItem = true;
+									break checkstock;
 								}
-							} else {
-								changeItem = true;
 							}
 						}
 						if (!changeItem) {
@@ -271,7 +274,7 @@ public class Main {
 								// LARGE SETUP, nrOfBlocks al berekend
 								int teller = 0;
 								largecheck: for (Machine m1 : p.getMachines()) {
-									if(m1==m) {
+									if (m1 == m) {
 										continue largecheck;
 									}
 									for (int i = 0; i < nrOfBlocks; i++) {
@@ -295,15 +298,19 @@ public class Main {
 												int efficiency0 = m.getEfficiency(i0);
 												int maxStock = i0.getMaxAllowedInStock();
 												int maxNeeded = p.getRequests().amountOfItemNeeded(i0);
-												int inStock = i0.getStockAmount(p.getDay(Planning.getNumberOfDays()-1));
-												if (maxNeeded > inStock) {
-													if (inStock + efficiency0 <= maxStock) {
-														gaVerder = true;
+												checkstock: for (Day d : p.getSuccessorDaysInclusive(day)) {
+													int inStock = item.getStockAmount(d);
+													if (maxNeeded > inStock) {
+														if (inStock + efficiency0 <= maxStock) {
+															gaVerder = true;
+														} else {
+															gaVerder = false;
+															break checkstock;
+														}
 													} else {
 														gaVerder = false;
+														break checkstock;
 													}
-												} else {
-													gaVerder = false;
 												}
 												if (gaVerder) {
 													if (item.isLargeSetup(i0)) {
@@ -331,15 +338,19 @@ public class Main {
 										int efficiency0 = m.getEfficiency(i0);
 										int maxStock = i0.getMaxAllowedInStock();
 										int maxNeeded = p.getRequests().amountOfItemNeeded(i0);
-										int inStock = i0.getStockAmount(p.getDay(Planning.getNumberOfDays()-1));
-										if (maxNeeded > inStock) {
-											if (inStock + efficiency0 <= maxStock) {
-												gaVerder = true;
+										checkstock: for (Day d : p.getSuccessorDaysInclusive(day)) {
+											int inStock = item.getStockAmount(d);
+											if (maxNeeded > inStock) {
+												if (inStock + efficiency0 <= maxStock) {
+													gaVerder = true;
+												} else {
+													gaVerder = false;
+													break checkstock;
+												}
 											} else {
 												gaVerder = false;
+												break checkstock;
 											}
-										} else {
-											gaVerder = false;
 										}
 										if (gaVerder) {
 											if (!item.isLargeSetup(i0)) {
@@ -369,17 +380,45 @@ public class Main {
 									}
 								}
 							}
-
 						}
 					}
 				}
+				// WE GAAN SHIPPINGS PLANNEN!
+				request: for (Request request : p.getRequests()) {
+					if (request.getShippingDay() == null) {
+						Day sd;
+						if (request.getPossibleShippingDays().contains(day)) {
+							sd = day;
+						} else {
+							continue request;
+						}
+
+						// FOR SD CHECK IF IN FUTURE STOCK IS NOT VIOLATED
+						successorDays: for (Day d : p.getSuccessorDaysInclusive(sd)) {
+							for (Item i : request.getItemsKeySet()) {
+								if (i.getStockAmount(d) - request.getAmountOfItem(i) < 0) {
+									continue request;
+								}
+							}
+						}
+
+						// IF STOCK NOT VIOLATED, PLAN SHIPMENT
+						request.setShippingDay(sd);
+
+						for (Item i : request.getItemsKeySet()) {
+							int delta = -1 * request.getAmountOfItem(i);
+							p.updateStockLevels(sd, i, delta);
+						}
+					}
+				}
+				// NEXT DAY
 				iteration++;
 			}
 		}
-
 		p.calculateAllCosts();
 		initialCost = p.getTotalCost();
 		return p;
+
 	}
 
 	/**
@@ -390,49 +429,48 @@ public class Main {
 	 */
 	public static void printOutputToFile(String filename, Planning planning) {
 
-        try {
+		try {
 
-
-            File file = new File(SAx_FOLDER + outputPrefix + "_" + filename);
-            file.createNewFile();
-            BufferedWriter bw = new BufferedWriter(new FileWriter(file));
-            bw.write("Instance_name: " + planning.getInstanceName() + System.lineSeparator());
-            bw.write("Cost: " + String.format("%.2f", planning.getTotalCost()) + System.lineSeparator());
-            for (Day d : planning.getDays()) {
-                bw.write("#Day " + d.getId() + System.lineSeparator());
-                for (Block b : d) {
-                    bw.write(String.valueOf(b.getId()));
-                    for (Machine m : planning.getMachines()) {
-                        bw.write(";" + b.getMachineState(m).toString());
-                    }
-                    bw.write(System.lineSeparator());
-                }
-                bw.write("#Shipped request ids" + System.lineSeparator());
-                int teller = 0;
-                for (Request r : planning.getRequests()) {
-                    if (r.getShippingDay() != null && r.getShippingDay().equals(d)) {
-                        if (teller != 0) {
-                            bw.write(";");
-                        }
-                        bw.write(Integer.toString(r.getId()));
-                        teller++;
-                    }
-                }
-                if (teller == 0) {
-                    bw.write("-1");
-                }
-                bw.write(System.lineSeparator());
-                bw.write("#Night shift" + System.lineSeparator());
-                bw.write((d.hasNightShift() ? 1 : 0) + System.lineSeparator());
-            }
-            bw.flush();
-            bw.close();
-        } catch (IOException e) {
-            System.err.println("4. IOException");
-            e.printStackTrace();
-            System.exit(4);
-        }
-    }
+			File file = new File(SAx_FOLDER + outputPrefix + "_" + filename);
+			file.createNewFile();
+			BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+			bw.write("Instance_name: " + planning.getInstanceName() + System.lineSeparator());
+			bw.write("Cost: " + String.format("%.2f", planning.getTotalCost()) + System.lineSeparator());
+			for (Day d : planning.getDays()) {
+				bw.write("#Day " + d.getId() + System.lineSeparator());
+				for (Block b : d) {
+					bw.write(String.valueOf(b.getId()));
+					for (Machine m : planning.getMachines()) {
+						bw.write(";" + b.getMachineState(m).toString());
+					}
+					bw.write(System.lineSeparator());
+				}
+				bw.write("#Shipped request ids" + System.lineSeparator());
+				int teller = 0;
+				for (Request r : planning.getRequests()) {
+					if (r.getShippingDay() != null && r.getShippingDay().equals(d)) {
+						if (teller != 0) {
+							bw.write(";");
+						}
+						bw.write(Integer.toString(r.getId()));
+						teller++;
+					}
+				}
+				if (teller == 0) {
+					bw.write("-1");
+				}
+				bw.write(System.lineSeparator());
+				bw.write("#Night shift" + System.lineSeparator());
+				bw.write((d.hasNightShift() ? 1 : 0) + System.lineSeparator());
+			}
+			bw.flush();
+			bw.close();
+		} catch (IOException e) {
+			System.err.println("4. IOException");
+			e.printStackTrace();
+			System.exit(4);
+		}
+	}
 
 	/**
 	 * This function writes the wished output of a planning to the console
