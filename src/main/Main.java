@@ -78,12 +78,12 @@ public class Main {
 		// Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 10000000,
 		// 0.99);
 
-		/*
-		 * Planning optimizedPlanning = solver.optimize(initialPlanning); if
-		 * (!feasibiltyChecker.checkFeasible(optimizedPlanning)) {
-		 * logger.severe("3. optimalized planning is not feasible!"); System.exit(5); }
-		 */
-		Planning optimizedPlanning = initialPlanning;
+		Planning optimizedPlanning = solver.optimize(initialPlanning);
+		if (!feasibiltyChecker.checkFeasible(optimizedPlanning)) {
+			logger.severe("3. optimalized planning is not feasible!");
+			System.exit(5);
+		}
+
 		// 4A. PRINT TO CONSOLE
 		logger.info(titlePrefix + "4A. Printing result to console");
 		printOutputToConsole(optimizedPlanning);
