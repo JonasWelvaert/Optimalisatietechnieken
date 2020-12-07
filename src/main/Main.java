@@ -12,6 +12,7 @@ import model.machinestate.setup.Setup;
 import model.machinestate.setup.SmallSetup;
 import solver.SimulatedAnnealingSolver;
 import solver.Solver;
+import solver.SteepestDescentSolver;
 
 import java.io.*;
 import java.time.LocalDateTime;
@@ -73,7 +74,8 @@ public class Main {
 
         // 3. OPTIMIZE
         logger.info(titlePrefix + "3. Optimize");
-        Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 10000000, 0.99);
+        Solver solver = new SteepestDescentSolver(10000, feasibiltyChecker);
+       // Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 10000000, 0.99);
 
         Planning optimizedPlanning = solver.optimize(initialPlanning);
         if (!feasibiltyChecker.checkFeasible(optimizedPlanning)) {
