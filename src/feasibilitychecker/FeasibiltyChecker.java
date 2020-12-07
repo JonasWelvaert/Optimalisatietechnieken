@@ -89,11 +89,12 @@ public class FeasibiltyChecker {
                     }
                 }
             }
-            if (!checkStockConstraints(planning.getDay(d), planning)) {
+            //JONAS:TODO DIT GEBEURT IN EXTRA?
+          /*  if (!checkStockConstraints(planning.getDay(d), planning)) {
                 ec.increaseCheckStockConstraints();
                 logger.warning("checkStockConstraints \t\t");
                 return false;
-            }
+            }*/
 
             if (!checkStockConstraintsExtra(d, planning)) {
                 ec.increaseCheckStockConstraints();
@@ -107,12 +108,13 @@ public class FeasibiltyChecker {
                 return false;
             }
 
+            //JONAS:TODO DIT GEBEURT IN EXTRA?
             // TODO take a look
-            if (!checkShippingDayConstraints(d, planning)) {
+           /* if (!checkShippingDayConstraints(d, planning)) {
                 logger.warning("checkShippingDayConstraints");
                 ec.checkShippingDayConstraints++;
                 return false;
-            }
+            }*/
 
         }
 

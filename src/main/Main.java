@@ -78,12 +78,12 @@ public class Main {
 		// Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 10000000,
 		// 0.99);
 
-		Planning optimizedPlanning = solver.optimize(initialPlanning);
-		if (!feasibiltyChecker.checkFeasible(optimizedPlanning)) {
-			logger.severe("3. optimalized planning is not feasible!");
-			System.exit(5);
-		}
-
+		
+		  Planning optimizedPlanning = solver.optimize(initialPlanning); if
+		  (!feasibiltyChecker.checkFeasible(optimizedPlanning)) {
+		  logger.severe("3. optimalized planning is not feasible!"); System.exit(5); }
+		 
+		//Planning optimizedPlanning = initialPlanning;
 		// 4A. PRINT TO CONSOLE
 		logger.info(titlePrefix + "4A. Printing result to console");
 		printOutputToConsole(optimizedPlanning);
@@ -216,12 +216,47 @@ public class Main {
 			}
 		}
 
-		// alle 2 machines produceren
+		p.calculateAllCosts();
+
+		Planning ret = new Planning(p);
+		for (int i = 0; i < 8; i++) {
+			boolean useCheckedItems;
+			boolean useEndOfBlockShipping;
+			boolean useEndOfDayShipping;
+			if (i < 4) {
+				useCheckedItems = false;
+			} else {
+				useCheckedItems = true;
+			}
+			if (i % 4 < 2) {
+				useEndOfBlockShipping = false;
+			} else {
+				useEndOfBlockShipping = true;
+			}
+			if (i % 2 < 1) {
+				useEndOfDayShipping = false;
+			} else {
+				useEndOfDayShipping = true;
+			}
+			Planning planning = new Planning(p);
+			produceAndShip(useCheckedItems, useEndOfBlockShipping, useEndOfDayShipping, planning);
+			planning.calculateAllCosts();
+			if (planning.getTotalCost() <= ret.getTotalCost()) {
+				ret = planning;
+			}
+		}
+		p = ret;
+		initialCost = p.getTotalCost();
+		return p;
+
+	}
+
+	private static void produceAndShip(boolean useCheckedItems, boolean useEndOfBlockShipping,
+			boolean useEndOfDayShipping, Planning p) {
 		Set<Item> checkedItems = new HashSet<>();
 		machine: for (Machine m : p.getMachines()) {
 			Item item = m.getInitialSetup();
 			checkedItems.add(item);
-
 			boolean changeItem = false;
 			int nrOfBlocks = 0;
 
@@ -261,9 +296,39 @@ public class Main {
 						if (!changeItem) {
 							b.setMachineState(m, new Production(item));
 							p.updateStockLevels(day, item, m.getEfficiency(item));
+							if (useEndOfBlockShipping) {
+								// WE GAAN SHIPPINGS PLANNEN!
+								request: for (Request request : p.getRequests()) {
+									if (request.getShippingDay() == null) {
+										Day sd;
+										if (request.getPossibleShippingDays().contains(day)) {
+											sd = day;
+										} else {
+											continue request;
+										}
+
+										// FOR SD CHECK IF IN FUTURE STOCK IS NOT VIOLATED
+										for (Day d : p.getSuccessorDaysInclusive(sd)) {
+											for (Item i : request.getItemsKeySet()) {
+												if (i.getStockAmount(d) - request.getAmountOfItem(i) < 0) {
+													continue request;
+												}
+											}
+										}
+
+										// IF STOCK NOT VIOLATED, PLAN SHIPMENT
+										request.setShippingDay(sd);
+
+										for (Item i : request.getItemsKeySet()) {
+											int delta = -1 * request.getAmountOfItem(i);
+											p.updateStockLevels(sd, i, delta);
+										}
+									}
+								}
+							}
 							continue block;
 						} else {
-							// change item
+							// CHECK IF LARGE setup POSSIBLE
 							boolean isLargePossible = true;
 							if (Day.indexOfBlockE <= b.getId() && b.getId() <= Day.indexOfBlockL) {
 								nrOfBlocks = Day.indexOfBlockL - b.getId() + 1;
@@ -272,27 +337,32 @@ public class Main {
 							}
 							if (isLargePossible) {
 								// LARGE SETUP, nrOfBlocks al berekend
-								int teller = 0;
-								largecheck: for (Machine m1 : p.getMachines()) {
+								// CHECK MAX DURATION
+								int realNrOfPossibleBlcks = 0;
+								machineTest: for (Machine m1 : p.getMachines()) {
 									if (m1 == m) {
-										continue largecheck;
-									}
-									for (int i = 0; i < nrOfBlocks; i++) {
-										Block b0 = day.getBlock(b.getId() + i);
-										if (b0.getMachineState(m1) instanceof Maintenance
-												|| b0.getMachineState(m1) instanceof LargeSetup) {
-											break largecheck;
-										} else {
-											teller++;
+										continue machineTest;
+
+									} else {
+										// CHECK FOR NO PARALLEL
+										for (int i = 0; i < nrOfBlocks; i++) {
+											Block b0 = day.getBlock(b.getId() + i);
+											if (b0.getMachineState(m1) instanceof Maintenance
+													|| b0.getMachineState(m1) instanceof LargeSetup) {
+												break machineTest;
+											} else {
+												realNrOfPossibleBlcks++;
+											}
 										}
 									}
 								}
-								if (teller <= 0) {
+								if (realNrOfPossibleBlcks <= 0) {
 									isLargePossible = false;
 								} else {
 									// large setup met teller blokken
 									for (Item i0 : p.getStock().getItems()) {
-										if (!checkedItems.contains(i0)) {
+
+										if (!checkedItems.contains(i0) && useCheckedItems) {
 											if (m.getEfficiency(i0) != 0) {
 												boolean gaVerder = true;
 												int efficiency0 = m.getEfficiency(i0);
@@ -314,13 +384,13 @@ public class Main {
 												}
 												if (gaVerder) {
 													if (item.isLargeSetup(i0)) {
-														if (item.getSetupTimeTo(i0) <= teller) {
+														if (item.getSetupTimeTo(i0) <= realNrOfPossibleBlcks) {
 															for (int i = 0; i < item.getSetupTimeTo(i0); i++) {
 																Block b0 = day.getBlock(b.getId() + i);
 																b0.setMachineState(m, new LargeSetup(item, i0));
 															}
-															checkedItems.add(i0);
 															item = i0;
+															checkedItems.add(i0);
 															continue block;
 														}
 													}
@@ -328,11 +398,13 @@ public class Main {
 											}
 										}
 									}
+
 								}
 							}
 							// DO SMALL SETUP
 							for (Item i0 : p.getStock().getItems()) {
-								if (!checkedItems.contains(i0)) {
+
+								if (!checkedItems.contains(i0) && useCheckedItems) {
 									if (m.getEfficiency(i0) != 0) {
 										boolean gaVerder = true;
 										int efficiency0 = m.getEfficiency(i0);
@@ -356,13 +428,13 @@ public class Main {
 											if (!item.isLargeSetup(i0)) {
 												int blockId = b.getId();
 												List<Block> blocks = day
-														.getIdleBlocksWithoutOvertimeButWithNighshiftBetweenInclusive(
+														.getConsecutiveIdleBlocksWithoutOvertimeButWithNighshiftBetweenInclusive(
 																blockId, Day.getNumberOfBlocksPerDay() - 1, m);
 												if (blocks.size() < item.getSetupTimeTo(i0)) {
 													if (day.getId() + 1 < Planning.getNumberOfDays()) {
 														int amount = item.getSetupTimeTo(i0) - blocks.size();
 														blocks.addAll(p.getDay(day.getId() + 1)
-																.getIdleBlocksWithoutOvertimeButWithNighshiftBetweenInclusive(
+																.getConsecutiveIdleBlocksWithoutOvertimeButWithNighshiftBetweenInclusive(
 																		0, amount - 1, m));
 													} else {
 														continue machine;
@@ -383,42 +455,41 @@ public class Main {
 						}
 					}
 				}
-				// WE GAAN SHIPPINGS PLANNEN!
-				request: for (Request request : p.getRequests()) {
-					if (request.getShippingDay() == null) {
-						Day sd;
-						if (request.getPossibleShippingDays().contains(day)) {
-							sd = day;
-						} else {
-							continue request;
-						}
+				if (useEndOfDayShipping) {
+					// WE GAAN SHIPPINGS PLANNEN!
+					request: for (Request request : p.getRequests()) {
+						if (request.getShippingDay() == null) {
+							Day sd;
+							if (request.getPossibleShippingDays().contains(day)) {
+								sd = day;
+							} else {
+								continue request;
+							}
 
-						// FOR SD CHECK IF IN FUTURE STOCK IS NOT VIOLATED
-						successorDays: for (Day d : p.getSuccessorDaysInclusive(sd)) {
-							for (Item i : request.getItemsKeySet()) {
-								if (i.getStockAmount(d) - request.getAmountOfItem(i) < 0) {
-									continue request;
+							// FOR SD CHECK IF IN FUTURE STOCK IS NOT VIOLATED
+							for (Day d : p.getSuccessorDaysInclusive(sd)) {
+								for (Item i : request.getItemsKeySet()) {
+									if (i.getStockAmount(d) - request.getAmountOfItem(i) < 0) {
+										continue request;
+									}
 								}
 							}
-						}
 
-						// IF STOCK NOT VIOLATED, PLAN SHIPMENT
-						request.setShippingDay(sd);
+							// IF STOCK NOT VIOLATED, PLAN SHIPMENT
+							request.setShippingDay(sd);
 
-						for (Item i : request.getItemsKeySet()) {
-							int delta = -1 * request.getAmountOfItem(i);
-							p.updateStockLevels(sd, i, delta);
+							for (Item i : request.getItemsKeySet()) {
+								int delta = -1 * request.getAmountOfItem(i);
+								p.updateStockLevels(sd, i, delta);
+							}
 						}
 					}
 				}
 				// NEXT DAY
 				iteration++;
+
 			}
 		}
-		p.calculateAllCosts();
-		initialCost = p.getTotalCost();
-		return p;
-
 	}
 
 	/**

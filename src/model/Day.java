@@ -1,6 +1,8 @@
 package model;
 
 import model.machinestate.Idle;
+import model.machinestate.Production;
+import model.machinestate.setup.Setup;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -87,6 +89,37 @@ public class Day implements Iterable<Block> {
 					else {
 						temp.add(b);
 					}
+				}
+			}
+		}
+		return temp;
+	}
+	
+	/**
+	 * DEZE FUNCTIE MAG ENKEL GEBRUIKT WORDEN VOOR DE INITIELE PLANNING OP TE
+	 * BOUWEN!
+	 * 
+	 * @param t1
+	 * @param t2
+	 * @return
+	 */
+	public List<Block> getConsecutiveIdleBlocksWithoutOvertimeButWithNighshiftBetweenInclusive(int t1, int t2,
+			Machine m) {
+		List<Block> temp = new ArrayList<>();
+
+		for (Block b : blocks) {
+			if (t1 <= b.getId() && b.getId() <= t2) {
+				if (b.getMachineState(m) instanceof Idle) {
+					// NO NIGHT SHIFT MEANS ONLY PLANNING IN DAY AND OVERTIME
+					if (!hasNightShift) {
+						if (b.getId() > Day.getIndexOfBlockS()) {
+							return temp;
+						}
+					}
+					// OTHERWISE ALL BLOCKS ARE POSSIBLE
+					temp.add(b);
+				}else if(b.getMachineState(m) instanceof Setup || b.getMachineState(m) instanceof Production) {
+					return temp;
 				}
 			}
 		}

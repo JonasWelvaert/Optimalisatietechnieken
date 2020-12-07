@@ -234,6 +234,27 @@ public class Planning {
     public void setStock(Stock stock) {
         this.stock = stock;
     }
+    
+   /* public Item getNextItem(Day day, Block block, Machine machine) {
+    	for(int d=day.getId(); d<Planning.numberOfDays; d++) {
+    		Day day0 = this.getDay(d);
+    		int startBlock = block.getId();
+    		for(int b=startBlock; b<Day.getNumberOfBlocksPerDay(); b++) {
+    			Block block0 = day0.getBlock(b);
+    			if(block0.getMachineState(machine) instanceof Setup) {
+    				
+    			}
+    			
+    			startBlock = 0;
+    		}
+    	}
+    	return getPreviousItem(day, block, machine);
+    }
+    
+    public Item getPreviousItem(Day day, Block block, Machine m) {
+    	//TODO
+    	return m.getInitialSetup();
+    }*/
 
     public int getAmountOfNightShiftsInNextPeriod() {
         int teller = 0;
