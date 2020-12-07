@@ -11,7 +11,6 @@ public class AddShippingDay extends LocalSearchStep {
     public AddShippingDay(int maxTries) {
         super(maxTries);
     }
-    public int counter =0;
 
     @Override
     public boolean execute(Planning p) {
@@ -38,7 +37,6 @@ public class AddShippingDay extends LocalSearchStep {
 
                 // IF STOCK NOT VIOLATED, PLAN SHIPMENT
                 if (isPossible) {
-                    counter=sd.getId();
                     //plan shipping day in
                     request.setShippingDay(sd);
 

@@ -21,12 +21,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static main.EnumInputFile.*;
 
 public class Main {
 	private static final EnumInputFile inputFileName = D40_R100_B30;
+	private static String inputFile;
+	private static String outputFile;
 	private static final String outputPrefix = "SA3";
 	private static final Logger logger = Logger.getLogger(Main.class.getName());
 	private static final Validator validator = new Validator();
@@ -38,6 +46,10 @@ public class Main {
 	private static final String titlePrefix = "\t \t \t ****************************";
 	public static final List<String> graphingOutput = new ArrayList<>();
 	private static final FeasibiltyChecker feasibiltyChecker = new FeasibiltyChecker();
+	// -1 -> current timestamp, >=0 are valid seeds.
+	public static long seed = -1;
+	public static Planning initialPlanning;
+	public static Planning bestPlanning;
 
 	/* -------------------------------- FOLDERS -------------------------------- */
 	public static String graphingFolder = "GraphingOutput/";
@@ -55,15 +67,32 @@ public class Main {
 	public static final boolean changeCooling = false; // false
 	public static final double exponentialRegulator = 150; // 10 (>1 will accept more worse solutions)
 
-	public static void main(String[] args) throws IOException {
+	public static final int itterations = 100000;	//BE SURE TO USE THE CORRECT PARAMETERS!
+
+	public static void main(String[] args) throws IOException, InterruptedException {
 		// logger.setLevel(Level.OFF);
-		String inputFile = formatInput(args);
+
+		long timeLimit = 60;//in seconds
+		int nrOfThreads = 2;
+		if (args.length == 1) {
+			inputFile = INSTANCE_FOLDER + args[0];
+			outputFile = SAx_FOLDER + outputPrefix + "_" + args[0];
+		} else if (args.length > 4) {
+			inputFile = args[0];
+			outputFile = args[1];
+			seed = Long.parseLong(args[2]);
+			timeLimit = Long.parseLong(args[3]);
+			nrOfThreads = Integer.parseInt(args[4]);
+		} else {
+			inputFile = INSTANCE_FOLDER + inputFileName.toString();
+			outputFile = SAx_FOLDER + outputPrefix + "_" + inputFileName.toString();
+		}
 
 		// 1. READ IN
 		logger.info(titlePrefix + "1. Reading file " + inputFile);
-		Planning initialPlanning = readFileIn(INSTANCE_FOLDER + inputFile);
+		initialPlanning = readFileIn(inputFile);
 
-		// 2. BUILD INITIAL SOLUTION //TODO misschien initial een beetje slimmer maken ?
+		// 2. BUILD INITIAL SOLUTION
 		logger.info(titlePrefix + "2. Build initial solution");
 		initialPlanning = makeInitialPlanning(initialPlanning);
 
@@ -74,49 +103,56 @@ public class Main {
 
 		// 3. OPTIMIZE
 		logger.info(titlePrefix + "3. Optimize");
-		Solver solver = new SteepestDescentSolver(10000, feasibiltyChecker);
-		// Solver solver = new SimulatedAnnealingSolver(feasibiltyChecker, 10000000,
-		// 0.99);
+		bestPlanning = new Planning(initialPlanning);
 
-		
-		  Planning optimizedPlanning = solver.optimize(initialPlanning); if
-		  (!feasibiltyChecker.checkFeasible(optimizedPlanning)) {
-		  logger.severe("3. optimalized planning is not feasible!"); System.exit(5); }
-		 
-		//Planning optimizedPlanning = initialPlanning;
-		// 4A. PRINT TO CONSOLE
-		logger.info(titlePrefix + "4A. Printing result to console");
-		printOutputToConsole(optimizedPlanning);
+		ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(nrOfThreads);
 
-		// 4B. PRINT TO FILE
-		logger.info(titlePrefix + "4B. Printing result to file");
-		File file = new File(outputPrefix);
-		file.mkdir();
-		printOutputToFile(inputFile, optimizedPlanning);
+		for (int i = 0; i < 100*nrOfThreads; i++) { // aantal taken die aan de pool toegewezen worden.
+			pool.submit(new Callable<Planning>() {
 
-		// 5. VALIDATE SOLUTION
-		logger.info(titlePrefix + "5. Validate Solution");
-		optimizedPlanning.calculateAllCosts();
-		validator.validate(INSTANCE_FOLDER + inputFile, SAx_FOLDER + outputPrefix + "_" + inputFile);
+				@Override
+				public Planning call() throws Exception {
+					Solver solver = new SteepestDescentSolver(itterations, new FeasibiltyChecker());
+					// Solver solver = new SimulatedAnnealingSolver(new FeasibilityChecker(),
+					// temperature, cooling);
 
-		// 6. print out csv
-		logger.info(titlePrefix + "6. Writing optimisation points to csv:");
-		writingOptimisationPointsToCSV(optimizedPlanning);
-		logCostToCSV(optimizedPlanning);
+					Planning optimizedPlanning = solver.optimize(new Planning(initialPlanning));
+					if (optimizedPlanning != null) {
+						Main.resultFound(optimizedPlanning);
+					}
+					return optimizedPlanning;
+				}
 
-		// 7. RESUME
-		logger.info(titlePrefix + "7. Resume:");
-		logger.info("Initial cost: \t" + initialCost);
-		logger.info("Total cost: \t" + optimizedPlanning.getTotalCost());
-		logger.info("Validator valid: " + validator.isValid());
+			});
+
+		}
+		Thread.sleep(timeLimit*1000);
+		pool.shutdownNow();
 
 	}
 
-	private static String formatInput(String[] args) {
-		if (args.length > 0) {
-			return args[0];
-		} else {
-			return inputFileName.toString();
+	public static synchronized void resultFound(Planning p) throws IOException {
+		if (bestPlanning.getTotalCost() > p.getTotalCost()) {
+			bestPlanning = new Planning(p);
+
+			logger.info(titlePrefix + "4A. Printing result to console");
+			printOutputToConsole(bestPlanning);
+
+			System.out.println(outputFile);
+			logger.info(titlePrefix + "4B. Printing result to file");
+			printOutputToFile(outputFile, bestPlanning);
+
+			logger.info(titlePrefix + "5. Validate Solution");
+			validator.validate(inputFile, outputFile);
+
+			logger.info(titlePrefix + "6. Writing optimisation points to csv:");
+			writingOptimisationPointsToCSV(bestPlanning);
+			logCostToCSV(bestPlanning);
+
+			logger.info(titlePrefix + "7. Resume:");
+			logger.info("Initial cost: \t" + initialCost);
+			logger.info("Total cost: \t" + bestPlanning.getTotalCost());
+			logger.info("Validator valid: " + validator.isValid());
 		}
 	}
 
@@ -502,7 +538,7 @@ public class Main {
 
 		try {
 
-			File file = new File(SAx_FOLDER + outputPrefix + "_" + filename);
+			File file = new File(filename);
 			file.createNewFile();
 			BufferedWriter bw = new BufferedWriter(new FileWriter(file));
 			bw.write("Instance_name: " + planning.getInstanceName() + System.lineSeparator());

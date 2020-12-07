@@ -20,7 +20,10 @@ public class SteepestDescentSolver extends Solver {
 
 		Planning current = initialPlanning;
 
-		for (int i = 0; i <= iterations; i++) {
+		for (int i = iterations; i > 0; i--) {
+			if(Thread.currentThread().isInterrupted()) {
+				return null;
+			}
 			logger.info("\t i = " + i + "\tCost: " + best.getTotalCost());
 			Planning neighbor;
 			current.logCostsToCSV(i);
@@ -31,18 +34,12 @@ public class SteepestDescentSolver extends Solver {
 
 			double neighborCost = neighbor.getTotalCost();
 
-			// OVERWRITE BEST IF COST IS IMPROVED
 			if (neighborCost > bestCost) {
 				best = new Planning(neighbor);
 				bestCost = neighborCost;
 				if (best.getTotalCost() == 0) {
 					return best;
 				}
-				/*
-				 * } else if (current.getTotalCost() == best.getTotalCost()) { if
-				 * (current.getStockAmount() > best.getStockAmount()) { best = new
-				 * Planning(current); } }
-				 */
 			}
 		}
 		logger.info(feasibiltyChecker.getEc().toString());
