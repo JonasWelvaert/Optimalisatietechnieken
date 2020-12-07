@@ -29,6 +29,7 @@ public class AddSingleProduction extends LocalSearchStep {
 			randomMachine = random.nextInt(p.getMachines().size());
 			Machine machine = p.getMachines().get(randomMachine);
 			List<Item> possibleRandomItems = p.getStock().getPossibleItemsForMachine(machine);
+			// Geen random items meer
 			randomItem = random.nextInt(possibleRandomItems.size());
 			Item nItem = possibleRandomItems.get(randomItem);
 

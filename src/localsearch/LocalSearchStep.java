@@ -25,7 +25,7 @@ public abstract class LocalSearchStep {
 
 
     public LocalSearchStep(int maxTries) {
-        this.random = new Random();
+        this.random = new Random(0);
         this.maxTries = maxTries;
     }
 

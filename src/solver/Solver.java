@@ -15,7 +15,9 @@ import static localsearch.EnumLocalSearchStep.*;
 public abstract class Solver {
     protected static final Logger logger = Logger.getLogger(Solver.class.getName());
     protected final FeasibiltyChecker feasibiltyChecker;
-    private static final Random random = new Random();
+
+    // fix random seeds
+    private static final Random random = new Random(0);
     private static int localSearchUpperBound = 999999999;
 
     public Solver(FeasibiltyChecker feasibiltyChecker) {
@@ -34,9 +36,12 @@ public abstract class Solver {
         int randomInt = random.nextInt(localSearchUpperBound);
         int switcher = 0;
 
-        if (randomInt < (switcher += 15)) {
+        // begin bij de simpele operatoren -> add shipping day + add itemS
+        // stap voor stap
+/*
+        if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(ADD_SINGLE_PRODUCTION).execute(p);
-        } else if (randomInt < (switcher += 10)) {
+        } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(ADD_PRODUCTION_AFTER_PLANNED_PRODUCTION).execute(p);
         } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(ADD_PARALLELL_PRODUCTION).execute(p);
@@ -44,19 +49,19 @@ public abstract class Solver {
             lssf.getLocalSearchStep(MOVE_MAINTENANCE).execute(p);
         } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(CHANGE_PRODUCTION).execute(p);
-        } else if (randomInt < (switcher += 5)) {
+        } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(REMOVE_PRODUCTION).execute(p);
         } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(MOVE_PRODUCTION).execute(p);
         } else if (randomInt < (switcher += 0)) {
             lssf.getLocalSearchStep(MOVE_SHIPPING_DAY).execute(p);
-        } else if (randomInt < (switcher += 15)) {
+        } else if (randomInt < (switcher += 15)) {*/
             lssf.getLocalSearchStep(ADD_SHIPPING_DAY).execute(p);
-        } else if (randomInt < (switcher += 10)) {
-            lssf.getLocalSearchStep(JOIN_SINGLE_NEIGHBOURING_SETUPS).execute(p);
-        } else {
-            localSearchUpperBound = switcher;
-        }
+       // } else if (randomInt < (switcher += 0)) {
+        //    lssf.getLocalSearchStep(JOIN_SINGLE_NEIGHBOURING_SETUPS).execute(p);
+      //  } else {
+       //    localSearchUpperBound = switcher;
+      //  }
 
         p.calculateAllCosts();
         return p;
