@@ -2,10 +2,13 @@ package model;
 
 import model.machinestate.Idle;
 import model.machinestate.MachineState;
+import model.machinestate.Maintenance;
 import model.machinestate.Production;
 import model.machinestate.setup.Setup;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -114,6 +117,31 @@ public class Machine {
                         currentBlock = 0;
                     } else {
                         currentBlock++;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param p           planning
+     * @param numOfBlocks number of idle blocks needed
+     * @return
+     */
+    public List<Block> getConsecutiveBlocks(Planning p, int numOfBlocks) {
+        //GET LIST OF CONSECUTIVE IDLE BLOCKS ON MACHINE
+        List<Block> blocks = new ArrayList<>();
+        for (Day d : p.getDays()) {
+            for (Block b : d.getBlocks()) {
+                MachineState ms = b.getMachineState(this);
+                if (ms instanceof Idle) {
+                    blocks.add(b);
+                } else if (!(ms instanceof Maintenance)) {
+                    if (blocks.size() >= numOfBlocks) {
+                        return blocks;
+                    } else {
+                        blocks.clear();
                     }
                 }
             }
