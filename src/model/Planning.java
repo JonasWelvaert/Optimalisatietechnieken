@@ -191,12 +191,12 @@ public class Planning {
 
     public Day getDay(int id) {
 
-		for (Day d: days) {
-			if (d.getId() == id) {
-				return d;
-			}
-		}
-		throw new RuntimeException("Day id not found.");
+        for (Day d : days) {
+            if (d.getId() == id) {
+                return d;
+            }
+        }
+        throw new RuntimeException("Day id not found.");
     }
 
     public List<Day> getDays() {
@@ -234,6 +234,17 @@ public class Planning {
     public void setStock(Stock stock) {
         this.stock = stock;
     }
+
+    /**
+     * @return a request that is not shipped yet, null if every request is already shipped
+     */
+    public Request getUnshippedRequest() {
+        // SEARCH FOR AN UNSHIPPED REQUEST
+        for (Request r : getRequests()) {
+            if (!r.hasShippingDay()) return r;
+        }
+        return null;
+    }
     
    /* public Item getNextItem(Day day, Block block, Machine machine) {
     	for(int d=day.getId(); d<Planning.numberOfDays; d++) {
@@ -252,7 +263,6 @@ public class Planning {
     }
     
     public Item getPreviousItem(Day day, Block block, Machine m) {
-    	//TODO
     	return m.getInitialSetup();
     }*/
 
@@ -277,7 +287,7 @@ public class Planning {
             int temp = nItem.getStockAmount(dayTemp);
             int newAmount = temp + efficiency;
             nItem.setStockAmount(dayTemp, newAmount);
-            if(newAmount < 0){
+            if (newAmount < 0) {
                 System.out.println();
             }
         }

@@ -4,11 +4,9 @@ import feasibilitychecker.Counting;
 import feasibilitychecker.FeasibiltyChecker;
 import model.*;
 import model.machinestate.Idle;
-import model.machinestate.MachineState;
 import model.machinestate.Maintenance;
 import model.machinestate.Production;
 import model.machinestate.setup.LargeSetup;
-import model.machinestate.setup.Setup;
 import model.machinestate.setup.SmallSetup;
 import solver.SimulatedAnnealingSolver;
 import solver.Solver;
@@ -23,10 +21,7 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static main.EnumInputFile.*;
@@ -46,8 +41,7 @@ public class Main {
     private static final String titlePrefix = "\t \t \t ****************************";
     public static final List<String> graphingOutput = new ArrayList<>();
     private static final FeasibiltyChecker feasibiltyChecker = new FeasibiltyChecker();
-    // -1 -> current timestamp, >=0 are valid seeds.
-    public static long seed = -1;
+    public static long seed = -1; // -1 -> current timestamp, >=0 are valid seeds.
     public static Planning initialPlanning;
     public static Planning bestPlanning;
 
@@ -65,13 +59,13 @@ public class Main {
     public static final boolean changeCooling = false; // false
     public static final double exponentialRegulator = 150; // 10 (>1 will accept more worse solutions)
 
-    public static final int itterations = 100000;    //BE SURE TO USE THE CORRECT PARAMETERS!
+    public static final int iterations = 100000;    //BE SURE TO USE THE CORRECT PARAMETERS!
 
     public static void main(String[] args) throws IOException, InterruptedException {
         // logger.setLevel(Level.OFF);
 
-        long timeLimit = 60;//in seconds
-        int nrOfThreads = 2;
+        long timeLimit = 300;//in seconds 300=5min
+        int nrOfThreads = 1; // for debugging = 1 //TODO @jonas increase seed for every thread
         if (args.length == 1) {
             inputFile = INSTANCE_FOLDER + args[0];
             outputFile = SAx_FOLDER + outputPrefix + "_" + args[0];
@@ -105,16 +99,16 @@ public class Main {
 
         ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(nrOfThreads);
 
-        for (int i = 0; i < 100 * nrOfThreads; i++) { // aantal taken die aan de pool toegewezen worden.
+        for (int i = 0; i < 100 * nrOfThreads; i++) { // aantal taken die aan de pool toegewezen worden. // voor debuggin =1
             pool.submit(new Callable<Planning>() {
 
                 @Override
                 public Planning call() throws Exception {
                     Solver solver;
 
-                    solver = new SteepestDescentSolver(itterations, new FeasibiltyChecker());
+//                    solver = new SteepestDescentSolver(iterations, new FeasibiltyChecker());
 
-//                    solver = new SimulatedAnnealingSolver(new FeasibiltyChecker(), temperature, cooling);
+                    solver = new SimulatedAnnealingSolver(new FeasibiltyChecker(), temperature, cooling);
 
 
                     Planning optimizedPlanning = solver.optimize(new Planning(initialPlanning));
@@ -284,12 +278,11 @@ public class Main {
         }
         p = ret;
         initialCost = p.getTotalCost();
+        printOutputToConsole(p);
         return p;
-
     }
 
-    private static void produceAndShip(boolean useCheckedItems, boolean useEndOfBlockShipping,
-                                       boolean useEndOfDayShipping, Planning p) {
+    private static void produceAndShip(boolean useCheckedItems, boolean useEndOfBlockShipping, boolean useEndOfDayShipping, Planning p) {
         Set<Item> checkedItems = new HashSet<>();
         machine:
         for (Machine m : p.getMachines()) {

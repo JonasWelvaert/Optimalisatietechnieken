@@ -16,21 +16,23 @@ public class AddShippingDay extends LocalSearchStep {
         super(maxTries);
     }
 
+
+    /**
+     * @param p planning
+     * @return true if a new request is shipped OR all request were already shipped, false if no new request could be shipped
+     */
     @Override
     public boolean execute(Planning p) {
-        int randomRequest = random.nextInt(p.getRequests().getRequests().size());
-        Request request = p.getRequests().get(randomRequest);
+        Request request = p.getUnshippedRequest();
 
-        if (request.getShippingDay() == null) {
+        // IF REQUEST IS NULL, ALL REQUEST ARE ALREADY SHIPPED
+        if (request != null) {
             List<Day> possibleShippingDays = new ArrayList<>(request.getPossibleShippingDays());
             Collections.reverse(possibleShippingDays);
 
             // 1. CHECK FOR ALL POSSIBLE SHIPPING DAYS IF SHIPPING POSSIBLE FOR REQUEST
-
             for (Day sd : request.getPossibleShippingDays()) { // REVERSE LOOP OVER SHIPPING DAYS (START WITH LAST)
-                Map<Item, Integer> itemsNeeded = checkFutureStock(p, request, sd);
-                if (itemsNeeded == null) {
-                    //TODO inplannen
+                if (tryToPlanShippingDay(sd, request, p)) {
                     return true;
                 }
             }
@@ -39,48 +41,56 @@ public class AddShippingDay extends LocalSearchStep {
             for (Day sd : request.getPossibleShippingDays()) { // FORWARD LOOP OVER SHIPPING DAYS (START WITH FIRST)
                 Map<Item, Integer> itemsNeeded = checkFutureStock(p, request, sd);
                 boolean allItemsPlanned = true;
-                // TRY TO PLAN NEEDED AMOUNT OF ITEMS FOR EVERY ITEM NEEDED
-                for (Map.Entry<Item, Integer> entry : itemsNeeded.entrySet()) {
-                    boolean itemPlanned = false;
-                    Item item = entry.getKey();
-                    double amountNeeded = entry.getValue(); // item amount
 
-                    for (Machine m : p.getMachines()) {
-                        int efficiency = m.getEfficiency(item);
-                        if (efficiency != 0) {
-                            int blocksNeeded = (int) Math.ceil(amountNeeded / m.getEfficiency(item));
-                            List<Block> blocks = m.getConsecutiveBlocks(p, blocksNeeded);
+                if (itemsNeeded != null) {
+                    // TRY TO PLAN NEEDED AMOUNT OF ITEMS FOR EVERY ITEM NEEDED
+                    for (Map.Entry<Item, Integer> entry : itemsNeeded.entrySet()) {
+                        boolean itemPlanned = false;
+                        Item item = entry.getKey();
+                        int amount = entry.getValue();
 
-                            if (blocks != null) {
-                                //inplannen van setups, en production
-
-
+                        for (Machine m : p.getMachines()) {
+                            if (addSpecificProductionForItem(m, p, item, amount)) {
                                 itemPlanned = true;
                                 break;
                             }
                         }
+                        if (!itemPlanned)
+                            allItemsPlanned = false; // IF 1 item could not be entirely planned, allItemsPlanned = false
                     }
-                    if (!itemPlanned) allItemsPlanned = false;
+                    // TRY TO PLAN SHIPPING ON DAY SD AGAIN
                 }
-
-                // ALL ITEMS COULD BE PLANNED ...
-                if (allItemsPlanned) {
-                    // ... BUT COULD BE PLANNED AFTER SD ...
-                    if (checkFutureStock(p, request, sd) != null) { // ... SO CHECK FOR SD
-                        request.setShippingDay(sd);
-                        for (Item i : request.getItemsKeySet()) {
-                            int delta = -1 * request.getAmountOfItem(i);
-                            p.updateStockLevels(sd, i, delta);
-                        }
-                        return true; //EOF method
-                    }
+                if (allItemsPlanned && tryToPlanShippingDay(sd, request, p)) {
+                    return true;
                 }
-
-            } //EOF for (Day sd : request.getPossibleShippingDays())
-        }// EOF   if (request.getShippingDay() == null)
-        return false; //EOF    public boolean execute(Planning p)
+            }
+        } else {
+            logger.info("All request are already scheduled");
+            return true;
+        }
+        return false;
     }
 
+    /**
+     * This method will check if stock constraint are not violated for shipping request on sd
+     *
+     * @param sd      shipping day on which we want to ship
+     * @param request request we want to ship
+     * @param p       planning
+     * @return true if shipping is planned, false if shipping could not be planned
+     */
+    private boolean tryToPlanShippingDay(Day sd, Request request, Planning p) {
+        Map<Item, Integer> itemsNeeded = checkFutureStock(p, request, sd);
+        if (itemsNeeded == null) { // ... SO CHECK FOR SD
+            request.setShippingDay(sd);
+            for (Item i : request.getItemsKeySet()) {
+                int delta = -1 * request.getAmountOfItem(i);
+                p.updateStockLevels(sd, i, delta);
+            }
+            return true; //EOF method
+        }
+        return false;
+    }
 
     /**
      * @param p       is planning
@@ -95,10 +105,9 @@ public class AddShippingDay extends LocalSearchStep {
         for (Day d : p.getSuccessorDaysInclusive(sd)) {
             for (Item i : request.getItemsKeySet()) {
                 int temp = i.getStockAmount(d) - request.getAmountOfItem(i);
-                if (temp < 0) {
+                if (temp < 0) { //TODO check max stock
                     int temp2 = Math.abs(temp); //items te weinig
                     itemsNeeded.put(i, temp2);
-//                    return false;
                 }
             }
         }
@@ -106,7 +115,5 @@ public class AddShippingDay extends LocalSearchStep {
             itemsNeeded = null;
         }
         return itemsNeeded;
-
     }
-    //EOF class
 }
