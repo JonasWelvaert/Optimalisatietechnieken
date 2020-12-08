@@ -54,23 +54,3 @@ public class LocalSearchStepFactory {
         localSearchSteps.put(es, localSearchStep);
     }
 }
-
-
-/*		switch (randomInt){
-                case 0: swapParallelWork(randPosInt); break;
-                case 1: this.swapNightShift(randPosInt, random.nextBoolean(), random.nextBoolean());
-                case 2: swapOvertime(randPosInt, randPosInt2); break;
-                case 3: swapOrders(randPosInt, randPosInt2); break;
-                case 4: swapRequestOrder(randPosInt, randPosInt2); break;
-                case 5: incrementOrderCount(randPosInt); break;
-                case 6: decrementOrderCount(randPosInt); break;
-                case 7: changeMachineForOrders(randPosInt, randPosInt2); break;
-                case 8: changeItemForOrder(randPosInt, randPosInt2); break;
-                case 9: this.addMachineOrder(randPosInt, randPosInt2); break;
-                case 10: this.addMachineOrder(randPosInt, randPosInt2); break;
-                case 11: incrementOrderCount(randPosInt); break;
-                case 12: incrementOrderCount(randPosInt); break;
-                case 13: decrementOrderCount(randPosInt); break;
-                case 14: decrementOrderCount(randPosInt); break;
-default: break;
-        }*/

@@ -32,7 +32,7 @@ import java.util.logging.Logger;
 import static main.EnumInputFile.*;
 
 public class Main {
-	private static final EnumInputFile inputFileName = D40_R100_B30;
+	private static final EnumInputFile inputFileName = Toy;
 	private static String inputFile;
 	private static String outputFile;
 	private static final String outputPrefix = "SA3";
