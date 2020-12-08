@@ -79,8 +79,8 @@ public class Machine {
         } else {
             currentBlock--;
         }
-        for (int d = currentDay; d > 0; d--) {
-            for (int b = currentBlock; b > 0; b--) {
+        for (int d = currentDay; d >= 0; d--) {
+            for (int b = currentBlock; b >= 0; b--) {
                 MachineState ms = p.getDay(d).getBlock(b).getMachineState(this);
                 if (ms instanceof Production) {
                     Production prod = (Production) p.getDay(d).getBlock(b).getMachineState(this);
