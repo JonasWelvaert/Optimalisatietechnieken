@@ -6,9 +6,7 @@ import model.machinestate.Idle;
 import model.machinestate.MachineState;
 
 import javax.crypto.Mac;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AddShippingDay extends LocalSearchStep {
 
@@ -24,25 +22,33 @@ public class AddShippingDay extends LocalSearchStep {
         int randomRequest = random.nextInt(p.getRequests().getRequests().size());
         Request request = p.getRequests().get(randomRequest);
 
-        // TODO while loop ? while not shipped ?
         if (request.getShippingDay() == null) {
-            // CHECK FOR ALL POSSIBLE SHIPPING DAYS
+            // 1. CHECK FOR ALL POSSIBLE SHIPPING DAYS
+            List<Day> possibleShippingDays = new ArrayList<>(request.getPossibleShippingDays());
+            Collections.reverse(possibleShippingDays);
+            boolean oneDayPossible = true;
             for (Day sd : request.getPossibleShippingDays()) {
 
-                boolean isPossible = true;
+                Map<Item, Integer> itemsNeeded = checkFutureStock(p, request, sd);
+                if (itemsNeeded != null) {
+                    oneDayPossible = false;
+                }
+                //2A. PLAN SHIPMENT
+                if (oneDayPossible) {
+
+                    //TODO inplannen
+                    return true;
+                }
+            }
+
+
+            //2B. ADD PRODUCTION FOR SHIPMENT
+
+            for (Day sd : request.getPossibleShippingDays()) {
+
+                boolean isPossible;
 
                 // TODO isPossible = checkFeasibilityChecker...
-
-               /*
-                successorDays:
-                for (Day d : p.getSuccessorDaysInclusive(sd)) {
-                    for (Item i : request.getItemsKeySet()) {
-                        if (i.getStockAmount(d) - request.getAmountOfItem(i) < 0) {
-                            isPossible = false;
-                            break successorDays;
-                        }
-                    }
-                }*/
 
                 Map<Item, Integer> itemsNeeded = checkFutureStock(p, request, sd);
                 isPossible = itemsNeeded != null;
@@ -63,11 +69,13 @@ public class AddShippingDay extends LocalSearchStep {
                     // ITEMS NEEDED != null
 
                     assert itemsNeeded != null;
+                    boolean allPlanned = true;
                     for (Map.Entry<Item, Integer> entry : itemsNeeded.entrySet()) {
 
                         Item i = entry.getKey();
                         int amountNeeded = entry.getValue();
-                        addProductionForItem(i, amountNeeded);
+
+                        allPlanned = addProductionForItem(i, amountNeeded);
                     }
 
 
@@ -118,6 +126,8 @@ public class AddShippingDay extends LocalSearchStep {
                         // plan setups
 
                         // plan production
+
+                        return true;
                     }
                 }
             }
@@ -127,7 +137,12 @@ public class AddShippingDay extends LocalSearchStep {
         return false;
     }
 
-
+    /**
+     * @param p       is planning
+     * @param request request to be scheduled
+     * @param sd      shipping day to be evaluated for stock levels
+     * @return null if stock levels not violated, else Map of needed amount per item
+     */
     private Map<Item, Integer> checkFutureStock(Planning p, Request request, Day sd) {
 
         Map<Item, Integer> itemsNeeded = new HashMap<>();
