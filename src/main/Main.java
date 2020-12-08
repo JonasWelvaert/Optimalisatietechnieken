@@ -53,10 +53,9 @@ public class Main {
     public static final String CSV_SEP = ",";
 
     /* -------------------------------- PARAMETERS --------------------------------*/
-    public static final int temperature = 10000; // 1000
-    public static final double cooling = 0.999; // 0.9999
+    public static final int temperature = 10000000; // 1000
+    public static final double cooling = 0.9999; // 0.9999
     public static final boolean tempReset = true; // true
-    public static final boolean changeCooling = false; // false
     public static final double exponentialRegulator = 150; // 10 (>1 will accept more worse solutions)
 
     public static final int iterations = 100000;    //BE SURE TO USE THE CORRECT PARAMETERS!
@@ -99,7 +98,7 @@ public class Main {
 
         ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(nrOfThreads);
 
-        for (int i = 0; i < 100 * nrOfThreads; i++) { // aantal taken die aan de pool toegewezen worden. // voor debuggin =1
+        for (int i = 0; i < 1 * nrOfThreads; i++) { // aantal taken die aan de pool toegewezen worden. // voor debuggin =1
             pool.submit(new Callable<Planning>() {
 
                 @Override

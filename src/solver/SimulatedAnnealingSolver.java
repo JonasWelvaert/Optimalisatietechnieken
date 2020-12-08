@@ -6,6 +6,9 @@ import model.Planning;
 import java.io.IOException;
 import java.util.logging.Level;
 
+import static main.Main.exponentialRegulator;
+import static main.Main.tempReset;
+
 public class SimulatedAnnealingSolver extends Solver {
     private final double temperature;
     private final double coolingFactor;
@@ -47,7 +50,7 @@ public class SimulatedAnnealingSolver extends Solver {
                 // save solution temp
                 counter++;
 
-                double temp = t * 100; //ACCEPT MORE WORSE SOLUTIONS
+                double temp = t * exponentialRegulator; //ACCEPT MORE WORSE SOLUTIONS
                 probability = Math.exp((currentCost - neighborCost) / temp);
             }
             // ACCEPT SOMETIMES EVEN IF COST IS WORSE
@@ -57,6 +60,9 @@ public class SimulatedAnnealingSolver extends Solver {
             // OVERWRITE BEST IF COST IS IMPROVED
             if (current.getTotalCost() < best.getTotalCost()) {
                 best = new Planning(current);
+                if (tempReset) {
+                    t = temperature / 4;
+                }
                 if (best.getTotalCost() == 0) {
                     return best;
                 }
