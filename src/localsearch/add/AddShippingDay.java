@@ -1,10 +1,11 @@
 package localsearch.add;
 
 import localsearch.LocalSearchStep;
-import model.Day;
-import model.Item;
-import model.Planning;
-import model.Request;
+import model.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class AddShippingDay extends LocalSearchStep {
 
@@ -37,7 +38,8 @@ public class AddShippingDay extends LocalSearchStep {
                     }
                 }*/
 
-                isPossible = checkFutureStock(p, request, sd);
+                Map<Item, Integer> itemsNeeded = checkFutureStock(p, request, sd);
+                isPossible = itemsNeeded != null;
 
                 // IF STOCK NOT VIOLATED, PLAN SHIPMENT
                 if (isPossible) {
@@ -52,18 +54,26 @@ public class AddShippingDay extends LocalSearchStep {
                 }
                 // IF STOCK VIOLATED, SO PLAN EXTRA PRODUCTION (preferrably before current SD)
                 else {
+                    // ITEMS NEEDED != null
 
-                    // 0. HOEVEEL ITEMS ZIJN ER TEKORT ?
+                    assert itemsNeeded != null;
+                    for (Map.Entry<Item, Integer> entry : itemsNeeded.entrySet()) {
 
-                    // 1. PLAN ALLE ITEMS DIE TE KORT ZIJN ZO VROEG MOGELIJK
-
-                    // 2a. alles is gepland voor huidige SD --> plan SD
-                    if (checkFutureStock(p, request, sd)) {
-                        //plan huidige SD
-                    } else {
-                        //niets
+                        Item i = entry.getKey();
+                        int amountNeeded = entry.getValue();
+                        addProductionForItem(i, amountNeeded);
                     }
 
+
+                    // IF EVERTHING COULD BE PLANNED BEFORE SD, ISPOSSIBLE BECOMES TRUE;
+                    isPossible = checkFutureStock(p, request, sd) != null;
+                    if (isPossible) {
+                        request.setShippingDay(sd);
+                        for (Item i : request.getItemsKeySet()) {
+                            int delta = -1 * request.getAmountOfItem(i);
+                            p.updateStockLevels(sd, i, delta);
+                        }
+                    }
 
                     // addProduction van items zodat het wel mogelijk wordt
                     // isPossibele ?
@@ -76,16 +86,38 @@ public class AddShippingDay extends LocalSearchStep {
         return false;
     }
 
+    /**
+     * @param i            type of item which has to be produced more
+     * @param amountNeeded amount of items that needs to be planned of item i
+     * @return true if total amount could be planned
+     */
+    private boolean addProductionForItem(Item i, int amountNeeded) {
 
-    private boolean checkFutureStock(Planning p, Request request, Day sd) {
+
+
+
+        return false;
+    }
+
+
+    private Map<Item, Integer> checkFutureStock(Planning p, Request request, Day sd) {
+
+        Map<Item, Integer> itemsNeeded = new HashMap<>();
         // FOR SD CHECK IF IN FUTURE STOCK IS NOT VIOLATED
         for (Day d : p.getSuccessorDaysInclusive(sd)) {
             for (Item i : request.getItemsKeySet()) {
-                if (i.getStockAmount(d) - request.getAmountOfItem(i) < 0) {
-                    return false;
+                int temp = i.getStockAmount(d) - request.getAmountOfItem(i);
+                if (temp < 0) {
+                    int temp2 = Math.abs(temp); //items te weinig
+                    itemsNeeded.put(i, temp2);
+//                    return false;
                 }
             }
         }
-        return true;
+        if (itemsNeeded.isEmpty()) {
+            itemsNeeded = null;
+        }
+        return itemsNeeded;
+
     }
 }

@@ -47,7 +47,7 @@ public class SimulatedAnnealingSolver extends Solver {
                 // save solution temp
                 counter++;
 
-                double temp = t * 100;
+                double temp = t * 100; //ACCEPT MORE WORSE SOLUTIONS
                 probability = Math.exp((currentCost - neighborCost) / temp);
             }
             // ACCEPT SOMETIMES EVEN IF COST IS WORSE
