@@ -2,12 +2,17 @@ package localsearch.add;
 
 import localsearch.LocalSearchStep;
 import model.*;
+import model.machinestate.Idle;
+import model.machinestate.MachineState;
 
+import javax.crypto.Mac;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class AddShippingDay extends LocalSearchStep {
+
+    private Planning planning;
 
     public AddShippingDay(int maxTries) {
         super(maxTries);
@@ -15,6 +20,7 @@ public class AddShippingDay extends LocalSearchStep {
 
     @Override
     public boolean execute(Planning p) {
+        this.planning = p;
         int randomRequest = random.nextInt(p.getRequests().getRequests().size());
         Request request = p.getRequests().get(randomRequest);
 
@@ -92,8 +98,30 @@ public class AddShippingDay extends LocalSearchStep {
      * @return true if total amount could be planned
      */
     private boolean addProductionForItem(Item i, int amountNeeded) {
+        //SEQUENCE OF FOR LOOPS MAY NOT BE CHANGED !!!
 
 
+        for (Machine m : planning.getMachines()) {
+            int efficiency = m.getEfficiency(i);
+            int numOfBlocks = (int) Math.ceil(amountNeeded / efficiency);     //   200/45   = 4.4   --> 5
+
+            for (Day d : planning.getDays()) {
+                for (Block b : d.getBlocks()) {
+                    MachineState ms = b.getMachineState(m);
+
+                    //TODO number of blocks ?
+                    if (ms instanceof Idle) {
+                        // check if setups before needed
+
+                        // check if setup after needed
+
+                        // plan setups
+
+                        // plan production
+                    }
+                }
+            }
+        }
 
 
         return false;

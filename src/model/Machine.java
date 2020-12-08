@@ -16,7 +16,8 @@ public class Machine {
     private final int initialDaysPastWithoutMaintenance;
     private final int maxDaysWithoutMaintenance;
     private final int maintenanceDurationInBlocks;
-    private final Map<Item, Integer> efficiency;
+
+    private final Map<Item, Integer> efficiency; //aantal items per block productie
 
     private static final Logger logger = Logger.getLogger(Machine.class.getName());
 
