@@ -23,7 +23,7 @@ public abstract class Solver {
     private static int localSearchUpperBound = 999999999;
 
     public Solver(FeasibiltyChecker feasibiltyChecker) {
-//        logger.setLevel(Level.OFF);
+        logger.setLevel(Level.OFF);
         this.feasibiltyChecker = feasibiltyChecker;
     }
 
@@ -39,18 +39,6 @@ public abstract class Solver {
             lssf.getLocalSearchStep(ADD_SINGLE_PRODUCTION).execute(p);
         } else if (randomInt < (switcher += 5)) {
             lssf.getLocalSearchStep(ADD_PRODUCTION_AFTER_PLANNED_PRODUCTION).execute(p);
-        } else if (randomInt < (switcher += 0)) {
-            lssf.getLocalSearchStep(ADD_PARALLELL_PRODUCTION).execute(p);
-        } else if (randomInt < (switcher += 0)) {
-            lssf.getLocalSearchStep(MOVE_MAINTENANCE).execute(p);
-        } else if (randomInt < (switcher += 0)) {
-            lssf.getLocalSearchStep(CHANGE_PRODUCTION).execute(p);
-        } else if (randomInt < (switcher += 0)) {
-            lssf.getLocalSearchStep(REMOVE_PRODUCTION).execute(p);
-        } else if (randomInt < (switcher += 0)) {
-            lssf.getLocalSearchStep(MOVE_PRODUCTION).execute(p);
-        } else if (randomInt < (switcher += 0)) {
-            lssf.getLocalSearchStep(MOVE_SHIPPING_DAY).execute(p);
         } else if (randomInt < (switcher += 5)) {
             lssf.getLocalSearchStep(ADD_SHIPPING_DAY).execute(p);
         } else if (randomInt < (switcher += 5)) {
@@ -93,14 +81,6 @@ public abstract class Solver {
             if (randomBlock > Day.getIndexOfBlockO()) { // niet overtime, wel nachtshift
                 int nightshiftBefore = closestNightshift(p, "before", randomDay);
                 int nightshiftAfter = closestNightshift(p, "after", randomDay);
-                // als nightshift niet lang geleden => beter verlengen, dan nieuwe starten
-                /*
-                 * if (nightshiftAfter == -1 && nightshiftBefore == -1) { // nieuwe nightshift
-                 * reeks int amountOfNightShifts =
-                 * Planning.getMinConsecutiveDaysWithNightShift(); for (int i = randomDay; i <
-                 * p.getDays().size(); i++) { if (amountOfNightShifts == 0) { break; } else {
-                 * p.getDay(i).setNightShift(true); amountOfNightShifts--; } } } else
-                 */
                 if (nightshiftBefore < nightshiftAfter) { // als dichtste nightshift ervoor ligt
                     if (nightshiftBefore <= maxAmountDaysBetweenExtendingNightshift) {
                         // alle dagen ervoor ook nighshift maken
