@@ -57,8 +57,8 @@ public class Main {
 	/*
 	 * -------------------------------- PARAMETERS --------------------------------
 	 */
-	public static final int temperature = 100000; // 1000
-	public static final double cooling = 0.99985; // 0.9999
+	public static final int temperature = 1000000; // 1000
+	public static final double cooling = 0.9999; // 0.9999
 	public static final boolean tempReset = true; // true
 	public static final double exponentialRegulator = 150; // 10 (>1 will accept more worse solutions)
 

@@ -342,9 +342,12 @@ public class FeasibiltyChecker {
                 } else if (p.getDay(d).getBlock(b).getMachineState(m) instanceof Setup) {
                     Setup s = (Setup) p.getDay(d).getBlock(b).getMachineState(m);
                     if (setupTeller == 0) {
+                        if (currentItem != s.getFrom()) {
+                            return false;
+                        }
                         to = s.getTo();
-                        from = s.getFrom();
-                    } else if (to != s.getTo() || from != s.getFrom()){
+                        from = currentItem;
+                    } else if (to != s.getTo() || from != s.getFrom()) {
                         return false;
                     }
                     int lengthsetup = from.getSetupTimeTo(to);
@@ -353,12 +356,12 @@ public class FeasibiltyChecker {
                         setupTeller = 0;
                         currentItem = s.getTo();
                     }
-                } else if (p.getDay(d).getBlock(b).getMachineState(m) instanceof Idle ){
-                    if (setupTeller != 0){
+                } else if (p.getDay(d).getBlock(b).getMachineState(m) instanceof Idle) {
+                    if (setupTeller != 0) {
                         return false;
                     }
-                } else if (p.getDay(d).getBlock(b).getMachineState(m) instanceof Maintenance ){
-                    if (setupTeller != 0){
+                } else if (p.getDay(d).getBlock(b).getMachineState(m) instanceof Maintenance) {
+                    if (setupTeller != 0) {
                         return false;
                     }
                 }
