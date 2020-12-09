@@ -57,8 +57,8 @@ public class Main {
     /*
      * -------------------------------- PARAMETERS --------------------------------
      */
-    public static final int temperature = 1000; // 1000
-    public static final double cooling = 0.7; // 0.9999
+    public static final int temperature = 100000; // 1000
+    public static final double cooling = 0.9999; // 0.9999
     public static final boolean tempReset = true; // true
     public static final double exponentialRegulator = 150; // 10 (>1 will accept more worse solutions)
     /* -------------------------------- TIMES -------------------------------- */
@@ -67,7 +67,7 @@ public class Main {
     public static void main(String[] args) throws IOException, InterruptedException {
         startTime = System.currentTimeMillis();
         logger.setLevel(Level.OFF);
-        timeLimit = 60;
+        timeLimit = 600;
         int nrOfThreads = 2;
         // TODO niet nodig
         if (args.length == 1) {
@@ -104,7 +104,7 @@ public class Main {
 
         ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(nrOfThreads);
 
-        for (int i = 0; i < 1 * nrOfThreads; i++) { // TODO
+        for (int i = 0; i < 10 * nrOfThreads; i++) { // TODO
             pool.submit(() -> {
                 Solver solver = new SimulatedAnnealingSolver(new FeasibiltyChecker(), temperature, cooling);
 
@@ -119,8 +119,6 @@ public class Main {
         long timeLimMili = timeLimit * 1000;
         Thread.sleep(timeLimMili - temp);
         pool.shutdownNow();
-
-        //resultFound(initialPlanning);
 
         System.out.println("System Exited because time limit is reached");
         System.exit(10);
