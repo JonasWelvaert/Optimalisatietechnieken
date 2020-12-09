@@ -27,12 +27,12 @@ public class Stock implements Iterable<Item> {
 			items.add(item);
 		}
 		for (int i = 0; i < nrOfDifferentItems; i++) {
-			Item otherItem = s.items.get(i);
-			Item item = items.get(i);
+			Item otherItem = s.getItem(i);
+			Item item = this.getItem(i);
 			for (int j = 0; j < nrOfDifferentItems; j++) {
 				if (i != j) {
-					item.setLargeSetup(items.get(j), otherItem.isLargeSetup(s.items.get(j)));
-					item.setSetupTime(items.get(j), otherItem.getSetupTimeTo(s.items.get(j)));
+					item.setLargeSetup(this.getItem(j), otherItem.isLargeSetup(s.getItem(j)));
+					item.setSetupTime(this.getItem(j), otherItem.getSetupTimeTo(s.getItem(j)));
 				}
 			}
 			for (Day d : days) {
