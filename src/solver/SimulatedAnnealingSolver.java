@@ -61,7 +61,7 @@ public class SimulatedAnnealingSolver extends Solver {
             if (current.getTotalCost() < best.getTotalCost()) {
                 best = new Planning(current);
                 if (tempReset) {
-                    t = temperature / 4;
+                    t = temperature;
                 }
                 if (best.getTotalCost() == 0) {
                     return best;
