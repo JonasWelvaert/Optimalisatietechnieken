@@ -1,5 +1,6 @@
 package model;
 
+import main.Main;
 import model.machinestate.Idle;
 import model.machinestate.MachineState;
 import model.machinestate.Maintenance;
@@ -50,6 +51,7 @@ public class Planning {
      * @param p planning to copy
      */
     public Planning(Planning p) {
+//        Main.printOutputToConsole(p);
         this.instanceName = p.instanceName;
         this.days = new ArrayList<>(p.days.size());
         for (Day d : p.days) {

@@ -1,5 +1,6 @@
 package feasibilitychecker;
 
+import main.Main;
 import model.*;
 import model.machinestate.Idle;
 import model.machinestate.MachineState;
@@ -310,6 +311,7 @@ public class FeasibiltyChecker {
 
     private boolean checkSetupConstraint(Machine m, Planning p) {
 
+//        Main.printOutputToConsole(p);
         Item currentItem = m.getInitialSetup();
         Item from = null;
         Item to = null;

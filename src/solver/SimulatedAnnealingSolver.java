@@ -31,10 +31,10 @@ public class SimulatedAnnealingSolver extends Solver {
         Planning neighbor;
 
         for (double t = temperature; t > 1; t *= coolingFactor) {
-            double tempChangeTime = timeLimit * 0.95 * 1000;
+            double tempChangeTime = timeLimit * 0.98 * 1000;
             long exeTime = System.currentTimeMillis() - startTime;
             if (exeTime > tempChangeTime) {
-                t = t / 10;
+                t = 1.000000001;
             }
 
             logger.info("\t Temperature = " + t + "\tCost: " + best.getTotalCost());

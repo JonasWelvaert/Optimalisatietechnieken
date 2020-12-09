@@ -38,6 +38,7 @@ public class AddShippingDay extends LocalSearchStep {
             }
 
             // 2. NO SHIPPING DAY COULD BE PLANNED
+            shippingday:
             for (Day sd : request.getPossibleShippingDays()) { // FORWARD LOOP OVER SHIPPING DAYS (START WITH FIRST)
                 Map<Item, Integer> itemsNeeded = checkFutureStock(p, request, sd);
                 boolean allItemsPlanned = true;
@@ -55,8 +56,10 @@ public class AddShippingDay extends LocalSearchStep {
                                 break;
                             }
                         }
-                        if (!itemPlanned)
+                        if (!itemPlanned) {
                             allItemsPlanned = false; // IF 1 item could not be entirely planned, allItemsPlanned = false
+                            continue shippingday;
+                        }
                     }
                     // TRY TO PLAN SHIPPING ON DAY SD AGAIN
                 }
