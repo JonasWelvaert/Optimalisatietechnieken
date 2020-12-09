@@ -29,7 +29,7 @@ import java.util.logging.Logger;
 import static main.EnumInputFile.*;
 
 public class Main {
-	private static final EnumInputFile inputFileName = Toy;
+	private static final EnumInputFile inputFileName = D20_R15_B60;
 	private static String inputFile;
 	private static String outputFile;
 	private static final String outputPrefix = "SA3";
@@ -57,8 +57,8 @@ public class Main {
 	/*
 	 * -------------------------------- PARAMETERS --------------------------------
 	 */
-	public static final int temperature = 10000; // 1000
-	public static final double cooling = 0.9995; // 0.9999
+	public static final int temperature = 100000; // 1000
+	public static final double cooling = 0.99985; // 0.9999
 	public static final boolean tempReset = true; // true
 	public static final double exponentialRegulator = 150; // 10 (>1 will accept more worse solutions)
 
@@ -66,7 +66,6 @@ public class Main {
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 		// logger.setLevel(Level.OFF);
-
 		long timeLimit = 300;// in seconds 300=5min
 		int nrOfThreads = 1; // for debugging = 1 //TODO @jonas increase seed for every thread
 		if (args.length == 1) {
