@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class FeasibiltyChecker {
@@ -139,9 +138,9 @@ public class FeasibiltyChecker {
             }
         }
 
-        for (Item i : planning.getStock().getItems()) {
+        /*for (Item i : planning.getStock().getItems()) {
             i.checkStock();
-        }
+        }*/
         return true;
     }
 
@@ -327,24 +326,44 @@ public class FeasibiltyChecker {
     private boolean checkSetupConstraint(Machine m, Planning p) {
 
         Item currentItem = m.getInitialSetup();
+        Item from = null;
+        Item to = null;
+        int setupTeller = 0;
         for (int d = 0; d < Planning.getNumberOfDays(); d++) {
             for (int b = 0; b < Day.getNumberOfBlocksPerDay(); b++) {
                 if (p.getDay(d).getBlock(b).getMachineState(m) instanceof Production) {
+                    if (setupTeller != 0) {
+                        return false;
+                    }
                     Production production = (Production) p.getDay(d).getBlock(b).getMachineState(m);
                     if (production.getItem().getId() != currentItem.getId()) {
                         return false;
                     }
                 } else if (p.getDay(d).getBlock(b).getMachineState(m) instanceof Setup) {
                     Setup s = (Setup) p.getDay(d).getBlock(b).getMachineState(m);
-                    Item to = s.getTo();
-                    Item from = s.getFrom();
-                    int lengthsetup = from.getSetupTimeTo(to);
-                    if (s.getFrom().getId() != currentItem.getId()) {
+                    if (setupTeller == 0) {
+                        if (currentItem != s.getFrom()) {
+                            return false;
+                        }
+                        to = s.getTo();
+                        from = currentItem;
+                    } else if (to != s.getTo() || from != s.getFrom()) {
                         return false;
-                    } else {
+                    }
+                    int lengthsetup = from.getSetupTimeTo(to);
+                    setupTeller++;
+                    if (setupTeller == lengthsetup) {
+                        setupTeller = 0;
                         currentItem = s.getTo();
                     }
-                    b = b + lengthsetup;
+                } else if (p.getDay(d).getBlock(b).getMachineState(m) instanceof Idle) {
+                    if (setupTeller != 0) {
+                        return false;
+                    }
+                } else if (p.getDay(d).getBlock(b).getMachineState(m) instanceof Maintenance) {
+                    if (setupTeller != 0) {
+                        return false;
+                    }
                 }
             }
         }

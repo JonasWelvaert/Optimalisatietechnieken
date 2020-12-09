@@ -18,7 +18,7 @@ public abstract class Solver {
 	protected final FeasibiltyChecker feasibiltyChecker;
 
 	//Change the seed in MAIN!!
-	private static Random random = (Main.seed<0) ? new Random(): new Random(Main.seed);
+	private static Random random = (Main.seed<0) ? new Random(): new Random(Main.seed + 2);
 	private static int localSearchUpperBound = 999999999;
 
 	public Solver(FeasibiltyChecker feasibiltyChecker) {
