@@ -28,7 +28,6 @@ public class Item {
     public void updateItem(Day d, Machine m, int factor) {
         int amount = stockAmount.get(d);
         int efficiency = m.getEfficiency(this);
-        //int efficiency = 123;
         int newAmount = amount + (factor * efficiency);
         stockAmount.replace(d, newAmount);
     }

@@ -17,8 +17,7 @@ public class Machine {
     private final int maxDaysWithoutMaintenance;
     private final int maintenanceDurationInBlocks;
 
-    private final Map<Item, Integer> efficiency; //aantal items per block productie
-
+    private final Map<Item, Integer> efficiency;
     private static final Logger logger = Logger.getLogger(Machine.class.getName());
 
     public Machine(int id, Item item, int daysPastWithoutMaintenance, int maxDaysWithoutMaintenance, int maintenanceDurationInBlocks) {
@@ -62,7 +61,6 @@ public class Machine {
     // voor een vorig item te vinden tov een bepaalde block
     public Item getPreviousItem(Planning p, Day day, Block block) {
 
-        //boolean foundPreviousItem = false;
         int currentDay = day.getId();
         int currentBlock = block.getId();
 
