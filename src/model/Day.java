@@ -37,7 +37,12 @@ public class Day implements Iterable<Block> {
 	}
 
 	public Block getBlock(int id) {
-		return blocks.get(id);
+		for(Block b: blocks) {
+			if(b.getId() == id) {
+				return b;
+			}
+		}
+		throw new RuntimeException("Block id not found.");
 	}
 
 	public static void setNumberOfBlocksPerDay(int numberOfBlocksPerDay) {
@@ -168,7 +173,7 @@ public class Day implements Iterable<Block> {
 		if (!hasNightShift) {
 			for (int i = indexOfBlockS + 1; i <= indexOfBlockO; i++) { // [bs+1;bo] // @indexOutOfBounds
 				working = false;
-				Block b = blocks.get(i);
+				Block b = this.getBlock(i);
 				for (Machine m : machinesList) {
 					if (!(b.getMachineState(m) instanceof Idle)) {
 						working = true;
@@ -186,7 +191,7 @@ public class Day implements Iterable<Block> {
 	public boolean getParallelDuringDay(List<Machine> machines) {
 		boolean bool;
 		for (int i = 0; i < indexOfBlockS; i++) { // [b1;bs] // @indexOutOfBounds
-			Block b = blocks.get(i);
+			Block b = this.getBlock(i);
 			bool = false;
 			for (Machine m : machines) {
 				if (!(b.getMachineState(m) instanceof Idle)) {

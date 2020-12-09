@@ -66,7 +66,7 @@ public class Planning {
             for (Block b : d) {
                 for (Machine m : machines) {
                     MachineState ms = p.getDay(d.getId()).getBlock(b.getId())
-                            .getMachineState(p.machines.get(m.getId()));
+                            .getMachineState(p.getMachine(m.getId()));
                     if (ms.getClass() == Production.class) {
                         b.setMachineState(m, new Production(stock.getItem(((Production) ms).getItem().getId())));
                     } else if (ms.getClass() == Maintenance.class) {
@@ -89,10 +89,10 @@ public class Planning {
             if (r.getShippingDay() == null) {
                 request.setShippingDay(null);
             } else {
-                request.setShippingDay(days.get(r.getShippingDay().getId()));
+                request.setShippingDay(getDay(r.getShippingDay().getId()));
             }
             for (Day d : r.getPossibleShippingDays()) {
-                request.addPossibleShippingDay(days.get(d.getId()));
+                request.addPossibleShippingDay(getDay(d.getId()));
             }
             for (Item i : r.getItemsKeySet()) {
                 request.addItem(stock.getItem(i.getId()), r.getAmountOfItem(i));
@@ -108,13 +108,22 @@ public class Planning {
         this.minConsecutiveDaysWithNightShift = p.minConsecutiveDaysWithNightShift;
 
         for (Machine m : this.getMachines()) {
-            Machine otherMachine = p.getMachines().get(m.getId());
+            Machine otherMachine = p.getMachine(m.getId());
             for (Item item : this.stock) {
                 m.addEfficiency(item, otherMachine.getEfficiency(p.getStock().getItem(item.getId())));
             }
         }
     }
 
+    public Machine getMachine(int id) {
+    	for(Machine m: machines) {
+    		if(m.getId() == id) {
+    			return m;
+    		}
+    	}
+    	throw new RuntimeException("Machine id not found");
+    }
+    
     public void addMachine(Machine m) {
         machines.add(m);
     }
@@ -163,7 +172,7 @@ public class Planning {
             if (r.getItemsKeySet().contains(item)) {
                 if (r.hasShippingDay()) {
                     int dayId = r.getPossibleShippingDays().stream().mapToInt(Day::getId).max().getAsInt();
-                    day = days.get(dayId);
+                    day = getDay(dayId);
                 }
             }
         }
@@ -176,7 +185,7 @@ public class Planning {
             if (r.getItemsKeySet().contains(item)) {
                 if (!r.hasShippingDay()) {
                     int dayId = r.getPossibleShippingDays().stream().mapToInt(Day::getId).max().getAsInt();
-                    day = days.get(dayId);
+                    day = getDay(dayId);
                 }
             }
         }
@@ -267,7 +276,7 @@ public class Planning {
     public int getAmountOfNightShiftsInNextPeriod() {
         int teller = 0;
         for (int d = numberOfDays - 1; d == 0; d++) {
-            if (days.get(d).hasNightShift()) {
+            if (getDay(d).hasNightShift()) {
                 teller++;
             }
         }
@@ -281,7 +290,7 @@ public class Planning {
      */
     public void updateStockLevels(Day day, Item nItem, int efficiency) {
         for (int i = day.getId(); i < numberOfDays; i++) {
-            Day dayTemp = days.get(i);
+            Day dayTemp = getDay(i);
             int temp = nItem.getStockAmount(dayTemp);
             int newAmount = temp + efficiency;
             nItem.setStockAmount(dayTemp, newAmount);
