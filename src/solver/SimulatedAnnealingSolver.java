@@ -34,7 +34,7 @@ public class SimulatedAnnealingSolver extends Solver {
             if (exeTime > tempChangeTime) {
                 t = 1.000000001;
             }
-            logger.info("\t Temperature = " + t + "\tCost: " + best.getTotalCost());
+            System.out.println("\t Temperature = " + t + "\tCost: " + best.getTotalCost());
             do {
                 neighbor = new Planning(current);
                 localSearch(neighbor);

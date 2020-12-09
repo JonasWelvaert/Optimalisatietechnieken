@@ -57,8 +57,8 @@ public class Main {
     /*
      * -------------------------------- PARAMETERS --------------------------------
      */
-    public static final int temperature = 100000; // 1000
-    public static final double cooling = 0.999; // 0.9999
+    public static final int temperature = 1000; // 1000
+    public static final double cooling = 0.7; // 0.9999
     public static final boolean tempReset = true; // true
     public static final double exponentialRegulator = 150; // 10 (>1 will accept more worse solutions)
     /* -------------------------------- TIMES -------------------------------- */
@@ -66,10 +66,8 @@ public class Main {
 
     public static void main(String[] args) throws IOException, InterruptedException {
         startTime = System.currentTimeMillis();
-        System.out.println("System Started at milis =" + startTime);
-
         logger.setLevel(Level.OFF);
-        timeLimit = 90;
+        timeLimit = 60;
         int nrOfThreads = 2;
         // TODO niet nodig
         if (args.length == 1) {
@@ -112,18 +110,17 @@ public class Main {
 
                 Planning optimizedPlanning = solver.optimize(new Planning(initialPlanning));
                 if (optimizedPlanning != null) {
-                    Main.resultFound(optimizedPlanning);
+                    resultFound(optimizedPlanning);
                 }
                 return optimizedPlanning;
             });
-
         }
         long temp = System.currentTimeMillis() - startTime;
         long timeLimMili = timeLimit * 1000;
         Thread.sleep(timeLimMili - temp);
         pool.shutdownNow();
 
-        Main.resultFound(initialPlanning);
+        //resultFound(initialPlanning);
 
         System.out.println("System Exited because time limit is reached");
         System.exit(10);
@@ -142,7 +139,7 @@ public class Main {
             validator.validate(inputFile, outputFile);
 
             logger.info(titlePrefix + "6. Writing optimisation points to csv:");
-            writingOptimisationPointsToCSV(bestPlanning);
+            //writingOptimisationPointsToCSV(bestPlanning);
             logCostToCSV(bestPlanning);
 
             logger.info(titlePrefix + "7. Resume:");
