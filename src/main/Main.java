@@ -15,8 +15,10 @@ import solver.SteepestDescentSolver;
 import java.io.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.Timer;
@@ -104,7 +106,7 @@ public class Main {
         bestPlanning = new Planning(initialPlanning);
         resultFound(initialPlanning);
 
-        ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(nrOfThreads);
+       /* ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(nrOfThreads);
 
         for (int i = 0; i < 1 * nrOfThreads; i++) { // aantal taken die aan de pool toegewezen worden. // voor debuggin
             // =1
@@ -129,7 +131,7 @@ public class Main {
 
         }
         Thread.sleep(timeLimit * 1000);
-        pool.shutdownNow();
+        pool.shutdownNow();*/
 		System.exit(0);
 
     }
@@ -255,39 +257,41 @@ public class Main {
             }
         }
 
-        p.calculateAllCosts();
 
-        Planning ret = new Planning(p);
-        for (int i = 0; i < 8; i++) {
-            boolean useCheckedItems;
-            boolean useEndOfBlockShipping;
-            boolean useEndOfDayShipping;
-            if (i < 4) {
-                useCheckedItems = false;
-            } else {
-                useCheckedItems = true;
-            }
-            if (i % 4 < 2) {
-                useEndOfBlockShipping = false;
-            } else {
-                useEndOfBlockShipping = true;
-            }
-            if (i % 2 < 1) {
-                useEndOfDayShipping = false;
-            } else {
-                useEndOfDayShipping = true;
-            }
-            Planning planning = new Planning(p);
-            produceAndShip(useCheckedItems, useEndOfBlockShipping, useEndOfDayShipping, planning);
-            planning.calculateAllCosts();
-            if (planning.getTotalCost() <= ret.getTotalCost()) {
-                ret = planning;
-            }
-        }
-        p = ret;
-        initialCost = p.getTotalCost();
-        printOutputToConsole(p);
-        return p;
+		p.calculateAllCosts();
+		Random random = new Random();
+		Planning ret = new Planning(p);
+		for (int j = 0; j < 10000; j++) {
+			System.out.println(j+  " "+ ret.getTotalCost());
+			Planning planning = new Planning(p);
+			Collections.shuffle(planning.getRequests().getRequests());
+			Collections.shuffle(planning.getStock().getItems());
+			Collections.shuffle(planning.getMachines());
+			boolean useCheckedItems = random.nextBoolean();
+			boolean useEndOfBlockShipping = random.nextBoolean();
+			boolean useEndOfDayShipping = random.nextBoolean();
+			produceAndShip(useCheckedItems, useEndOfBlockShipping, useEndOfDayShipping, planning);
+			planning.calculateAllCosts();
+			if (planning.getTotalCost() <= ret.getTotalCost()) {
+				ret = planning;
+			}
+			/*
+			 * for (int i = 0; i < 8; i++) { boolean useCheckedItems; boolean
+			 * useEndOfBlockShipping; boolean useEndOfDayShipping; if (i < 4) {
+			 * useCheckedItems = false; } else { useCheckedItems = true; } if (i % 4 < 2) {
+			 * useEndOfBlockShipping = false; } else { useEndOfBlockShipping = true; } if (i
+			 * % 2 < 1) { useEndOfDayShipping = false; } else { useEndOfDayShipping = true;
+			 * } Planning planning = new Planning(p); produceAndShip(useCheckedItems,
+			 * useEndOfBlockShipping, useEndOfDayShipping, planning);
+			 * planning.calculateAllCosts(); if (planning.getTotalCost() <=
+			 * ret.getTotalCost()) { ret = planning; } }
+			 */
+		}
+		p = ret;
+		initialCost = p.getTotalCost();
+
+		printOutputToConsole(p);
+		return p;
     }
 
     private static void produceAndShip(boolean useCheckedItems, boolean useEndOfBlockShipping,
