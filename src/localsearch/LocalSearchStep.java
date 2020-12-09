@@ -168,7 +168,7 @@ public abstract class LocalSearchStep {
                         blocks.add(block);
                     } else if (!(ms instanceof Maintenance)) {
                         // IF STATE IS NOT IDLE AND ALSO NOT MAINTENANCE, CHECK IF SIZE IS SUFFICIENT
-                        if (blocks.size() >= (productionBlocksNeeded + setupBeforeDuration + setupAfterDuration)) {  //5 blocks needed     // size = 7
+                        if (blocks.size() >= (productionBlocksNeeded + setupBeforeDuration + setupAfterDuration)) {
 
                             // PLAN SETUP BEFORE
                             for (int i = 0; i < setupBeforeDuration; i++) {

@@ -35,9 +35,9 @@ public class AddSingleProduction extends LocalSearchStep {
 
 			Day temp = p.getLastNOTPlannedShippingDayForItem(nItem);
 			if (temp == null) {
-				continue tries;
+				continue;
 			} else if (temp.getId() < randomDay) {
-				continue tries;
+				continue;
 			}
 
 			MachineState machineState = block.getMachineState(machine);
@@ -65,7 +65,7 @@ public class AddSingleProduction extends LocalSearchStep {
 							}
 							productionCanBePlanned = true;
 						} else {
-							continue tries;
+							continue;
 						}
 					}
 					// ITEM ARE THE SAME SO NO SETUP NEEDED
@@ -73,20 +73,16 @@ public class AddSingleProduction extends LocalSearchStep {
 						productionCanBePlanned = true;
 					}
 					// PLAN PRODUCTION
-					if (productionCanBePlanned) {
-						boolean isPossible = true;
-						for (Day d : p.getSuccessorDaysInclusive(day)) {
-							if (nItem.getStockAmount(d) + machine.getEfficiency(nItem) > nItem.getMaxAllowedInStock()) {
-								continue tries;
-							}
-						}
-						if (isPossible) {
-							block.setMachineState(machine, new Production(nItem));
-							p.updateStockLevels(day, nItem, machineEfficiency);
-
-							return true;
+					boolean isPossible = true;
+					for (Day d : p.getSuccessorDaysInclusive(day)) {
+						if (nItem.getStockAmount(d) + machine.getEfficiency(nItem) > nItem.getMaxAllowedInStock()) {
+							continue tries;
 						}
 					}
+					block.setMachineState(machine, new Production(nItem));
+					p.updateStockLevels(day, nItem, machineEfficiency);
+
+					return true;
 				}
 			}
 		}

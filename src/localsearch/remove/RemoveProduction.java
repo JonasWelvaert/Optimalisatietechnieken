@@ -34,14 +34,14 @@ public class RemoveProduction extends LocalSearchStep {
 
 
             if (!(state instanceof Production)) {
-                continue tries;
+                continue;
             }
 
             Item cItem = ((Production) state).getItem();
             Day temp = p.getLastPlannedShippingDayForItem(cItem);
 
             if (temp ==null || day.getId() < temp.getId()) {
-                continue tries;
+                continue;
             }
 
             for (Day d : p.getSuccessorDaysInclusive(day)) {
@@ -49,35 +49,10 @@ public class RemoveProduction extends LocalSearchStep {
                     continue tries;
                 }
             }
-
             int machineEfficiency = -1 * machine.getEfficiency(cItem);
             block.setMachineState(machine, new Idle());
             p.updateStockLevels(day, cItem, machineEfficiency);
-
             return true;
-
-            /*
-            int count = 0;
-            while (count < maxTries) {
-                int randomDay = random.nextInt(Planning.getNumberOfDays());
-                int randomBlock = random.nextInt(Day.getNumberOfBlocksPerDay());
-                int randMachineInt = random.nextInt(p.getMachines().size());
-                Machine randMachine = p.getMachines().get(randMachineInt);
-                Block b = p.getDay(randomDay).getBlock(randomBlock);
-
-                MachineState ms = b.getMachineState(randMachine);
-
-                if (ms instanceof Production) {
-                    Production prod = (Production) b.getMachineState(randMachine);
-
-                    b.setMachineState(randMachine, new Idle());
-                    return false;
-                }
-                count++;
-                // Elke controle voor eventuele overbodige setup te verwijderen?
-            }
-          */
-
         }
         return false;
     }

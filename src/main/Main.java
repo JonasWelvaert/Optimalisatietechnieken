@@ -67,7 +67,7 @@ public class Main {
     public static void main(String[] args) throws IOException, InterruptedException {
         startTime = System.currentTimeMillis();
         // logger.setLevel(Level.OFF);
-        timeLimit = 150;
+        timeLimit = 90;
         int nrOfThreads = 1;
         // TODO niet nodig
         if (args.length == 1) {

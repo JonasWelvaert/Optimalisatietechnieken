@@ -123,10 +123,6 @@ public class FeasibiltyChecker {
                 }
             }
         }
-
-        /*for (Item i : planning.getStock().getItems()) {
-            i.checkStock();
-        }*/
         return true;
     }
 
@@ -211,12 +207,9 @@ public class FeasibiltyChecker {
 
         if (p.getDay(d).hasNightShift()) {
 
-            teller++; // TODO teller opgehoogd, maar niet meer gebruikt ?
             // check that the minimum amount of consecutive days with night shift is
             // fulfilled
             if (d > (p.getMinConsecutiveDaysWithNightShift() - p.getPastConsecutiveDaysWithNightShift())) {
-                // for (int l = d; l < (d + Planning.getMinConsecutiveDaysWithNightShift());
-                // l++) {
                 for (int l = d; l < Planning.getNumberOfDays(); l++) {
                     if (!p.getDay(l).hasNightShift()) {
                         return false;
@@ -228,8 +221,6 @@ public class FeasibiltyChecker {
             // check that the night shift days are consecutive
             if (teller > 0 && teller < p.getMinConsecutiveDaysWithNightShift()) {
                 return false;
-            } else {
-                teller = 0; // TODO teller op null gezet maar niet meer gebruikt ?
             }
 
             // check that the overtime blocks are consecutive
@@ -310,8 +301,6 @@ public class FeasibiltyChecker {
     }
 
     private boolean checkSetupConstraint(Machine m, Planning p) {
-
-//        Main.printOutputToConsole(p);
         Item currentItem = m.getInitialSetup();
         Item from = null;
         Item to = null;
@@ -516,24 +505,6 @@ public class FeasibiltyChecker {
 
                         // amount in the stock
                         amount = planning.getStock().getItem(i.getId()).getStockAmount(planning.getDay(d));
-/*
-						for (Machine m : planning.getMachines()) {
-							// check the amount produced on the last block in the day for every machine
-							int lastBlockOfProduction = 0;
-							for (int j = 0; j < Day.getNumberOfBlocksPerDay(); j++) {
-								if (planning.getDay(d).getBlock(j).getMachineState(m) instanceof Production) {
-									lastBlockOfProduction = planning.getDay(d).getBlock(j).getId();
-								}
-							}
-							if (planning.getDay(d).getBlock(lastBlockOfProduction)
-									.getMachineState(m) instanceof Production) {
-								Production production = (Production) planning.getDay(d).getBlock(lastBlockOfProduction)
-										.getMachineState(m);
-								if (production.getItem().getId() == i.getId()) {
-									amount += production.getItem().getStockAmount(planning.getDay(d));
-								}
-							}
-						}*/
                         if (amount < request.getAmountOfItem(i)) {
                             return false;
                         }

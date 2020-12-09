@@ -57,13 +57,12 @@ public class AddShippingDay extends LocalSearchStep {
                             }
                         }
                         if (!itemPlanned) {
-                            allItemsPlanned = false; // IF 1 item could not be entirely planned, allItemsPlanned = false
                             continue shippingday;
                         }
                     }
                     // TRY TO PLAN SHIPPING ON DAY SD AGAIN
                 }
-                if (allItemsPlanned && tryToPlanShippingDay(sd, request, p)) {
+                if (tryToPlanShippingDay(sd, request, p)) {
                     return true;
                 }
             }
