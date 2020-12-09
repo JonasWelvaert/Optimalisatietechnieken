@@ -52,7 +52,7 @@ public class AddParallellProduction extends LocalSearchStep {
                         // STARTING FROM FEASIBLE STATE, SO IF NO BEFORE NEEDED, ALSO NO AFTER IS NEEDED
                         if (!pItem.equals(nItem)) {
                             Setup setupBefore = pItem.getSetupTo(nItem);
-                            Setup setupAfter = nItem.getSetupTo(pItem); // TODO niet altijd nodig !!!
+                            Setup setupAfter = nItem.getSetupTo(pItem);
                             List<Block> beforeBlocks = getSetupBlockBeforeProduction(setupBefore, day, block, machine, p);
                             List<Block> afterBlocks = getSetupBlocksAfterProduction(setupAfter, day, block, machine, p);
 

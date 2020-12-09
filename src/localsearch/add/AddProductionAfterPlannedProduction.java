@@ -51,10 +51,6 @@ public class AddProductionAfterPlannedProduction extends LocalSearchStep {
 				if (ms instanceof Production) {
 					if (productionBlock == null) {
 						productionBlock = b;
-						// TODO check if possible to produce more of item i
-						// else infeasible?!?
-					} else {
-						// do nothing.
 					}
 
 				} else if (productionBlock != null && ms instanceof Setup) {
@@ -64,7 +60,7 @@ public class AddProductionAfterPlannedProduction extends LocalSearchStep {
 					// we hebben al gecontroleert als productie mogelijk is
 					Item prodItem = ((Production) productionBlock.getMachineState(machine)).getItem();
 					Day temp = p.getLastNOTPlannedShippingDayForItem(prodItem);
-					if (temp == null) { // TODO hier
+					if (temp == null) {
 						return false;
 					} else if (temp.getId() < dayTemp.getId()) {
 						return false;

@@ -10,7 +10,6 @@ import model.machinestate.setup.LargeSetup;
 import model.machinestate.setup.SmallSetup;
 import solver.SimulatedAnnealingSolver;
 import solver.Solver;
-import solver.SteepestDescentSolver;
 
 import java.io.*;
 import java.time.LocalDateTime;
@@ -21,11 +20,10 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static main.EnumInputFile.*;
@@ -48,7 +46,6 @@ public class Main {
     public static long seed = -1; // -1 -> current timestamp, >=0 are valid seeds.
     public static Planning initialPlanning;
     public static Planning bestPlanning;
-
     /* -------------------------------- FOLDERS -------------------------------- */
     public static String graphingFolder = "GraphingOutput/";
     public static String costFolder = "Costs/";
@@ -56,24 +53,20 @@ public class Main {
     public static final String INSTANCE_FOLDER = "instances/";
     public static final String CSV_SEP = ",";
 
-    /*
-     * -------------------------------- PARAMETERS --------------------------------
-     */
+    /* -------------------------------- PARAMETERS -------------------------------- */
     public static final int temperature = 1000000; // 1000
     public static final double cooling = 0.9999; // 0.9999
     public static final boolean tempReset = true; // true
     public static final double exponentialRegulator = 150; // 10 (>1 will accept more worse solutions)
-
-    public static final int iterations = 100000; // BE SURE TO USE THE CORRECT PARAMETERS!
-
-    public static long startTime;
+    /* -------------------------------- TIMES -------------------------------- */
+    public static long startTime, initialDuration, timeLimit;
 
     public static void main(String[] args) throws IOException, InterruptedException {
         startTime = System.currentTimeMillis();
-
-        // logger.setLevel(Level.OFF);
-        long timeLimit = 300;// in seconds 300=5min
-        int nrOfThreads = 1; // for debugging = 1 //TODO @jonas increase seed for every thread
+        //logger.setLevel(Level.OFF);
+        timeLimit = 90;
+        int nrOfThreads = 1;
+        //TODO niet nodig
         if (args.length == 1) {
             inputFile = INSTANCE_FOLDER + args[0];
             outputFile = SAx_FOLDER + outputPrefix + "_" + args[0];
@@ -106,33 +99,28 @@ public class Main {
         bestPlanning = new Planning(initialPlanning);
         resultFound(initialPlanning);
 
-       /* ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(nrOfThreads);
+        ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(nrOfThreads);
 
-        for (int i = 0; i < 1 * nrOfThreads; i++) { // aantal taken die aan de pool toegewezen worden. // voor debuggin
-            // =1
-            pool.submit(new Callable<Planning>() {
+        for (int i = 0; i < 1 * nrOfThreads; i++) { //TODO
+            pool.submit(() -> {
+                Solver solver = new SimulatedAnnealingSolver(new FeasibiltyChecker(), temperature, cooling);
 
-                @Override
-                public Planning call() throws Exception {
-                    Solver solver;
-
-                    // solver = new SteepestDescentSolver(iterations, new FeasibiltyChecker());
-
-                    solver = new SimulatedAnnealingSolver(new FeasibiltyChecker(), temperature, cooling);
-
-                    Planning optimizedPlanning = solver.optimize(new Planning(initialPlanning));
-                    if (optimizedPlanning != null) {
-                        Main.resultFound(optimizedPlanning);
-                    }
-                    return optimizedPlanning;
+                Planning optimizedPlanning = solver.optimize(new Planning(initialPlanning));
+                if (optimizedPlanning != null) {
+                    Main.resultFound(optimizedPlanning);
                 }
-
+                return optimizedPlanning;
             });
 
         }
-        Thread.sleep(timeLimit * 1000);
-        pool.shutdownNow();*/
-		System.exit(0);
+        long temp = System.currentTimeMillis() - startTime;
+        long timeLimMili = timeLimit * 1000;
+        Thread.sleep(timeLimMili - temp);
+        pool.shutdownNow();
+
+        Main.resultFound(initialPlanning);
+
+        System.exit(10);
 
     }
 
@@ -141,9 +129,9 @@ public class Main {
             bestPlanning = new Planning(p);
 
             logger.info(titlePrefix + "4A. Printing result to console");
-            printOutputToConsole(bestPlanning);
+//            printOutputToConsole(bestPlanning);
 
-            System.out.println(outputFile);
+//            System.out.println(outputFile);
             logger.info(titlePrefix + "4B. Printing result to file");
             printOutputToFile(outputFile, bestPlanning);
 
@@ -158,6 +146,7 @@ public class Main {
             logger.info("Initial cost: \t" + initialCost);
             logger.info("Total cost: \t" + bestPlanning.getTotalCost());
             logger.info("Validator valid: " + validator.isValid());
+//            System.out.println("Execute time in seconds" + initialDuration);
         }
     }
 
@@ -258,44 +247,40 @@ public class Main {
         }
 
 
-		p.calculateAllCosts();
-		Random random = new Random();
-		Planning ret = new Planning(p);
-		for (int j = 0; j < 10000; j++) {
-			System.out.println(j+  " "+ ret.getTotalCost());
-			Planning planning = new Planning(p);
-			Collections.shuffle(planning.getRequests().getRequests());
-			Collections.shuffle(planning.getStock().getItems());
-			Collections.shuffle(planning.getMachines());
-			boolean useCheckedItems = random.nextBoolean();
-			boolean useEndOfBlockShipping = random.nextBoolean();
-			boolean useEndOfDayShipping = random.nextBoolean();
-			produceAndShip(useCheckedItems, useEndOfBlockShipping, useEndOfDayShipping, planning);
-			planning.calculateAllCosts();
-			if (planning.getTotalCost() <= ret.getTotalCost()) {
-				ret = planning;
-			}
-			/*
-			 * for (int i = 0; i < 8; i++) { boolean useCheckedItems; boolean
-			 * useEndOfBlockShipping; boolean useEndOfDayShipping; if (i < 4) {
-			 * useCheckedItems = false; } else { useCheckedItems = true; } if (i % 4 < 2) {
-			 * useEndOfBlockShipping = false; } else { useEndOfBlockShipping = true; } if (i
-			 * % 2 < 1) { useEndOfDayShipping = false; } else { useEndOfDayShipping = true;
-			 * } Planning planning = new Planning(p); produceAndShip(useCheckedItems,
-			 * useEndOfBlockShipping, useEndOfDayShipping, planning);
-			 * planning.calculateAllCosts(); if (planning.getTotalCost() <=
-			 * ret.getTotalCost()) { ret = planning; } }
-			 */
-		}
-		p = ret;
-		initialCost = p.getTotalCost();
+        p.calculateAllCosts();
+        Random random = (Main.seed < 0) ? new Random() : new Random(Main.seed + 1);
+        Planning ret = new Planning(p);
+        int numberOfRequests = p.getRequests().getRequests().size();
+        int numberOfDays = p.getDays().size();
+        int numberOfBlock = numberOfDays * p.getDay(0).getBlocks().size();
 
-		printOutputToConsole(p);
-		return p;
+        int times = 19200000 / (numberOfBlock * numberOfRequests);
+        times = times * 4;
+
+        for (int j = 0; j < times; j++) {
+            Planning planning = new Planning(p);
+            Collections.shuffle(planning.getRequests().getRequests());
+            Collections.shuffle(planning.getStock().getItems());
+            Collections.shuffle(planning.getMachines());
+            boolean useCheckedItems = random.nextBoolean();
+            boolean useEndOfBlockShipping = random.nextBoolean();
+            boolean useEndOfDayShipping = random.nextBoolean();
+            produceAndShip(useCheckedItems, useEndOfBlockShipping, useEndOfDayShipping, planning);
+            planning.calculateAllCosts();
+            if (planning.getTotalCost() <= ret.getTotalCost()) {
+                ret = planning;
+            }
+        }
+        p = ret;
+        initialCost = p.getTotalCost();
+
+        //printOutputToConsole(p);
+
+        initialDuration = System.currentTimeMillis() - startTime;
+        return p;
     }
 
-    private static void produceAndShip(boolean useCheckedItems, boolean useEndOfBlockShipping,
-                                       boolean useEndOfDayShipping, Planning p) {
+    private static void produceAndShip(boolean useCheckedItems, boolean useEndOfBlockShipping, boolean useEndOfDayShipping, Planning p) {
         Set<Item> checkedItems = new HashSet<>();
         machine:
         for (Machine m : p.getMachines()) {
@@ -557,7 +542,11 @@ public class Main {
             file.createNewFile();
             BufferedWriter bw = new BufferedWriter(new FileWriter(file));
             bw.write("Instance_name: " + planning.getInstanceName() + System.lineSeparator());
-            bw.write("Cost: " + String.format("%.2f", planning.getTotalCost()) + System.lineSeparator());
+
+            double cost = planning.getTotalCost();
+            double temp = Math.round(cost * 1000000.0) / 1000000.0;
+
+            bw.write("Cost: " + String.format("%.2f", temp) + System.lineSeparator());
             for (Day d : planning.getDays()) {
                 bw.write("#Day " + d.getId() + System.lineSeparator());
                 for (Block b : d) {
@@ -680,7 +669,7 @@ public class Main {
                 int nrOfDifferentItems = Integer.parseInt(inputDelen[1]);
                 stock = new Stock(nrOfDifferentItems);
             } else if (inputDelen[0].equals("Number_of_days:")) {
-                Planning.setNumberOfDays(Integer.parseInt(inputDelen[1])); // TODO
+                Planning.setNumberOfDays(Integer.parseInt(inputDelen[1]));
             } else if (inputDelen[0].equals("Number_of_requests:")) {
                 requests = new Requests();
                 for (int j = 0; j < Integer.parseInt(inputDelen[1]); j++) {

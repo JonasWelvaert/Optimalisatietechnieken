@@ -19,15 +19,12 @@ public abstract class Solver {
     protected static final Logger logger = Logger.getLogger(Solver.class.getName());
     protected final FeasibiltyChecker feasibiltyChecker;
 
-    //Change the seed in MAIN!!
-    private static Random random = (Main.seed < 0) ? new Random() : new Random(Main.seed + 2);
+    private static final Random random = (Main.seed < 0) ? new Random() : new Random(Main.seed + 2);
     private static int localSearchUpperBound = 999999999;
 
     public Solver(FeasibiltyChecker feasibiltyChecker) {
 //        logger.setLevel(Level.OFF);
         this.feasibiltyChecker = feasibiltyChecker;
-
-
     }
 
     public abstract Planning optimize(Planning initialPlanning) throws IOException;
@@ -37,9 +34,6 @@ public abstract class Solver {
 
         int randomInt = random.nextInt(localSearchUpperBound);
         int switcher = 0;
-
-        // begin bij de simpele operatoren -> add shipping day + add itemS
-        // stap voor stap
 
         if (randomInt < (switcher += 5)) {
             lssf.getLocalSearchStep(ADD_SINGLE_PRODUCTION).execute(p);
@@ -59,22 +53,11 @@ public abstract class Solver {
             lssf.getLocalSearchStep(MOVE_SHIPPING_DAY).execute(p);
         } else if (randomInt < (switcher += 5)) {
             lssf.getLocalSearchStep(ADD_SHIPPING_DAY).execute(p);
-
-            int counter = 0;
-            for (Request r : p.getRequests()) {
-                if (r.hasShippingDay()) counter++;
-            }
-            System.out.println("# Shipped requests" + counter);
-
         } else if (randomInt < (switcher += 5)) {
             lssf.getLocalSearchStep(JOIN_SINGLE_NEIGHBOURING_SETUPS).execute(p);
         } else {
             localSearchUpperBound = switcher;
-
-
         }
-
-
         p.calculateAllCosts();
         return p;
     }

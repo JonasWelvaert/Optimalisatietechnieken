@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class FeasibiltyChecker {
@@ -21,7 +22,7 @@ public class FeasibiltyChecker {
     private Counting ec;
 
     public FeasibiltyChecker() {
-        //logger.setLevel(Level.OFF);
+        logger.setLevel(Level.OFF);
         ec = new Counting();
     }
 
@@ -88,13 +89,6 @@ public class FeasibiltyChecker {
                     }
                 }
             }
-            //JONAS:TODO DIT GEBEURT IN EXTRA?
-          /*  if (!checkStockConstraints(planning.getDay(d), planning)) {
-                ec.increaseCheckStockConstraints();
-                logger.warning("checkStockConstraints \t\t");
-                return false;
-            }*/
-
             if (!checkStockConstraintsExtra(d, planning)) {
                 ec.increaseCheckStockConstraints();
                 logger.warning("checkStockConstraintsExtra \t\t");
@@ -106,15 +100,6 @@ public class FeasibiltyChecker {
                 ec.increaseCheckSetupTypeConstraint();
                 return false;
             }
-
-            //JONAS:TODO DIT GEBEURT IN EXTRA?
-            // TODO take a look
-           /* if (!checkShippingDayConstraints(d, planning)) {
-                logger.warning("checkShippingDayConstraints");
-                ec.checkShippingDayConstraints++;
-                return false;
-            }*/
-
         }
 
         for (Machine m : planning.getMachines()) {
@@ -509,7 +494,7 @@ public class FeasibiltyChecker {
 
     }
 
-    //TODO take a look
+
     private boolean checkShippingDayConstraints(int d, Planning planning) {
         // check every request whether the amount produced/in-stock is sufficient
         for (Request request : planning.getRequests()) {

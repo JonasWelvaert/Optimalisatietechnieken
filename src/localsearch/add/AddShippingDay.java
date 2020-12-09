@@ -99,13 +99,12 @@ public class AddShippingDay extends LocalSearchStep {
      * @return null if stock levels not violated, else Map of needed amount per item
      */
     private Map<Item, Integer> checkFutureStock(Planning p, Request request, Day sd) {
-        // TODO isPossible = checkFeasibilityChecker...
         Map<Item, Integer> itemsNeeded = new HashMap<>();
         // FOR SD CHECK IF IN FUTURE STOCK IS NOT VIOLATED
         for (Day d : p.getSuccessorDaysInclusive(sd)) {
             for (Item i : request.getItemsKeySet()) {
                 int temp = i.getStockAmount(d) - request.getAmountOfItem(i);
-                if (temp < 0) { //TODO check max stock
+                if (temp < 0) {
                     int temp2 = Math.abs(temp); //items te weinig
                     itemsNeeded.put(i, temp2);
                 }

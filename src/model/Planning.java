@@ -157,11 +157,10 @@ public class Planning {
         return temp;
     }
 
-    public Day getLastPlannedShippingDayForItem(Item item) { // TODO remove production after
+    public Day getLastPlannedShippingDayForItem(Item item) {
         Day day = null;
         for (Request r : requests) {
             if (r.getItemsKeySet().contains(item)) {
-                //TODO constraint on production after last shipping day
                 if (r.hasShippingDay()) {
                     int dayId = r.getPossibleShippingDays().stream().mapToInt(Day::getId).max().getAsInt();
                     day = days.get(dayId);
@@ -171,11 +170,10 @@ public class Planning {
         return day;
     }
 
-    public Day getLastNOTPlannedShippingDayForItem(Item item) { //TODO voor production constraint
+    public Day getLastNOTPlannedShippingDayForItem(Item item) {
         Day day = null;
         for (Request r : requests) {
             if (r.getItemsKeySet().contains(item)) {
-                //TODO constraint on production after last shipping day
                 if (!r.hasShippingDay()) {
                     int dayId = r.getPossibleShippingDays().stream().mapToInt(Day::getId).max().getAsInt();
                     day = days.get(dayId);
@@ -282,7 +280,7 @@ public class Planning {
      * @param efficiency can be negative
      */
     public void updateStockLevels(Day day, Item nItem, int efficiency) {
-        for (int i = day.getId(); i < numberOfDays; i++) { //TODO
+        for (int i = day.getId(); i < numberOfDays; i++) {
             Day dayTemp = days.get(i);
             int temp = nItem.getStockAmount(dayTemp);
             int newAmount = temp + efficiency;
