@@ -49,7 +49,6 @@ public class ChangeProduction extends LocalSearchStep {
             }
             count++;
         }*/
-        System.out.println("MoveProduction is in maintenance");
 
         return false;
     }

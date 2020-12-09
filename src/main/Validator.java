@@ -25,7 +25,7 @@ public class Validator {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 teller++;
-                System.out.println(line);
+                //System.out.println(line);
 
                 if (teller == 1) {
                     isValid = line.split(" ")[1].equals("VALID");
@@ -38,7 +38,7 @@ public class Validator {
             scanner.close();
             scanner = new Scanner(err);
             while (scanner.hasNextLine()) {
-                System.out.println(scanner.nextLine());
+                //System.out.println(scanner.nextLine());
             }
             scanner.close();
         } catch (IOException e) {

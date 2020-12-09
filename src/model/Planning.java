@@ -296,9 +296,6 @@ public class Planning {
             int temp = nItem.getStockAmount(dayTemp);
             int newAmount = temp + efficiency;
             nItem.setStockAmount(dayTemp, newAmount);
-            if (newAmount < 0) {
-                System.out.println();
-            }
         }
     }
 

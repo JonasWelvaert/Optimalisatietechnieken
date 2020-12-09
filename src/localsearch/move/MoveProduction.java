@@ -52,7 +52,6 @@ public class MoveProduction extends LocalSearchStep {
             }
             count++;
         }*/
-        System.out.println("MoveProduction is in maintenance");
 
         return false;
     }

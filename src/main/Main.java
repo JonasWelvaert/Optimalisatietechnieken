@@ -66,9 +66,11 @@ public class Main {
 
     public static void main(String[] args) throws IOException, InterruptedException {
         startTime = System.currentTimeMillis();
-        // logger.setLevel(Level.OFF);
+        System.out.println("System Started at milis =" + startTime);
+
+        logger.setLevel(Level.OFF);
         timeLimit = 90;
-        int nrOfThreads = 1;
+        int nrOfThreads = 2;
         // TODO niet nodig
         if (args.length == 1) {
             inputFile = INSTANCE_FOLDER + args[0];
@@ -123,8 +125,8 @@ public class Main {
 
         Main.resultFound(initialPlanning);
 
+        System.out.println("System Exited because time limit is reached");
         System.exit(10);
-
     }
 
     public static synchronized void resultFound(Planning p) throws IOException {
@@ -132,9 +134,7 @@ public class Main {
             bestPlanning = new Planning(p);
 
             logger.info(titlePrefix + "4A. Printing result to console");
-//            printOutputToConsole(bestPlanning);
 
-//            System.out.println(outputFile);
             logger.info(titlePrefix + "4B. Printing result to file");
             printOutputToFile(outputFile, bestPlanning);
 
@@ -149,7 +149,6 @@ public class Main {
             logger.info("Initial cost: \t" + initialCost);
             logger.info("Total cost: \t" + bestPlanning.getTotalCost());
             logger.info("Validator valid: " + validator.isValid());
-//            System.out.println("Execute time in seconds" + initialDuration);
         }
     }
 

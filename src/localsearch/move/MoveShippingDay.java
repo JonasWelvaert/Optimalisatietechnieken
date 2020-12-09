@@ -41,7 +41,6 @@ public class MoveShippingDay extends LocalSearchStep {
         } else {
             planShippingDay(p);
         }
-        System.out.println("MoveShippingDay is in maintenance");
         return false;*/
     	return false;
     }

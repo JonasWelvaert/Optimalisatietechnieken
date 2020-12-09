@@ -4,6 +4,7 @@ import feasibilitychecker.FeasibiltyChecker;
 import model.Planning;
 
 import java.io.IOException;
+import java.util.logging.Level;
 
 import static main.Main.*;
 
@@ -15,7 +16,7 @@ public class SimulatedAnnealingSolver extends Solver {
 
     public SimulatedAnnealingSolver(FeasibiltyChecker feasibiltyChecker, double temperature, double coolingFactor) {
         super(feasibiltyChecker);
-        //logger.setLevel(Level.OFF);
+        logger.setLevel(Level.OFF);
         logger.info("Simulated Anealing solver made");
         this.temperature = temperature;
         this.coolingFactor = coolingFactor;
@@ -70,7 +71,7 @@ public class SimulatedAnnealingSolver extends Solver {
                 }
             }
         }
-        System.out.println(feasibiltyChecker.getEc().toString());
+        //System.out.println(feasibiltyChecker.getEc().toString());
         return best;
     }
 }
