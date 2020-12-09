@@ -5,146 +5,158 @@ import localsearch.LocalSearchStepFactory;
 import main.Main;
 import model.Day;
 import model.Planning;
+import model.Request;
 
 import java.io.IOException;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static localsearch.EnumLocalSearchStep.*;
 
 public abstract class Solver {
-	protected static final Logger logger = Logger.getLogger(Solver.class.getName());
-	protected final FeasibiltyChecker feasibiltyChecker;
+    protected static final Logger logger = Logger.getLogger(Solver.class.getName());
+    protected final FeasibiltyChecker feasibiltyChecker;
 
-	//Change the seed in MAIN!!
-	private static Random random = (Main.seed<0) ? new Random(): new Random(Main.seed + 2);
-	private static int localSearchUpperBound = 999999999;
+    //Change the seed in MAIN!!
+    private static Random random = (Main.seed < 0) ? new Random() : new Random(Main.seed + 2);
+    private static int localSearchUpperBound = 999999999;
 
-	public Solver(FeasibiltyChecker feasibiltyChecker) {
+    public Solver(FeasibiltyChecker feasibiltyChecker) {
 //        logger.setLevel(Level.OFF);
-		this.feasibiltyChecker = feasibiltyChecker;
-		
+        this.feasibiltyChecker = feasibiltyChecker;
 
-	}
 
-	public abstract Planning optimize(Planning initialPlanning) throws IOException;
+    }
 
-	public static Planning localSearch(Planning p) throws IOException {
-		LocalSearchStepFactory lssf = new LocalSearchStepFactory();
+    public abstract Planning optimize(Planning initialPlanning) throws IOException;
 
-		int randomInt = random.nextInt(localSearchUpperBound);
-		int switcher = 0;
+    public static Planning localSearch(Planning p) throws IOException {
+        LocalSearchStepFactory lssf = new LocalSearchStepFactory();
 
-		// begin bij de simpele operatoren -> add shipping day + add itemS
-		// stap voor stap
+        int randomInt = random.nextInt(localSearchUpperBound);
+        int switcher = 0;
 
-		if (randomInt < (switcher += 5)) {
-			lssf.getLocalSearchStep(ADD_SINGLE_PRODUCTION).execute(p);
-		} else if (randomInt < (switcher += 5)) {
-			lssf.getLocalSearchStep(ADD_PRODUCTION_AFTER_PLANNED_PRODUCTION).execute(p);
-		} else if (randomInt < (switcher += 0)) {
-			lssf.getLocalSearchStep(ADD_PARALLELL_PRODUCTION).execute(p);
-		} else if (randomInt < (switcher += 0)) {
-			lssf.getLocalSearchStep(MOVE_MAINTENANCE).execute(p);
-		} else if (randomInt < (switcher += 0)) {
-			lssf.getLocalSearchStep(CHANGE_PRODUCTION).execute(p);
-		} else if (randomInt < (switcher += 5)) {
-			lssf.getLocalSearchStep(REMOVE_PRODUCTION).execute(p);
-		} else if (randomInt < (switcher += 0)) {
-			lssf.getLocalSearchStep(MOVE_PRODUCTION).execute(p);
-		} else if (randomInt < (switcher += 0)) {
-			lssf.getLocalSearchStep(MOVE_SHIPPING_DAY).execute(p);
-		} else if (randomInt < (switcher += 5)) {
-			lssf.getLocalSearchStep(ADD_SHIPPING_DAY).execute(p);
-		} else if (randomInt < (switcher += 5)) {
-			lssf.getLocalSearchStep(JOIN_SINGLE_NEIGHBOURING_SETUPS).execute(p);
-		} else {
-			localSearchUpperBound = switcher;
-		}
+        // begin bij de simpele operatoren -> add shipping day + add itemS
+        // stap voor stap
 
-		p.calculateAllCosts();
-		return p;
-	}
+        if (randomInt < (switcher += 5)) {
+            lssf.getLocalSearchStep(ADD_SINGLE_PRODUCTION).execute(p);
+        } else if (randomInt < (switcher += 5)) {
+            lssf.getLocalSearchStep(ADD_PRODUCTION_AFTER_PLANNED_PRODUCTION).execute(p);
+        } else if (randomInt < (switcher += 0)) {
+            lssf.getLocalSearchStep(ADD_PARALLELL_PRODUCTION).execute(p);
+        } else if (randomInt < (switcher += 0)) {
+            lssf.getLocalSearchStep(MOVE_MAINTENANCE).execute(p);
+        } else if (randomInt < (switcher += 0)) {
+            lssf.getLocalSearchStep(CHANGE_PRODUCTION).execute(p);
+        } else if (randomInt < (switcher += 5)) {
+            lssf.getLocalSearchStep(REMOVE_PRODUCTION).execute(p);
+        } else if (randomInt < (switcher += 0)) {
+            lssf.getLocalSearchStep(MOVE_PRODUCTION).execute(p);
+        } else if (randomInt < (switcher += 0)) {
+            lssf.getLocalSearchStep(MOVE_SHIPPING_DAY).execute(p);
+        } else if (randomInt < (switcher += 5)) {
+            lssf.getLocalSearchStep(ADD_SHIPPING_DAY).execute(p);
 
-	private static int closestNightshift(Planning p, String when, int day) {
-		if (when.equals("before")) {
-			int lastNightShiftDay = -1;
-			for (int i = 0; i < p.getDays().size(); i++) {
-				if (p.getDay(i).hasNightShift() && i < day) { // controleren tot als laatste dag van nightshiftreeks
-					lastNightShiftDay = i;
-				} else {
-					break;
-				}
-			}
-			return lastNightShiftDay;
-		} else if (when.equals("after")) {
-			int firstNightShiftDay = -1;
-			for (int i = day + 1; i < p.getDays().size(); i++) {
-				if (p.getDay(i).hasNightShift()) { // controleren tot eerste dag van nieuwe nightshift reeks
-					firstNightShiftDay = i;
-					break;
-				}
-			}
-			return firstNightShiftDay;
-		}
-		return -1;
-	}
+            int counter = 0;
+            for (Request r : p.getRequests()) {
+                if (r.hasShippingDay()) counter++;
+            }
+            System.out.println("# Shipped requests" + counter);
 
-	private static void controlNewNightShift(Planning p, int randomDay, int randomBlock) {
-		int maxAmountDaysBetweenExtendingNightshift = 3;
-		Day d = p.getDay(randomDay);
-		if (!d.hasNightShift()) { // als er al nightshift is valt er niks te controleren
-			if (randomBlock > Day.getIndexOfBlockO()) { // niet overtime, wel nachtshift
-				int nightshiftBefore = closestNightshift(p, "before", randomDay);
-				int nightshiftAfter = closestNightshift(p, "after", randomDay);
-				// als nightshift niet lang geleden => beter verlengen, dan nieuwe starten
-				/*
-				 * if (nightshiftAfter == -1 && nightshiftBefore == -1) { // nieuwe nightshift
-				 * reeks int amountOfNightShifts =
-				 * Planning.getMinConsecutiveDaysWithNightShift(); for (int i = randomDay; i <
-				 * p.getDays().size(); i++) { if (amountOfNightShifts == 0) { break; } else {
-				 * p.getDay(i).setNightShift(true); amountOfNightShifts--; } } } else
-				 */
-				if (nightshiftBefore < nightshiftAfter) { // als dichtste nightshift ervoor ligt
-					if (nightshiftBefore <= maxAmountDaysBetweenExtendingNightshift) {
-						// alle dagen ervoor ook nighshift maken
-						for (int i = randomDay; i > randomDay - nightshiftBefore; i--) {
-							p.getDay(i).setNightShift(true);
-						}
-					} else {
-						// nieuwe nightshift reeks
-						int amountOfNightShifts = p.getMinConsecutiveDaysWithNightShift();
-						for (int i = randomDay; i < p.getDays().size(); i++) {
-							if (amountOfNightShifts == 0) {
-								break;
-							} else {
-								p.getDay(i).setNightShift(true);
-								amountOfNightShifts--;
-							}
-						}
-					}
-				} else { // als dichtste nighshift erna ligt of ze zijn gelijk
-					if (nightshiftAfter <= maxAmountDaysBetweenExtendingNightshift) {
-						// alle dagen erna ook nightshift maken
-						for (int i = randomDay; i < randomDay + nightshiftAfter; i++) {
-							p.getDay(i).setNightShift(true);
-						}
-					} else {
-						// nieuwe nightshift reeks
-						int amountOfNightShifts = p.getMinConsecutiveDaysWithNightShift();
-						for (int i = randomDay; i < p.getDays().size(); i++) {
-							if (amountOfNightShifts == 0) {
-								break;
-							} else {
-								p.getDay(i).setNightShift(true);
-								amountOfNightShifts--;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+        } else if (randomInt < (switcher += 5)) {
+            lssf.getLocalSearchStep(JOIN_SINGLE_NEIGHBOURING_SETUPS).execute(p);
+        } else {
+            localSearchUpperBound = switcher;
+
+
+        }
+
+
+        p.calculateAllCosts();
+        return p;
+    }
+
+    private static int closestNightshift(Planning p, String when, int day) {
+        if (when.equals("before")) {
+            int lastNightShiftDay = -1;
+            for (int i = 0; i < p.getDays().size(); i++) {
+                if (p.getDay(i).hasNightShift() && i < day) { // controleren tot als laatste dag van nightshiftreeks
+                    lastNightShiftDay = i;
+                } else {
+                    break;
+                }
+            }
+            return lastNightShiftDay;
+        } else if (when.equals("after")) {
+            int firstNightShiftDay = -1;
+            for (int i = day + 1; i < p.getDays().size(); i++) {
+                if (p.getDay(i).hasNightShift()) { // controleren tot eerste dag van nieuwe nightshift reeks
+                    firstNightShiftDay = i;
+                    break;
+                }
+            }
+            return firstNightShiftDay;
+        }
+        return -1;
+    }
+
+    private static void controlNewNightShift(Planning p, int randomDay, int randomBlock) {
+        int maxAmountDaysBetweenExtendingNightshift = 3;
+        Day d = p.getDay(randomDay);
+        if (!d.hasNightShift()) { // als er al nightshift is valt er niks te controleren
+            if (randomBlock > Day.getIndexOfBlockO()) { // niet overtime, wel nachtshift
+                int nightshiftBefore = closestNightshift(p, "before", randomDay);
+                int nightshiftAfter = closestNightshift(p, "after", randomDay);
+                // als nightshift niet lang geleden => beter verlengen, dan nieuwe starten
+                /*
+                 * if (nightshiftAfter == -1 && nightshiftBefore == -1) { // nieuwe nightshift
+                 * reeks int amountOfNightShifts =
+                 * Planning.getMinConsecutiveDaysWithNightShift(); for (int i = randomDay; i <
+                 * p.getDays().size(); i++) { if (amountOfNightShifts == 0) { break; } else {
+                 * p.getDay(i).setNightShift(true); amountOfNightShifts--; } } } else
+                 */
+                if (nightshiftBefore < nightshiftAfter) { // als dichtste nightshift ervoor ligt
+                    if (nightshiftBefore <= maxAmountDaysBetweenExtendingNightshift) {
+                        // alle dagen ervoor ook nighshift maken
+                        for (int i = randomDay; i > randomDay - nightshiftBefore; i--) {
+                            p.getDay(i).setNightShift(true);
+                        }
+                    } else {
+                        // nieuwe nightshift reeks
+                        int amountOfNightShifts = p.getMinConsecutiveDaysWithNightShift();
+                        for (int i = randomDay; i < p.getDays().size(); i++) {
+                            if (amountOfNightShifts == 0) {
+                                break;
+                            } else {
+                                p.getDay(i).setNightShift(true);
+                                amountOfNightShifts--;
+                            }
+                        }
+                    }
+                } else { // als dichtste nighshift erna ligt of ze zijn gelijk
+                    if (nightshiftAfter <= maxAmountDaysBetweenExtendingNightshift) {
+                        // alle dagen erna ook nightshift maken
+                        for (int i = randomDay; i < randomDay + nightshiftAfter; i++) {
+                            p.getDay(i).setNightShift(true);
+                        }
+                    } else {
+                        // nieuwe nightshift reeks
+                        int amountOfNightShifts = p.getMinConsecutiveDaysWithNightShift();
+                        for (int i = randomDay; i < p.getDays().size(); i++) {
+                            if (amountOfNightShifts == 0) {
+                                break;
+                            } else {
+                                p.getDay(i).setNightShift(true);
+                                amountOfNightShifts--;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 }

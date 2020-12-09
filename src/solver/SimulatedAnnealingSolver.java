@@ -6,8 +6,7 @@ import model.Planning;
 import java.io.IOException;
 import java.util.logging.Level;
 
-import static main.Main.exponentialRegulator;
-import static main.Main.tempReset;
+import static main.Main.*;
 
 public class SimulatedAnnealingSolver extends Solver {
     private final double temperature;
@@ -31,7 +30,17 @@ public class SimulatedAnnealingSolver extends Solver {
         Planning neighbor;
 
         for (double t = temperature; t > 1; t *= coolingFactor) {
-            logger.info("\t Temperature = " + t + "\tCost: " + current.getTotalCost());
+            logger.info("\t Temperature = " + t + "\tCost: " + best.getTotalCost());
+
+            double tempChangeTime = 9.5 * 60 * 1000;
+
+            long exeTime = System.currentTimeMillis() - startTime;
+
+            if (exeTime > tempChangeTime) {
+                t = t / 10;
+            }
+
+
 //          current.calculateAllCosts();
             current.logCostsToCSV(t);
             do {
