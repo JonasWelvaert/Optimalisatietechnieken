@@ -1,18 +1,15 @@
 package solver;
 
 import feasibilitychecker.FeasibiltyChecker;
-import main.Main;
 import model.Planning;
 
 import java.io.IOException;
-import java.util.logging.Level;
 
 import static main.Main.*;
 
 public class SimulatedAnnealingSolver extends Solver {
     private final double temperature;
     private final double coolingFactor;
-    int maxNumberOfWorseAcceptings = 50;
     int counter = 0;
 
 
@@ -36,16 +33,10 @@ public class SimulatedAnnealingSolver extends Solver {
             if (exeTime > tempChangeTime) {
                 t = 1.000000001;
             }
-
             logger.info("\t Temperature = " + t + "\tCost: " + best.getTotalCost());
-
-
-//          current.calculateAllCosts();
-//            current.logCostsToCSV(t);
             do {
                 neighbor = new Planning(current);
                 localSearch(neighbor);
-//                Main.printOutputToConsole(neighbor);
             } while (!feasibiltyChecker.checkFeasible(neighbor));
 
             double neighborCost = neighbor.getTotalCost();
@@ -57,7 +48,6 @@ public class SimulatedAnnealingSolver extends Solver {
             } else {
                 // save solution temp
                 counter++;
-
                 double temp = t * exponentialRegulator; //ACCEPT MORE WORSE SOLUTIONS
                 probability = Math.exp((currentCost - neighborCost) / temp);
             }
