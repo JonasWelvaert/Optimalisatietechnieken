@@ -67,7 +67,7 @@ public class Main {
 	public static void main(String[] args) throws IOException, InterruptedException {
 		// logger.setLevel(Level.OFF);
 
-		long timeLimit = 300;// in seconds 300=5min
+		long timeLimit = 600;// in seconds 300=5min
 		int nrOfThreads = 1; // for debugging = 1 //TODO @jonas increase seed for every thread
 		if (args.length == 1) {
 			inputFile = INSTANCE_FOLDER + args[0];
@@ -127,6 +127,7 @@ public class Main {
 		}
 		Thread.sleep(timeLimit * 1000);
 		pool.shutdownNow();
+		System.exit(0);
 
 	}
 
